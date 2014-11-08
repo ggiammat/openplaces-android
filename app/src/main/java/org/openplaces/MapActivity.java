@@ -12,6 +12,9 @@ import android.widget.Button;
 
 public class MapActivity extends Activity {
 
+    public static final String LOGTAG = "OpenPlaceSearch";
+
+
     Button searchButton;
 
     @Override
@@ -27,6 +30,8 @@ public class MapActivity extends Activity {
         this.searchButton = (Button) findViewById(R.id.searchButton);
 
         this.setUpListeners();
+
+
     }
 
     private void setUpListeners(){

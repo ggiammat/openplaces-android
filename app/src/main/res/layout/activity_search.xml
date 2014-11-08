@@ -2,15 +2,93 @@
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context="org.openplaces.SearchActivity">
 
-    <ListView
-        android:layout_width="wrap_content"
+
+    <EditText
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/locationsList"
-        android:layout_centerVertical="true"
-        android:layout_alignParentEnd="true"/>
+        android:id="@+id/searchEditText"
+        android:hint="What?"
+        android:layout_centerHorizontal="true" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Where?"
+        android:id="@+id/locationEditText"
+        android:layout_below="@+id/searchEditText"
+        android:layout_centerHorizontal="true" />
+
+
+        <android.support.v4.view.ViewPager
+            android:id="@+id/searchTabsViewPager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/locationEditText">
+
+            <android.support.v4.view.PagerTabStrip
+                android:id="@+id/pager_header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:paddingBottom="4dp"/>
+
+        </android.support.v4.view.ViewPager>
+
+    <!--<TabHost-->
+        <!--android:layout_width="fill_parent"-->
+        <!--android:layout_height="fill_parent"-->
+        <!--android:id="@+id/searchTabs"-->
+        <!--android:layout_alignParentBottom="true"-->
+        <!--android:layout_alignParentStart="true"-->
+        <!--android:layout_marginBottom="124dp"-->
+        <!--android:layout_below="@id/locationEditText">-->
+
+        <!--<LinearLayout-->
+            <!--android:layout_width="fill_parent"-->
+            <!--android:layout_height="fill_parent"-->
+            <!--android:orientation="vertical">-->
+
+            <!--<TabWidget-->
+                <!--android:id="@android:id/tabs"-->
+                <!--android:layout_width="fill_parent"-->
+                <!--android:layout_height="wrap_content"/>-->
+
+            <!--<FrameLayout-->
+                <!--android:id="@android:id/tabcontent"-->
+                <!--android:layout_width="fill_parent"-->
+                <!--android:layout_height="fill_parent">-->
+
+
+
+                <!--&lt;!&ndash;-->
+                <!--<ListView-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:id="@+id/recentSearchesList"/>-->
+
+                <!--<GridView-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:id="@+id/presetsSearchList"-->
+                    <!--android:numColumns="auto_fit" />-->
+
+                <!--<ListView-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:id="@+id/locationsList"/>-->
+
+                <!--<ListView-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:id="@+id/bookmarkedSearchesList"/>-->
+
+                <!--&ndash;&gt;-->
+            <!--</FrameLayout>-->
+        <!--</LinearLayout>-->
+    <!--</TabHost>-->
+
 
 </RelativeLayout>

@@ -1,10 +1,13 @@
 package org.openplaces.search;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.TextView;
 
 import org.openplaces.R;
@@ -13,41 +16,76 @@ import org.openplaces.utils.GeoFunctions;
 import org.openplaces.utils.OPGeoPoint;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 /**
  * Created by gabriele on 11/6/14.
  */
-public class SearchLocationsAdapter extends BaseAdapter {
+public class SearchLocationsAdapter extends BaseAdapter implements Filterable {
 
     private Context context;
     private LayoutInflater inflater;
     private List<OPLocation> locations;
+    private List<OPLocation> filteredLocations;
     private OPGeoPoint myLocation;
     private DecimalFormat distanceFormatter = new DecimalFormat("#.##");
+    private String currentFilterText;
+
+    private Filter filter = new Filter(){
+        @Override
+        protected void publishResults(CharSequence constraint, FilterResults results) {
+
+            filteredLocations = (List<OPLocation>) results.values;
+            notifyDataSetChanged();
+        }
+
+        @Override
+        protected FilterResults performFiltering(CharSequence constraint) {
+            FilterResults results = new FilterResults();
+
+            List<OPLocation> filteringResults = new ArrayList<OPLocation>();
+            filteringResults.add(0, new OPLocation()); //add placeholder for "Near me now" location
+            currentFilterText = constraint.toString();
+            for(OPLocation l: locations){
+                if(l.getDisplayName().toLowerCase().contains(currentFilterText.toLowerCase())){
+                    filteringResults.add(l);
+                }
+            }
+
+            results.count = filteringResults.size();
+            results.values = filteringResults;
+            return results;
+        }
+    };
 
     public SearchLocationsAdapter(Context context, OPGeoPoint myLocation){
         this.context = context;
         this.myLocation = myLocation;
         this.locations = new LinkedList<OPLocation>();
+        this.filteredLocations = this.locations;
         inflater = (LayoutInflater) this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
+    @Override
+    public Filter getFilter() {
+        return this.filter;
+    }
 
     public void setLocations(List<OPLocation> locations){
         this.locations = locations;
-        this.notifyDataSetChanged();
+        this.getFilter().filter("");
     }
 
     @Override
     public int getCount() {
-        return this.locations.size();
+        return this.filteredLocations.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return this.locations.get(position);
+        return this.filteredLocations.get(position);
     }
 
     @Override
@@ -63,12 +101,21 @@ public class SearchLocationsAdapter extends BaseAdapter {
         TextView locNameTV = (TextView) convertView.findViewById(R.id.loc_name);
         TextView locInfoTV = (TextView) convertView.findViewById(R.id.loc_info);
 
-        OPLocation loc = (OPLocation) this.getItem(position);
+        if(position == 0){
+            //TODO add localization
+            locNameTV.setText("[Near me now]");
+            locNameTV.setTypeface(null, Typeface.ITALIC);
+            locInfoTV.setText("");
+        }
+        else {
+            OPLocation loc = (OPLocation) this.getItem(position);
 
-        locNameTV.setText(loc.getDisplayName());
-        String distance = this.distanceFormatter.format(
-                GeoFunctions.distance(myLocation, loc.getPosition())/1000d);
-        locInfoTV.setText(distance + " km");
+            locNameTV.setText(loc.getDisplayName());
+            locNameTV.setTypeface(null, Typeface.NORMAL);
+            String distance = this.distanceFormatter.format(
+                    GeoFunctions.distance(myLocation, loc.getPosition())/1000d);
+            locInfoTV.setText(distance + " km");
+        }
 
         return convertView;
     }

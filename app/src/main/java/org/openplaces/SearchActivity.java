@@ -2,6 +2,7 @@ package org.openplaces;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.AsyncTask;
@@ -17,6 +18,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ListView;
@@ -24,10 +26,12 @@ import android.widget.TabHost;
 
 import org.openplaces.helpers.HttpHelper;
 import org.openplaces.model.OPLocation;
+import org.openplaces.model.OPPlace;
 import org.openplaces.model.OPTagsFilter;
 import org.openplaces.providers.OpenPlacesProvider;
 import org.openplaces.search.PresetSearch;
 import org.openplaces.search.PresetSearchesAdapter;
+import org.openplaces.search.ResultSet;
 import org.openplaces.search.SearchLocationsAdapter;
 import org.openplaces.search.SearchTabLocationsFragment;
 import org.openplaces.search.SearchTabPresetsFragment;
@@ -56,10 +60,14 @@ public class SearchActivity extends FragmentActivity {
     private EditText locationEditText;
     private SearchTabsPagerAdapter tabsPagerAdapter;
     private ViewPager searchTabsViewPager;
+    private Button searchButton;
 //    private TabHost searchTabHost;
 //    private HashMap<String, TabInfo> mapTabInfo = new HashMap<String, SearchActivity.TabInfo>();
     private Fragment presetsFrag;
     private Fragment locationFrag;
+
+    private PresetSearch presetSearch;
+    private OPLocation locationSearch;
 
 //    private class TabInfo {
 //        private String tag;
@@ -129,15 +137,20 @@ public class SearchActivity extends FragmentActivity {
 
         this.searchEditText = (EditText) findViewById(R.id.searchEditText);
         this.locationEditText = (EditText) findViewById(R.id.locationEditText);
+        this.searchButton = (Button) findViewById(R.id.startSearch);
         this.setupListeners();
 
 
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-//        ((SearchTabLocationsFragment) this.locationFrag).startSearch();
+    public void setSearchLocation(OPLocation loc){
+        Log.d(MapActivity.LOGTAG, "Setting location for search: " + loc);
+        locationSearch = loc;
+    }
+
+    public void addPresetSearch(PresetSearch s){
+        Log.d(MapActivity.LOGTAG, "Adding preset search: " + s);
+        presetSearch = s;
     }
 
     private void setupListeners(){
@@ -172,6 +185,13 @@ public class SearchActivity extends FragmentActivity {
                 if(hasFocus){
                     searchTabsViewPager.setCurrentItem(1, true);
                 }
+            }
+        });
+
+        this.searchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new SearchTask().execute();
             }
         });
 
@@ -272,5 +292,43 @@ public class SearchActivity extends FragmentActivity {
         return super.onOptionsItemSelected(item);
     }
 
+
+    private class SearchTask extends AsyncTask<String, Integer, List<OPPlace>> {
+
+        protected List<OPPlace> doInBackground(String... query) {
+
+            List<OPPlace> res = opp.getPlaces(presetSearch.getFilters(), locationSearch);
+            return res;
+        }
+
+        protected void onProgressUpdate(Integer... progress) {
+        }
+
+        protected void onPreExecute() {
+            setProgressBarIndeterminateVisibility(Boolean.TRUE);
+
+        }
+
+        protected void onPostExecute(List<OPPlace> result) {
+
+            setProgressBarIndeterminateVisibility(Boolean.FALSE);
+
+            if(result == null){
+                Log.d(MapActivity.LOGTAG, "result is null");
+                return;
+            }
+
+            ResultSet rs = ResultSet.buildFromOPPlaces(result);
+            Log.d(MapActivity.LOGTAG, rs.toString());
+
+            Intent intent=new Intent();
+            intent.putExtra("RESULTSET", rs);
+
+            setResult(1,intent);
+
+            finish();
+
+        }
+    }
 
 }

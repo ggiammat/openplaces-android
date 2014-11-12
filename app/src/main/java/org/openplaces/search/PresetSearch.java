@@ -38,4 +38,12 @@ public class PresetSearch {
         return null;
     }
 
+
+    public OPTagsFilter getFilters() {
+        return filters;
+    }
+
+    public void setFilters(OPTagsFilter filters) {
+        this.filters = filters;
+    }
 }

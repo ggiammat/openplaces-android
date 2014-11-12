@@ -5,10 +5,13 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 
 import org.openplaces.R;
+import org.openplaces.SearchActivity;
+import org.openplaces.model.OPLocation;
 import org.openplaces.model.OPTagsFilter;
 
 import java.util.LinkedList;
@@ -53,7 +56,20 @@ public class SearchTabPresetsFragment extends Fragment {
         this.presetsList = (GridView) view.findViewById(R.id.presetsSearchList);
         this.presetsListAdapter = new PresetSearchesAdapter(view.getContext(), this.loadPresetSearches());
         this.presetsList.setAdapter(this.presetsListAdapter);
+
+        this.setUpListeners();
         return view;
+    }
+
+    private void setUpListeners(){
+        this.presetsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                if(isAdded()){
+                    ((SearchActivity) getActivity()).addPresetSearch((PresetSearch) presetsListAdapter.getItem(i));
+                }
+            }
+        });
     }
 
     @Override

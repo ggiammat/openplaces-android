@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
@@ -85,7 +86,21 @@ public class SearchTabLocationsFragment extends Fragment {
         this.locationsList = (ListView) view.findViewById(R.id.locationsList);
         this.locationsListAdapter = new SearchLocationsAdapter(view.getContext(), this.myLocation);
         this.locationsList.setAdapter(this.locationsListAdapter);
+
+        this.setUpListeners();
+
         return view;
+    }
+
+    private void setUpListeners(){
+        this.locationsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                if(isAdded()){
+                    ((SearchActivity) getActivity()).setSearchLocation((OPLocation) locationsListAdapter.getItem(i));
+                }
+            }
+        });
     }
 
     public void startSearch(){

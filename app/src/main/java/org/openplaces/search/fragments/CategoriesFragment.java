@@ -1,4 +1,4 @@
-package org.openplaces.search;
+package org.openplaces.search.fragments;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -7,12 +7,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.LinearLayout;
 
 import org.openplaces.R;
 import org.openplaces.SearchActivity;
-import org.openplaces.model.OPLocation;
-import org.openplaces.model.OPTagsFilter;
+import org.openplaces.search.PresetSearch;
+import org.openplaces.search.PresetSearchesAdapter;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -20,32 +19,16 @@ import java.util.List;
 /**
  * Created by gabriele on 11/7/14.
  */
-public class SearchTabPresetsFragment extends Fragment {
+public class CategoriesFragment extends Fragment {
 
     private GridView presetsList;
     private PresetSearchesAdapter presetsListAdapter;
-
-    // Store instance variables
-    private String title;
-    private int page;
-
-    // newInstance constructor for creating fragment with arguments
-    public static SearchTabPresetsFragment newInstance(int page, String title) {
-        SearchTabPresetsFragment fragmentFirst = new SearchTabPresetsFragment();
-        Bundle args = new Bundle();
-        args.putInt("someInt", page);
-        args.putString("someTitle", title);
-        fragmentFirst.setArguments(args);
-        return fragmentFirst;
-    }
 
 
     // Store instance variables based on arguments passed
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        page = getArguments().getInt("someInt", 0);
-        title = getArguments().getString("someTitle");
     }
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -86,26 +69,26 @@ public class SearchTabPresetsFragment extends Fragment {
 
         List<PresetSearch> presets = new LinkedList<PresetSearch>();
 
-        PresetSearch p1 = new PresetSearch(
-                "restaurant",
-                new OPTagsFilter().
-                        setTagFilter("amenity", OPTagsFilter.TagFilterOperation.IS_EQUALS_TO, "restaurant"));
-        p1.addOtherName("ristorante");
+//        PresetSearch p1 = new PresetSearch(
+//                "restaurant",
+//                new OPTagsFilter().
+//                        setTagFilter("amenity", OPTagsFilter.TagFilterOperation.IS_EQUALS_TO, "restaurant"));
+//        p1.addOtherName("ristorante");
+//
+//        PresetSearch p2 = new PresetSearch(
+//                "supermarket",
+//                new OPTagsFilter().
+//                        setTagFilter("shop", OPTagsFilter.TagFilterOperation.IS_EQUALS_TO, "supermarket"));
+//        p2.addOtherName("supermercato");
+//
+//        PresetSearch p3 = new PresetSearch(
+//                "cinema",
+//                new OPTagsFilter().
+//                        setTagFilter("amenity", OPTagsFilter.TagFilterOperation.IS_EQUALS_TO, "cinema"));
 
-        PresetSearch p2 = new PresetSearch(
-                "supermarket",
-                new OPTagsFilter().
-                        setTagFilter("shop", OPTagsFilter.TagFilterOperation.IS_EQUALS_TO, "supermarket"));
-        p2.addOtherName("supermercato");
-
-        PresetSearch p3 = new PresetSearch(
-                "cinema",
-                new OPTagsFilter().
-                        setTagFilter("amenity", OPTagsFilter.TagFilterOperation.IS_EQUALS_TO, "cinema"));
-
-        presets.add(p1);
-        presets.add(p2);
-        presets.add(p3);
+//        presets.add(p1);
+//        presets.add(p2);
+//        presets.add(p3);
 
         return presets;
     }

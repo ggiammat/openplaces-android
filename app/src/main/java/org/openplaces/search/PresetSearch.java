@@ -1,6 +1,7 @@
 package org.openplaces.search;
 
-import org.openplaces.model.OPTagsFilter;
+
+import org.openplaces.model.OSMTagFilterGroup;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -10,11 +11,11 @@ import java.util.Set;
  */
 public class PresetSearch {
 
-    private OPTagsFilter filters;
+    private OSMTagFilterGroup filters;
     private String name;
     private Set<String> otherNames;
 
-    public PresetSearch(String name, OPTagsFilter filters){
+    public PresetSearch(String name, OSMTagFilterGroup filters){
         this.name = name;
         this.filters = filters;
         this.otherNames = new HashSet<String>();
@@ -39,11 +40,11 @@ public class PresetSearch {
     }
 
 
-    public OPTagsFilter getFilters() {
+    public OSMTagFilterGroup getFilters() {
         return filters;
     }
 
-    public void setFilters(OPTagsFilter filters) {
+    public void setFilters(OSMTagFilterGroup filters) {
         this.filters = filters;
     }
 }

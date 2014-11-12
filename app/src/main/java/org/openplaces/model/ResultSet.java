@@ -1,15 +1,10 @@
-package org.openplaces.search;
+package org.openplaces.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import org.openplaces.model.OPPlace;
-import org.osmdroid.util.GeoPoint;
-
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by gabriele on 11/10/14.
@@ -22,10 +17,10 @@ public class ResultSet implements Parcelable {
         this.places = new ArrayList<Place>();
     }
 
-    public static ResultSet buildFromOPPlaces(List<OPPlace> opPlaces) {
+    public static ResultSet buildFromOPPlaces(List<OPPlaceInterface> opPlaces) {
         ResultSet rs = new ResultSet();
 
-        for (OPPlace opp : opPlaces) {
+        for (OPPlaceInterface opp : opPlaces) {
             rs.addPlace(new Place(opp));
         }
         return rs;

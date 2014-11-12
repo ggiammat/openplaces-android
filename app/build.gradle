@@ -25,4 +25,5 @@ dependencies {
     compile 'org.slf4j:slf4j-android:1.7.7'
     compile 'com.android.support:support-v4:19.+'
     compile 'org.openplaces:openplaces-library:0.0.1-SNAPSHOT'
+    //compile 'com.eyeem.chips:library:0.9.3-SNAPSHOT@aar'
 }

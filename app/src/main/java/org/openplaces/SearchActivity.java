@@ -1,13 +1,8 @@
 package org.openplaces;
 
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.location.Location;
-import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.text.Editable;
@@ -17,32 +12,25 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ListView;
-import android.widget.TabHost;
 
-import org.openplaces.helpers.HttpHelper;
-import org.openplaces.model.OPLocation;
-import org.openplaces.model.OPPlace;
-import org.openplaces.model.OPTagsFilter;
-import org.openplaces.providers.OpenPlacesProvider;
+import org.openplaces.model.OPGeoPoint;
+import org.openplaces.model.OPLocationInterface;
+import org.openplaces.model.OPPlaceInterface;
 import org.openplaces.search.PresetSearch;
 import org.openplaces.search.PresetSearchesAdapter;
-import org.openplaces.search.ResultSet;
+import org.openplaces.model.ResultSet;
 import org.openplaces.search.SearchLocationsAdapter;
-import org.openplaces.search.SearchTabLocationsFragment;
-import org.openplaces.search.SearchTabPresetsFragment;
 import org.openplaces.search.SearchTabsPagerAdapter;
-import org.openplaces.utils.GeoFunctions;
-import org.openplaces.utils.OPGeoPoint;
+import org.openplaces.utils.HttpHelper;
+import org.openplaces.widgets.OPChipsEditText;
 
-import java.util.HashMap;
-import java.util.LinkedList;
+
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 
 public class SearchActivity extends FragmentActivity {
@@ -56,67 +44,38 @@ public class SearchActivity extends FragmentActivity {
     private SearchLocationsAdapter locationsListAdapter;
     private GridView presetsList;
     private PresetSearchesAdapter presetsListAdapter;
-    private EditText searchEditText;
+    private OPChipsEditText searchEditText;
     private EditText locationEditText;
-    private SearchTabsPagerAdapter tabsPagerAdapter;
-    private ViewPager searchTabsViewPager;
+    private SearchTabsPagerAdapter tabsViewPagerAdapter;
+    private ViewPager tabsViewPager;
     private Button searchButton;
-//    private TabHost searchTabHost;
-//    private HashMap<String, TabInfo> mapTabInfo = new HashMap<String, SearchActivity.TabInfo>();
-    private Fragment presetsFrag;
-    private Fragment locationFrag;
 
     private PresetSearch presetSearch;
-    private OPLocation locationSearch;
+    private OPLocationInterface locationSearch;
 
-//    private class TabInfo {
-//        private String tag;
-//        private Class<?> clss;
-//        private Bundle args;
-//        private Fragment fragment;
-//        TabInfo(String tag, Class<?> clazz, Bundle args) {
-//            this.tag = tag;
-//            this.clss = clazz;
-//            this.args = args;
-//        }
-//
-//    }
-//
-//    class TabFactory implements TabHost.TabContentFactory {
-//
-//        private final Context mContext;
-//
-//        /**
-//         * @param context
-//         */
-//        public TabFactory(Context context) {
-//            mContext = context;
-//        }
-//
-//        /** (non-Javadoc)
-//         * @see android.widget.TabHost.TabContentFactory#createTabContent(java.lang.String)
-//         */
-//        public View createTabContent(String tag) {
-//            View v = new View(mContext);
-//            v.setMinimumWidth(0);
-//            v.setMinimumHeight(0);
-//            return v;
-//        }
-//
-//    }
+
+    public interface SearchTextChangedListener {
+        public void onSearchTextChanged(String text);
+    }
+
+    public interface SearchLocationChangedListener {
+        public void onSearchLocationChanged(String text);
+    }
+
+    private List<SearchTextChangedListener> searchTextListeners;
+    private List<SearchLocationChangedListener> searchLocationListeners;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
 
         getWindow().requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 
 
         setContentView(R.layout.activity_search);
 
-        //this.initialiseTabHost(savedInstanceState);
-        this.intialiseViewPager();
+
 
 
 
@@ -130,20 +89,22 @@ public class SearchActivity extends FragmentActivity {
         );
 
 
+        this.tabsViewPagerAdapter = new SearchTabsPagerAdapter(getSupportFragmentManager());
+        this.tabsViewPager = (ViewPager) super.findViewById(R.id.searchTabsViewPager);
+        this.tabsViewPager.setAdapter(this.tabsViewPagerAdapter);
+        this.tabsViewPager.setCurrentItem(SearchTabsPagerAdapter.CATEGORIES_FRAGMENT_POSITION, false);
 
-//        this.locationsList = (ListView) this.locationFrag.getView().findViewById(R.id.locationsList);
-//        this.locationsListAdapter = new SearchLocationsAdapter(this, this.myLocation);
-//        this.locationsList.setAdapter(this.locationsListAdapter);
+        this.searchTextListeners = new ArrayList<SearchTextChangedListener>();
+        this.searchLocationListeners = new ArrayList<SearchLocationChangedListener>();
 
-        this.searchEditText = (EditText) findViewById(R.id.searchEditText);
+        this.searchEditText = (OPChipsEditText) findViewById(R.id.searchEditText);
         this.locationEditText = (EditText) findViewById(R.id.locationEditText);
         this.searchButton = (Button) findViewById(R.id.startSearch);
         this.setupListeners();
 
-
     }
 
-    public void setSearchLocation(OPLocation loc){
+    public void setSearchLocation(OPLocationInterface loc){
         Log.d(MapActivity.LOGTAG, "Setting location for search: " + loc);
         locationSearch = loc;
     }
@@ -156,7 +117,9 @@ public class SearchActivity extends FragmentActivity {
     private void setupListeners(){
         this.searchEditText.addTextChangedListener(new TextWatcher() {
             public void afterTextChanged(Editable s) {
-                ((SearchTabPresetsFragment) presetsFrag).filterPresetsList(s.toString());
+                for(SearchTextChangedListener listener: searchTextListeners){
+                    listener.onSearchTextChanged(s.toString());
+                }
             }
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             public void onTextChanged(CharSequence s, int start, int before, int count) {}
@@ -166,14 +129,19 @@ public class SearchActivity extends FragmentActivity {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if(hasFocus){
-                    searchTabsViewPager.setCurrentItem(0, true);
+                    tabsViewPager.setCurrentItem(SearchTabsPagerAdapter.CATEGORIES_FRAGMENT_POSITION, true);
+                }
+                else {
+                    searchEditText.setChips();
                 }
             }
         });
 
         this.locationEditText.addTextChangedListener(new TextWatcher() {
             public void afterTextChanged(Editable s) {
-                ((SearchTabLocationsFragment) locationFrag).filterLocationsList(s.toString());
+                for(SearchLocationChangedListener listener: searchLocationListeners){
+                    listener.onSearchLocationChanged(s.toString());
+                }
             }
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             public void onTextChanged(CharSequence s, int start, int before, int count) {}
@@ -183,7 +151,7 @@ public class SearchActivity extends FragmentActivity {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if(hasFocus){
-                    searchTabsViewPager.setCurrentItem(1, true);
+                    tabsViewPager.setCurrentItem(SearchTabsPagerAdapter.LOCATIONS_FRAGMENT_POSITION, true);
                 }
             }
         });
@@ -195,7 +163,7 @@ public class SearchActivity extends FragmentActivity {
             }
         });
 
-        this.searchTabsViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        this.tabsViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
@@ -204,16 +172,13 @@ public class SearchActivity extends FragmentActivity {
             @Override
             public void onPageSelected(int position) {
                 EditText textView;
-                if(position == 0){
+                if (position == SearchTabsPagerAdapter.CATEGORIES_FRAGMENT_POSITION) {
                     textView = searchEditText;
-                }
-                else {
+                    textView.requestFocus();
+                } else if (position == SearchTabsPagerAdapter.LOCATIONS_FRAGMENT_POSITION){
                     textView = locationEditText;
+                    textView.requestFocus();
                 }
-
-                textView.requestFocus();
-//                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-//                imm.showSoftInput(textView, InputMethodManager.SHOW_IMPLICIT);
             }
 
             @Override
@@ -223,52 +188,7 @@ public class SearchActivity extends FragmentActivity {
         });
 
 
-//        this.searchTabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
-//            @Override
-//            public void onTabChanged(String s) {
-//                //TabInfo newTab = this.mapTabInfo.get(tag);
-//                int pos = searchTabHost.getCurrentTab();
-//                searchTabsViewPager.setCurrentItem(pos);
-//            }
-//        });
     }
-
-//    private void initialiseTabHost(Bundle args) {
-//        this.searchTabHost = (TabHost) findViewById(R.id.searchTabs);
-//        searchTabHost.setup();
-//        TabInfo tabInfo = null;
-//        SearchActivity.AddTab(this, this.searchTabHost, this.searchTabHost.newTabSpec("Tab1").setIndicator("Tab 1"), (tabInfo = new TabInfo("Tab1", SearchTabPresetsFragment.class, args)));
-//        this.mapTabInfo.put(tabInfo.tag, tabInfo);
-//        SearchActivity.AddTab(this, this.searchTabHost, this.searchTabHost.newTabSpec("Tab2").setIndicator("Tab 2"), ( tabInfo = new TabInfo("Tab2", SearchTabLocationsFragment.class, args)));
-//        this.mapTabInfo.put(tabInfo.tag, tabInfo);
-//        // Default to first tab
-//        //this.onTabChanged("Tab1");
-//        //
-//    }
-
-//    private static void AddTab(SearchActivity activity, TabHost tabHost, TabHost.TabSpec tabSpec, TabInfo tabInfo) {
-//        // Attach a Tab view factory to the spec
-//        tabSpec.setContent(activity.new TabFactory(activity));
-//        tabHost.addTab(tabSpec);
-//    }
-
-    private void intialiseViewPager() {
-
-        this.presetsFrag = SearchTabPresetsFragment.newInstance(0, "What");
-        this.locationFrag = SearchTabLocationsFragment.newInstance(1, "Where");
-
-        List<Fragment> fragments = new Vector<Fragment>();
-        fragments.add(this.presetsFrag);
-        fragments.add(this.locationFrag);
-        this.tabsPagerAdapter  = new SearchTabsPagerAdapter(getSupportFragmentManager(), fragments);
-        //
-        this.searchTabsViewPager = (ViewPager) super.findViewById(R.id.searchTabsViewPager);
-        this.searchTabsViewPager.setAdapter(this.tabsPagerAdapter);
-
-    }
-
-
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -293,12 +213,13 @@ public class SearchActivity extends FragmentActivity {
     }
 
 
-    private class SearchTask extends AsyncTask<String, Integer, List<OPPlace>> {
+    private class SearchTask extends AsyncTask<String, Integer, List<OPPlaceInterface>> {
 
-        protected List<OPPlace> doInBackground(String... query) {
+        protected List<OPPlaceInterface> doInBackground(String... query) {
 
-            List<OPPlace> res = opp.getPlaces(presetSearch.getFilters(), locationSearch);
-            return res;
+           // List<OPPlaceInterface> res = opp.getPlaces(presetSearch.getFilters(), locationSearch);
+           // return res;
+            return null;
         }
 
         protected void onProgressUpdate(Integer... progress) {
@@ -309,7 +230,7 @@ public class SearchActivity extends FragmentActivity {
 
         }
 
-        protected void onPostExecute(List<OPPlace> result) {
+        protected void onPostExecute(List<OPPlaceInterface> result) {
 
             setProgressBarIndeterminateVisibility(Boolean.FALSE);
 

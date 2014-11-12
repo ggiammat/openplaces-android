@@ -1,11 +1,7 @@
-package org.openplaces.search;
+package org.openplaces.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-
-import org.openplaces.model.OPPlace;
-import org.openplaces.model.OverpassElement;
-import org.osmdroid.util.GeoPoint;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,21 +9,12 @@ import java.util.Map;
 /**
  * Created by gabriele on 11/10/14.
  */
-public class Place extends OPPlace implements Parcelable {
+public class Place implements OPPlaceInterface, Parcelable {
 
-    private GeoPoint placePosition;
+    private OPPlaceInterface delegation;
 
-    public Place(OverpassElement el) {
-        super(el);
-    }
-
-    public Place(OPPlace opp){
-        super();
-        this.setName(opp.getName());
-        this.setId(opp.getId());
-        this.setPosition(opp.getPosition()); //not parcelable, so use placePostion to keep the coordinates
-        this.setPlacePosition(new GeoPoint(opp.getPosition().getLat(), opp.getPosition().getLon()));
-        this.setAddressTokens(opp.getAddressTokens());
+    public Place(OPPlaceInterface place){
+        this.delegation = place;
     }
 
 
@@ -37,7 +24,12 @@ public class Place extends OPPlace implements Parcelable {
         this.setOsmType(in.readByte() == 0x00 ? null : in.readString());
         this.setAverageRating(in.readByte() == 0x00 ? null : in.readDouble());
         this.setNumReviews(in.readByte() == 0x00 ? null : in.readInt());
-        this.setPlacePosition(in.readByte() == 0x00 ? null : (GeoPoint) in.readValue(GeoPoint.class.getClassLoader()));
+        if(in.readByte() == 0x00){
+            this.setPosition(null);
+        }
+        else {
+            this.setPosition(new OPGeoPoint(in.readDouble(), in.readDouble()));
+        }
         this.setAddressString(in.readByte() == 0x00 ? null : in.readString());
         this.setType(in.readByte() == 0x00 ? null : in.readString());
 
@@ -103,11 +95,12 @@ public class Place extends OPPlace implements Parcelable {
             dest.writeInt(this.getNumReviews());
         }
 
-        if(this.getPlacePosition() == null) {
+        if(this.getPosition() == null) {
             dest.writeByte((byte) (0x00));
         } else {
             dest.writeByte((byte) (0x01));
-            dest.writeValue(this.getPlacePosition());
+            dest.writeDouble(this.getPosition().getLat());
+            dest.writeDouble(this.getPosition().getLon());
         }
         if(this.getAddressString() == null) {
             dest.writeByte((byte) (0x00));
@@ -135,16 +128,100 @@ public class Place extends OPPlace implements Parcelable {
 
     }
 
+
+
     @Override
     public String toString() {
         return super.toString();
     }
 
-    public GeoPoint getPlacePosition() {
-        return placePosition;
+    @Override
+    public String getName() {
+        return null;
     }
 
-    public void setPlacePosition(GeoPoint placePosition) {
-        this.placePosition = placePosition;
+    @Override
+    public void setName(String s) {
+
+    }
+
+    @Override
+    public String getOsmType() {
+        return null;
+    }
+
+    @Override
+    public void setOsmType(String s) {
+
+    }
+
+    @Override
+    public Double getAverageRating() {
+        return null;
+    }
+
+    @Override
+    public void setAverageRating(Double aDouble) {
+
+    }
+
+    @Override
+    public Integer getNumReviews() {
+        return null;
+    }
+
+    @Override
+    public void setNumReviews(Integer integer) {
+
+    }
+
+    @Override
+    public long getId() {
+        return 0;
+    }
+
+    @Override
+    public void setId(long l) {
+
+    }
+
+    @Override
+    public OPGeoPoint getPosition() {
+        return null;
+    }
+
+    @Override
+    public void setPosition(OPGeoPoint opGeoPoint) {
+
+    }
+
+    @Override
+    public String getAddressString() {
+        return null;
+    }
+
+    @Override
+    public void setAddressString(String s) {
+
+    }
+
+    @Override
+    public Map<String, String> getAddressTokens() {
+        return null;
+    }
+
+    @Override
+    public void setAddressTokens(Map<String, String> stringStringMap) {
+
+    }
+
+    @Override
+    public String getType() {
+        return null;
+    }
+
+    @Override
+    public void setType(String s) {
+
     }
 }

@@ -11,9 +11,11 @@ import android.widget.Filterable;
 import android.widget.TextView;
 
 import org.openplaces.R;
-import org.openplaces.model.OPLocation;
+import org.openplaces.model.Location;
+import org.openplaces.model.OPGeoPoint;
+import org.openplaces.model.OPLocationInterface;
+import org.openplaces.model.impl.OPLocationImpl;
 import org.openplaces.utils.GeoFunctions;
-import org.openplaces.utils.OPGeoPoint;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -27,8 +29,8 @@ public class SearchLocationsAdapter extends BaseAdapter implements Filterable {
 
     private Context context;
     private LayoutInflater inflater;
-    private List<OPLocation> locations;
-    private List<OPLocation> filteredLocations;
+    private List<Location> locations;
+    private List<Location> filteredLocations;
     private OPGeoPoint myLocation;
     private DecimalFormat distanceFormatter = new DecimalFormat("#.##");
     private String currentFilterText;
@@ -37,7 +39,7 @@ public class SearchLocationsAdapter extends BaseAdapter implements Filterable {
         @Override
         protected void publishResults(CharSequence constraint, FilterResults results) {
 
-            filteredLocations = (List<OPLocation>) results.values;
+            filteredLocations = (List<Location>) results.values;
             notifyDataSetChanged();
         }
 
@@ -45,10 +47,10 @@ public class SearchLocationsAdapter extends BaseAdapter implements Filterable {
         protected FilterResults performFiltering(CharSequence constraint) {
             FilterResults results = new FilterResults();
 
-            List<OPLocation> filteringResults = new ArrayList<OPLocation>();
-            filteringResults.add(0, new OPLocation()); //add placeholder for "Near me now" location
+            List<OPLocationInterface> filteringResults = new ArrayList<OPLocationInterface>();
+            filteringResults.add(0, new Location()); //add placeholder for "Near me now" location
             currentFilterText = constraint.toString();
-            for(OPLocation l: locations){
+            for(OPLocationInterface l: locations){
                 if(l.getDisplayName().toLowerCase().contains(currentFilterText.toLowerCase())){
                     filteringResults.add(l);
                 }
@@ -63,7 +65,7 @@ public class SearchLocationsAdapter extends BaseAdapter implements Filterable {
     public SearchLocationsAdapter(Context context, OPGeoPoint myLocation){
         this.context = context;
         this.myLocation = myLocation;
-        this.locations = new LinkedList<OPLocation>();
+        this.locations = new LinkedList<Location>();
         this.filteredLocations = this.locations;
         inflater = (LayoutInflater) this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
@@ -73,7 +75,7 @@ public class SearchLocationsAdapter extends BaseAdapter implements Filterable {
         return this.filter;
     }
 
-    public void setLocations(List<OPLocation> locations){
+    public void setLocations(List<Location> locations){
         this.locations = locations;
         this.getFilter().filter("");
     }
@@ -108,7 +110,7 @@ public class SearchLocationsAdapter extends BaseAdapter implements Filterable {
             locInfoTV.setText("");
         }
         else {
-            OPLocation loc = (OPLocation) this.getItem(position);
+            Location loc = (Location) this.getItem(position);
 
             locNameTV.setText(loc.getDisplayName());
             locNameTV.setTypeface(null, Typeface.NORMAL);

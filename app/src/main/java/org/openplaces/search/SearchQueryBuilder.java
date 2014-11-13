@@ -24,11 +24,22 @@ public class SearchQueryBuilder {
         this.searchPlaceCategories.add(placeCategory);
     }
 
+    public void removeSearchPlaceCateogry(OPPlaceCategoryInterface placeCategory){
+        Log.d(MapActivity.LOGTAG, "Removing place category for search: " + placeCategory);
+        this.searchPlaceCategories.remove(placeCategory);
+    }
+
+
+    public void removeSearchLocation(OPLocationInterface loc){
+        Log.d(MapActivity.LOGTAG, "Removing location for search: " + loc);
+        this.searchLocations.remove(loc);
+    }
+
     public void addSearchLocation(OPLocationInterface loc){
-        if(nearMeNow){
-            Log.d(MapActivity.LOGTAG, "Not adding location for search beacuse near_me_now is set");
-            return;
-        }
+//        if(nearMeNow){
+//            Log.d(MapActivity.LOGTAG, "Not adding location for search beacuse near_me_now is set");
+//            return;
+//        }
         Log.d(MapActivity.LOGTAG, "Adding location for search: " + loc);
         this.searchLocations.add(loc);
     }
@@ -54,7 +65,7 @@ public class SearchQueryBuilder {
         Log.d(MapActivity.LOGTAG, "Setting near_me_now search to: " + nearMeNow);
         this.nearMeNow = nearMeNow;
         if(this.nearMeNow == true){
-            this.reseatSearchLocations();
+            //this.reseatSearchLocations();
         }
     }
 }

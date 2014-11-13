@@ -97,10 +97,18 @@ public class PlaceCategoriesAdapter extends BaseAdapter implements Filterable {
 
         OPPlaceCategoryInterface s = (OPPlaceCategoryInterface) this.getItem(position);
 
-        String text = s.getFirstNameMatch(this.currentFilterText);
-        text = text.replaceAll(this.currentFilterText, "<b>" + this.currentFilterText + "</b>");
+//        System.out.println(s);
+//        System.out.println("S name is " + s.getName());
+//        Log.d(MapActivity.LOGTAG, "currentFilterText is " + this.currentFilterText);
 
-        textView.setText(Html.fromHtml(text));
+        String matchedName = null;
+        if(! "".equals(this.currentFilterText.trim())) {
+            matchedName = s.getFirstNameMatch(this.currentFilterText);
+            if (matchedName != null) {
+                matchedName = matchedName.replaceAll(this.currentFilterText, "<b>" + this.currentFilterText + "</b>");
+            }
+        }
+        textView.setText(Html.fromHtml(matchedName == null ? s.getName() : matchedName));
 
         return convertView;
     }

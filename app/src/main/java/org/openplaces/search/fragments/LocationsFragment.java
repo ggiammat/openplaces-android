@@ -19,12 +19,10 @@ import org.openplaces.R;
 import org.openplaces.SearchActivity;
 import org.openplaces.model.OPGeoPoint;
 import org.openplaces.model.OPLocationInterface;
-import org.openplaces.search.PlaceCategoriesAdapter;
 import org.openplaces.search.SearchLocationsAdapter;
 import org.openplaces.utils.GeoFunctions;
 import org.openplaces.utils.HttpHelper;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -84,10 +82,10 @@ public class LocationsFragment extends Fragment {
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 if(isAdded()){
                     if(i== SearchLocationsAdapter.NEAR_ME_NOW_LOCATION_POSITION) {
-                        ((SearchActivity) getActivity()).getQueryBuilder().setNearMeNow(true);
+                        ((SearchActivity) getActivity()).setNearMeNowSearchLocation();
                     }
                     else {
-                        ((SearchActivity) getActivity()).setSearchLocation((OPLocationInterface) locationsListAdapter.getItem(i));
+                        ((SearchActivity) getActivity()).addSearchLocation((OPLocationInterface) locationsListAdapter.getItem(i));
                     }
                 }
             }

@@ -7,6 +7,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.text.style.ReplacementSpan;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,6 +22,7 @@ import org.openplaces.model.OPGeoPoint;
 import org.openplaces.model.OPLocationInterface;
 import org.openplaces.model.OPPlaceCategoryInterface;
 import org.openplaces.model.OPPlaceInterface;
+import org.openplaces.model.impl.OPLocationImpl;
 import org.openplaces.search.PlaceCategoriesAdapter;
 import org.openplaces.model.ResultSet;
 import org.openplaces.search.SearchLocationsAdapter;
@@ -46,10 +48,13 @@ public class SearchActivity extends FragmentActivity {
     private GridView presetsList;
     private PlaceCategoriesAdapter presetsListAdapter;
     private OPChipsEditText searchEditText;
-    private EditText locationEditText;
+    private OPChipsEditText locationEditText;
     private SearchTabsPagerAdapter tabsViewPagerAdapter;
     private ViewPager tabsViewPager;
     private Button searchButton;
+
+    private OPLocationInterface specialLocationNearMeNow = new OPLocationImpl();
+    private OPLocationInterface specialLocationInVisibleArea = new OPLocationImpl();
 
     private SearchQueryBuilder searchQueryBuilder = new SearchQueryBuilder();
 
@@ -74,11 +79,6 @@ public class SearchActivity extends FragmentActivity {
 
         setContentView(R.layout.activity_search);
 
-
-
-
-
-
         this.opp = new OpenPlacesProvider(
                 new HttpHelper(),
                 "gabriele.giammatteo@gmail.com",
@@ -97,7 +97,7 @@ public class SearchActivity extends FragmentActivity {
         this.searchLocationListeners = new ArrayList<SearchLocationChangedListener>();
 
         this.searchEditText = (OPChipsEditText) findViewById(R.id.searchEditText);
-        this.locationEditText = (EditText) findViewById(R.id.locationEditText);
+        this.locationEditText = (OPChipsEditText) findViewById(R.id.locationEditText);
         this.searchButton = (Button) findViewById(R.id.startSearch);
         this.setupListeners();
 
@@ -108,13 +108,17 @@ public class SearchActivity extends FragmentActivity {
         return this.searchQueryBuilder;
     }
 
-    public void setSearchLocation(OPLocationInterface loc){
-        this.searchQueryBuilder.addSearchLocation(loc);
+    public void setNearMeNowSearchLocation(){
+        this.locationEditText.appendChip("Near me now", this.specialLocationNearMeNow);
+    }
+
+    public void addSearchLocation(OPLocationInterface loc){
+        //this.searchQueryBuilder.addSearchLocation(loc);
+        this.locationEditText.appendChip(loc.getDisplayName(), loc);
     }
 
     public void addSearchPlaceCategory(OPPlaceCategoryInterface s){
-        this.searchQueryBuilder.addSearchPlaceCateogry(s);
-        //this.searchEditText.appendChip(s.getName());
+        this.searchEditText.appendChip(s.getFirstNameMatch(this.searchEditText.getUnChipedText()), s);
     }
 
     public void addSearchTextListener(SearchTextChangedListener listener){
@@ -128,8 +132,9 @@ public class SearchActivity extends FragmentActivity {
     private void setupListeners(){
         this.searchEditText.addTextChangedListener(new TextWatcher() {
             public void afterTextChanged(Editable s) {
+                String textForFiltering = searchEditText.getUnChipedText();
                 for(SearchTextChangedListener listener: searchTextListeners){
-                    listener.onSearchTextChanged(s.toString());
+                    listener.onSearchTextChanged(textForFiltering);
                 }
             }
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -143,8 +148,21 @@ public class SearchActivity extends FragmentActivity {
                     tabsViewPager.setCurrentItem(SearchTabsPagerAdapter.CATEGORIES_FRAGMENT_POSITION, true);
                 }
                 else {
-                    searchEditText.setChips();
+                    //searchEditText.setChips();
                 }
+            }
+        });
+
+
+        this.searchEditText.addChipsWatcherListener(new OPChipsEditText.ChipsWatcher() {
+            @Override
+            public void onChipAdded(ReplacementSpan chip, Object relatedObj) {
+                searchQueryBuilder.addSearchPlaceCateogry((OPPlaceCategoryInterface) relatedObj);
+            }
+
+            @Override
+            public void onChipRemoved(ReplacementSpan chip, Object relatedObj) {
+                searchQueryBuilder.removeSearchPlaceCateogry((OPPlaceCategoryInterface) relatedObj);
             }
         });
 
@@ -163,6 +181,29 @@ public class SearchActivity extends FragmentActivity {
             public void onFocusChange(View v, boolean hasFocus) {
                 if(hasFocus){
                     tabsViewPager.setCurrentItem(SearchTabsPagerAdapter.LOCATIONS_FRAGMENT_POSITION, true);
+                }
+            }
+        });
+
+        this.locationEditText.addChipsWatcherListener(new OPChipsEditText.ChipsWatcher() {
+            @Override
+            public void onChipAdded(ReplacementSpan chip, Object relatedObj) {
+                if(relatedObj.equals(specialLocationNearMeNow)){
+                    searchQueryBuilder.setNearMeNow(true);
+
+                }
+                else {
+                    searchQueryBuilder.addSearchLocation((OPLocationInterface) relatedObj);
+                }
+            }
+
+            @Override
+            public void onChipRemoved(ReplacementSpan chip, Object relatedObj) {
+                if(relatedObj.equals(specialLocationNearMeNow)){
+                    searchQueryBuilder.setNearMeNow(false);
+                }
+                else {
+                    searchQueryBuilder.removeSearchLocation((OPLocationInterface) relatedObj);
                 }
             }
         });

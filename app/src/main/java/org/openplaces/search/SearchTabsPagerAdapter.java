@@ -51,6 +51,8 @@ public class SearchTabsPagerAdapter extends FragmentPagerAdapter {
     // Returns the page title for the top indicator
     @Override
     public CharSequence getPageTitle(int position) {
+
+        //TODO: localization
         if(position == 0){
             return "Recents";
         }

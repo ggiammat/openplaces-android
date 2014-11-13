@@ -19,6 +19,7 @@ import org.openplaces.R;
 import org.openplaces.SearchActivity;
 import org.openplaces.model.OPGeoPoint;
 import org.openplaces.model.OPLocationInterface;
+import org.openplaces.search.PlaceCategoriesAdapter;
 import org.openplaces.search.SearchLocationsAdapter;
 import org.openplaces.utils.GeoFunctions;
 import org.openplaces.utils.HttpHelper;
@@ -82,7 +83,12 @@ public class LocationsFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 if(isAdded()){
-                    ((SearchActivity) getActivity()).setSearchLocation((org.openplaces.model.Location) locationsListAdapter.getItem(i));
+                    if(i== SearchLocationsAdapter.NEAR_ME_NOW_LOCATION_POSITION) {
+                        ((SearchActivity) getActivity()).getQueryBuilder().setNearMeNow(true);
+                    }
+                    else {
+                        ((SearchActivity) getActivity()).setSearchLocation((OPLocationInterface) locationsListAdapter.getItem(i));
+                    }
                 }
             }
         });
@@ -104,10 +110,10 @@ public class LocationsFragment extends Fragment {
             System.out.println("OPP is " + opp);
             List<OPLocationInterface> res = opp.getLocationsAround(myLocation, SearchActivity.SEARCH_LOCATION_AROUND_RADIUS);
 
-            List<OPLocationInterface> wrappedObjects = new ArrayList<OPLocationInterface>();
-            for(OPLocationInterface loc: res){
-                wrappedObjects.add(new org.openplaces.model.Location(loc));
-            }
+//            List<OPLocationInterface> wrappedObjects = new ArrayList<OPLocationInterface>();
+//            for(OPLocationInterface loc: res){
+//                wrappedObjects.add(new org.openplaces.model.Location(loc));
+//            }
             return res;
         }
 

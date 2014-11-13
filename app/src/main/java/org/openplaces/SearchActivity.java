@@ -21,11 +21,10 @@ import org.openplaces.model.OPGeoPoint;
 import org.openplaces.model.OPLocationInterface;
 import org.openplaces.model.OPPlaceCategoryInterface;
 import org.openplaces.model.OPPlaceInterface;
-import org.openplaces.model.PlaceCategory;
 import org.openplaces.search.PlaceCategoriesAdapter;
-import org.openplaces.search.PresetSearch;
 import org.openplaces.model.ResultSet;
 import org.openplaces.search.SearchLocationsAdapter;
+import org.openplaces.search.SearchQueryBuilder;
 import org.openplaces.search.SearchTabsPagerAdapter;
 import org.openplaces.utils.HttpHelper;
 import org.openplaces.widgets.OPChipsEditText;
@@ -52,9 +51,7 @@ public class SearchActivity extends FragmentActivity {
     private ViewPager tabsViewPager;
     private Button searchButton;
 
-    private List<OPPlaceCategoryInterface> searchPlaceCategories = new ArrayList<OPPlaceCategoryInterface>();
-    private OPLocationInterface locationSearch;
-
+    private SearchQueryBuilder searchQueryBuilder = new SearchQueryBuilder();
 
     public interface SearchTextChangedListener {
         public void onSearchTextChanged(String text);
@@ -106,14 +103,18 @@ public class SearchActivity extends FragmentActivity {
 
     }
 
-    public void setSearchLocation(OPLocationInterface loc){
-        Log.d(MapActivity.LOGTAG, "Setting location for search: " + loc);
-        locationSearch = loc;
+
+    public SearchQueryBuilder getQueryBuilder(){
+        return this.searchQueryBuilder;
     }
 
-    public void addSearchPlaceCategory(PlaceCategory s){
-        Log.d(MapActivity.LOGTAG, "Adding preset search: " + s);
-        this.searchPlaceCategories.add(s);
+    public void setSearchLocation(OPLocationInterface loc){
+        this.searchQueryBuilder.addSearchLocation(loc);
+    }
+
+    public void addSearchPlaceCategory(OPPlaceCategoryInterface s){
+        this.searchQueryBuilder.addSearchPlaceCateogry(s);
+        //this.searchEditText.appendChip(s.getName());
     }
 
     public void addSearchTextListener(SearchTextChangedListener listener){
@@ -128,7 +129,6 @@ public class SearchActivity extends FragmentActivity {
         this.searchEditText.addTextChangedListener(new TextWatcher() {
             public void afterTextChanged(Editable s) {
                 for(SearchTextChangedListener listener: searchTextListeners){
-                    Log.d(MapActivity.LOGTAG, "Calling searchTextChangedListener " + listener);
                     listener.onSearchTextChanged(s.toString());
                 }
             }
@@ -228,7 +228,7 @@ public class SearchActivity extends FragmentActivity {
 
         protected List<OPPlaceInterface> doInBackground(String... query) {
 
-           List<OPPlaceInterface> res = opp.getPlaces(searchPlaceCategories, locationSearch);
+           List<OPPlaceInterface> res = opp.getPlaces(searchQueryBuilder.getSearchPlaceCategories(), searchQueryBuilder.getSearchLocations());
            return res;
         }
 

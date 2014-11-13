@@ -2,6 +2,10 @@ package org.openplaces.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
+
+import org.openplaces.MapActivity;
+import org.openplaces.model.impl.OPPlaceImpl;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,13 +15,15 @@ import java.util.Map;
  */
 public class Place implements OPPlaceInterface, Parcelable {
 
-    private OPPlaceInterface delegation;
+    private OPPlaceInterface mDelegate;
 
     public Place(OPPlaceInterface place){
-        this.delegation = place;
+        Log.d(MapActivity.LOGTAG, "Creating place from " + place);
+        this.mDelegate = place;
     }
 
     public Place(Parcel in){
+        this.mDelegate = new OPPlaceImpl();
         this.setId(in.readLong()); //cannot be null
         this.setName(in.readByte() == 0x00 ? null : in.readString());
         this.setOsmType(in.readByte() == 0x00 ? null : in.readString());
@@ -127,100 +133,98 @@ public class Place implements OPPlaceInterface, Parcelable {
 
     }
 
-
-
     @Override
     public String toString() {
-        return super.toString();
+        return this.mDelegate.toString();
     }
 
     @Override
     public String getName() {
-        return null;
+        return this.mDelegate.getName();
     }
 
     @Override
     public void setName(String s) {
-
+        this.mDelegate.setName(s);
     }
 
     @Override
     public String getOsmType() {
-        return null;
+        return this.mDelegate.getOsmType();
     }
 
     @Override
     public void setOsmType(String s) {
-
+        this.mDelegate.setOsmType(s);
     }
 
     @Override
     public Double getAverageRating() {
-        return null;
+        return this.mDelegate.getAverageRating();
     }
 
     @Override
     public void setAverageRating(Double aDouble) {
-
+        this.mDelegate.setAverageRating(aDouble);
     }
 
     @Override
     public Integer getNumReviews() {
-        return null;
+        return this.mDelegate.getNumReviews();
     }
 
     @Override
     public void setNumReviews(Integer integer) {
-
+        this.mDelegate.setNumReviews(integer);
     }
 
     @Override
     public long getId() {
-        return 0;
+        return this.mDelegate.getId();
     }
 
     @Override
     public void setId(long l) {
-
+        this.mDelegate.setId(l);
     }
 
     @Override
     public OPGeoPoint getPosition() {
-        return null;
+        return this.mDelegate.getPosition();
     }
 
     @Override
     public void setPosition(OPGeoPoint opGeoPoint) {
-
+        this.mDelegate.setPosition(opGeoPoint);
     }
 
     @Override
     public String getAddressString() {
-        return null;
+        return this.mDelegate.getAddressString();
     }
 
     @Override
     public void setAddressString(String s) {
-
+        this.mDelegate.setAddressString(s);
     }
 
     @Override
     public Map<String, String> getAddressTokens() {
-        return null;
+        return this.mDelegate.getAddressTokens();
     }
 
     @Override
     public void setAddressTokens(Map<String, String> stringStringMap) {
-
+        this.mDelegate.setAddressTokens(stringStringMap);
     }
 
     @Override
     public String getType() {
-        return null;
+        return this.mDelegate.getType();
     }
 
     @Override
     public void setType(String s) {
-
+        this.mDelegate.setType(s);
     }
 }

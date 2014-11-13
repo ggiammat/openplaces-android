@@ -41,12 +41,7 @@ public class PlaceCategoriesManager {
         this.libraries.put(lib.getLibraryName(), lib);
     }
 
-    //TODO: make it more efficient. As it is now, new PlaceCateogry are created at each invocation
-    public List<PlaceCategory> getLibraryCategories(String libraryName){
-        List<PlaceCategory> ret = new ArrayList<PlaceCategory>();
-        for(OPPlaceCategoryInterface c: this.libraries.get(libraryName).getCategories()){
-            ret.add(new PlaceCategory(c));
-        }
-        return ret;
+    public List<OPPlaceCategoryInterface> getLibraryCategories(String libraryName){
+        return this.libraries.get(libraryName).getCategories();
     }
 }

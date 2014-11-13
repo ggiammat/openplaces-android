@@ -11,11 +11,9 @@ import android.widget.GridView;
 
 import org.openplaces.R;
 import org.openplaces.SearchActivity;
-import org.openplaces.model.OPPlaceCategory;
+import org.openplaces.model.OPPlaceCategoryInterface;
 import org.openplaces.model.PlaceCategoriesManager;
-import org.openplaces.model.PlaceCategory;
 import org.openplaces.search.PlaceCategoriesAdapter;
-import org.openplaces.search.PresetSearch;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -53,7 +51,7 @@ public class CategoriesFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 if(isAdded()){
-                    ((SearchActivity) getActivity()).addSearchPlaceCategory((PlaceCategory) presetsListAdapter.getItem(i));
+                    ((SearchActivity) getActivity()).addSearchPlaceCategory((OPPlaceCategoryInterface) presetsListAdapter.getItem(i));
                 }
             }
         });
@@ -78,9 +76,9 @@ public class CategoriesFragment extends Fragment {
         this.presetsListAdapter.getFilter().filter(filterText);
     }
 
-    private List<PlaceCategory> loadPlaceCategories(){
+    private List<OPPlaceCategoryInterface> loadPlaceCategories(){
         if(!isAdded()){
-            return new ArrayList<PlaceCategory>();
+            return new ArrayList<OPPlaceCategoryInterface>();
         }
 
         PlaceCategoriesManager pcm = PlaceCategoriesManager.getInstance(getActivity());

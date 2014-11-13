@@ -13,7 +13,7 @@ import android.widget.TextView;
 
 import org.openplaces.MapActivity;
 import org.openplaces.R;
-import org.openplaces.model.PlaceCategory;
+import org.openplaces.model.OPPlaceCategoryInterface;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -27,15 +27,15 @@ public class PlaceCategoriesAdapter extends BaseAdapter implements Filterable {
     private Context context;
     private LayoutInflater inflater;
 
-    private List<PlaceCategory> searches;
-    private List<PlaceCategory> filteredSearches;
+    private List<OPPlaceCategoryInterface> searches;
+    private List<OPPlaceCategoryInterface> filteredSearches;
     private String currentFilterText;
 
     private Filter filter = new Filter(){
         @Override
         protected void publishResults(CharSequence constraint, FilterResults results) {
 
-            filteredSearches = (List<PlaceCategory>) results.values;
+            filteredSearches = (List<OPPlaceCategoryInterface>) results.values;
             notifyDataSetChanged();
         }
 
@@ -45,10 +45,10 @@ public class PlaceCategoriesAdapter extends BaseAdapter implements Filterable {
             //Log.d(MapActivity.LOGTAG, "Filtering preset searches on: " + constraint);
 
             FilterResults results = new FilterResults();
-            List<PlaceCategory> filteringResults = new ArrayList<PlaceCategory>();
+            List<OPPlaceCategoryInterface> filteringResults = new ArrayList<OPPlaceCategoryInterface>();
             currentFilterText = constraint.toString();
-            for(PlaceCategory s: searches){
-                if(s.getFirstMatchingName(currentFilterText) != null){
+            for(OPPlaceCategoryInterface s: searches){
+                if(s.getFirstNameMatch(currentFilterText) != null){
                     filteringResults.add(s);
                 }
             }
@@ -60,7 +60,7 @@ public class PlaceCategoriesAdapter extends BaseAdapter implements Filterable {
     };
 
 
-    public PlaceCategoriesAdapter(Context context, List<PlaceCategory> presetSearches){
+    public PlaceCategoriesAdapter(Context context, List<OPPlaceCategoryInterface> presetSearches){
         this.context = context;
         this.searches = presetSearches;
         this.filteredSearches = this.searches;
@@ -95,9 +95,9 @@ public class PlaceCategoriesAdapter extends BaseAdapter implements Filterable {
         }
         TextView textView = (TextView) convertView.findViewById(R.id.presetSearchText);
 
-        PlaceCategory s = (PlaceCategory) this.getItem(position);
+        OPPlaceCategoryInterface s = (OPPlaceCategoryInterface) this.getItem(position);
 
-        String text = s.getFirstMatchingName(this.currentFilterText);
+        String text = s.getFirstNameMatch(this.currentFilterText);
         text = text.replaceAll(this.currentFilterText, "<b>" + this.currentFilterText + "</b>");
 
         textView.setText(Html.fromHtml(text));

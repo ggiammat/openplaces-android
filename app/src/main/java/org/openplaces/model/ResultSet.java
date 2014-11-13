@@ -60,12 +60,12 @@ public class ResultSet implements Parcelable {
 
     @Override
     public String toString() {
-        StringBuffer sb = new StringBuffer("=== Content of ResultSet ===\n");
+        StringBuffer sb = new StringBuffer("\n=== Content of ResultSet ===\n");
         sb.append("Places ("+this.places.size()+"):\n");
         for(Place place: this.places){
             sb.append("* "+ place.toString()+"\n");
         }
-
+        sb.append("============================\n");
         return sb.toString();
     }
 }

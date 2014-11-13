@@ -11,9 +11,9 @@ import android.widget.Filterable;
 import android.widget.TextView;
 
 import org.openplaces.R;
-import org.openplaces.model.Location;
 import org.openplaces.model.OPGeoPoint;
 import org.openplaces.model.OPLocationInterface;
+import org.openplaces.model.impl.OPLocationImpl;
 import org.openplaces.utils.GeoFunctions;
 
 import java.text.DecimalFormat;
@@ -25,6 +25,8 @@ import java.util.List;
  * Created by gabriele on 11/6/14.
  */
 public class SearchLocationsAdapter extends BaseAdapter implements Filterable {
+
+    public static final int NEAR_ME_NOW_LOCATION_POSITION = 0;
 
     private Context context;
     private LayoutInflater inflater;
@@ -47,7 +49,7 @@ public class SearchLocationsAdapter extends BaseAdapter implements Filterable {
             FilterResults results = new FilterResults();
 
             List<OPLocationInterface> filteringResults = new ArrayList<OPLocationInterface>();
-            filteringResults.add(0, new Location(null)); //add placeholder for "Near me now" location
+            filteringResults.add(0, null); //add placeholder for "Near me now" location
             currentFilterText = constraint.toString();
             for(OPLocationInterface l: locations){
                 if(l.getDisplayName().toLowerCase().contains(currentFilterText.toLowerCase())){

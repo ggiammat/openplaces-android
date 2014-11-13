@@ -19,6 +19,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 
+import org.openplaces.MapActivity;
 import org.openplaces.R;
 
 /**
@@ -26,6 +27,9 @@ import org.openplaces.R;
  */
 public class OPChipsEditText extends EditText {
     private static final String TAG = "OPChipsEditText";
+
+
+    public static final String CHIPS_SEPARATOR = " ";
 
 
     public OPChipsEditText(Context context) {
@@ -47,8 +51,41 @@ public class OPChipsEditText extends EditText {
         addTextChangedListener(textChangeListener);
     }
 
+
+    public void appendChip(String text){
+        int start = this.getText().length() + CHIPS_SEPARATOR.length();
+        this.getText().append(CHIPS_SEPARATOR + text);
+        int end = start + text.length();
+        Log.d(MapActivity.LOGTAG, "New text lenght is " + this.getText().length());
+        Log.d(MapActivity.LOGTAG, "start is " + start);
+        Log.d(MapActivity.LOGTAG, "end is " + end);
+
+
+        LayoutInflater lf = (LayoutInflater) getContext().getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
+        TextView textView = (TextView) lf.inflate(R.layout.chip_layout, null);
+        textView.setText(text);
+        int spec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+        textView.measure(spec, spec);
+        textView.layout(0, 0, textView.getMeasuredWidth(), textView.getMeasuredHeight());
+        //Bitmap b = Bitmap.createBitmap(textView.getWidth(), textView.getHeight(),Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas();
+        canvas.translate(-textView.getScrollX(), -textView.getScrollY());
+        textView.draw(canvas);
+        textView.setDrawingCacheEnabled(true);
+        Bitmap cacheBmp = textView.getDrawingCache();
+        Bitmap viewBmp = cacheBmp.copy(Bitmap.Config.ARGB_8888, true);
+        textView.destroyDrawingCache();  // destory drawable
+        // create bitmap drawable for imagespan
+        BitmapDrawable bmpDrawable = new BitmapDrawable(viewBmp);
+        bmpDrawable.setBounds(0, 0,bmpDrawable.getIntrinsicWidth(),bmpDrawable.getIntrinsicHeight());
+
+        this.getText().setSpan(new ImageSpan(bmpDrawable), start, end , Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+    }
+
+
+
     public void setChips(){
-        if(getText().toString().contains(",")) // check comman in string
+        if(getText().toString().contains(",")) // check comma in string
         {
 
             SpannableStringBuilder ssb = new SpannableStringBuilder(getText());

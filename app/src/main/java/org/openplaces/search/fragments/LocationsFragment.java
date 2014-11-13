@@ -20,8 +20,10 @@ import org.openplaces.SearchActivity;
 import org.openplaces.model.OPGeoPoint;
 import org.openplaces.model.OPLocationInterface;
 import org.openplaces.search.SearchLocationsAdapter;
+import org.openplaces.utils.GeoFunctions;
 import org.openplaces.utils.HttpHelper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -63,7 +65,6 @@ public class LocationsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-
         View view = inflater.inflate(R.layout.searchtab_locations, container, false);
 
 
@@ -102,6 +103,11 @@ public class LocationsFragment extends Fragment {
 
             System.out.println("OPP is " + opp);
             List<OPLocationInterface> res = opp.getLocationsAround(myLocation, SearchActivity.SEARCH_LOCATION_AROUND_RADIUS);
+
+            List<OPLocationInterface> wrappedObjects = new ArrayList<OPLocationInterface>();
+            for(OPLocationInterface loc: res){
+                wrappedObjects.add(new org.openplaces.model.Location(loc));
+            }
             return res;
         }
 
@@ -114,9 +120,9 @@ public class LocationsFragment extends Fragment {
             }
         }
 
-        protected void onPostExecute(List<org.openplaces.model.Location> result) {
+        protected void onPostExecute(List<OPLocationInterface> result) {
 
-            //GeoFunctions.sortByDistanceFromPoint(result, myLocation);
+            GeoFunctions.sortByDistanceFromPoint(result, myLocation);
             locationsListAdapter.setLocations(result);
 
             if(isAdded()){

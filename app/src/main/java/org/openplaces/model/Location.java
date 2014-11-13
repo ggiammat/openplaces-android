@@ -7,9 +7,16 @@ import android.os.Parcelable;
  * Created by ggiammat on 11/12/14.
  */
 public class Location implements OPLocationInterface, Parcelable {
+
+    private OPLocationInterface mDelegate;
+
+    public Location(OPLocationInterface mDelegate){
+        this.mDelegate = mDelegate;
+    }
+
     @Override
     public String getType() {
-        return null;
+        return this.mDelegate.getType();
     }
 
     @Override
@@ -19,7 +26,7 @@ public class Location implements OPLocationInterface, Parcelable {
 
     @Override
     public String getDisplayName() {
-        return null;
+        return this.mDelegate.getDisplayName();
     }
 
     @Override
@@ -29,7 +36,7 @@ public class Location implements OPLocationInterface, Parcelable {
 
     @Override
     public long getId() {
-        return 0;
+        return this.mDelegate.getId();
     }
 
     @Override
@@ -39,7 +46,7 @@ public class Location implements OPLocationInterface, Parcelable {
 
     @Override
     public OPBoundingBox getBoundingBox() {
-        return null;
+        return this.mDelegate.getBoundingBox();
     }
 
     @Override
@@ -49,7 +56,7 @@ public class Location implements OPLocationInterface, Parcelable {
 
     @Override
     public OPGeoPoint getPosition() {
-        return null;
+        return this.mDelegate.getPosition();
     }
 
     @Override

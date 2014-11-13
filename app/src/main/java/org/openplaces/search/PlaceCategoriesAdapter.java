@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 import org.openplaces.MapActivity;
 import org.openplaces.R;
+import org.openplaces.model.PlaceCategory;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -21,20 +22,20 @@ import java.util.List;
 /**
  * Created by gabriele on 11/7/14.
  */
-public class PresetSearchesAdapter extends BaseAdapter implements Filterable {
+public class PlaceCategoriesAdapter extends BaseAdapter implements Filterable {
 
     private Context context;
     private LayoutInflater inflater;
 
-    private List<PresetSearch> searches;
-    private List<PresetSearch> filteredSearches;
+    private List<PlaceCategory> searches;
+    private List<PlaceCategory> filteredSearches;
     private String currentFilterText;
 
     private Filter filter = new Filter(){
         @Override
         protected void publishResults(CharSequence constraint, FilterResults results) {
 
-            filteredSearches = (List<PresetSearch>) results.values;
+            filteredSearches = (List<PlaceCategory>) results.values;
             notifyDataSetChanged();
         }
 
@@ -44,9 +45,9 @@ public class PresetSearchesAdapter extends BaseAdapter implements Filterable {
             //Log.d(MapActivity.LOGTAG, "Filtering preset searches on: " + constraint);
 
             FilterResults results = new FilterResults();
-            List<PresetSearch> filteringResults = new ArrayList<PresetSearch>();
+            List<PlaceCategory> filteringResults = new ArrayList<PlaceCategory>();
             currentFilterText = constraint.toString();
-            for(PresetSearch s: searches){
+            for(PlaceCategory s: searches){
                 if(s.getFirstMatchingName(currentFilterText) != null){
                     filteringResults.add(s);
                 }
@@ -59,7 +60,7 @@ public class PresetSearchesAdapter extends BaseAdapter implements Filterable {
     };
 
 
-    public PresetSearchesAdapter(Context context, List<PresetSearch> presetSearches){
+    public PlaceCategoriesAdapter(Context context, List<PlaceCategory> presetSearches){
         this.context = context;
         this.searches = presetSearches;
         this.filteredSearches = this.searches;
@@ -94,7 +95,7 @@ public class PresetSearchesAdapter extends BaseAdapter implements Filterable {
         }
         TextView textView = (TextView) convertView.findViewById(R.id.presetSearchText);
 
-        PresetSearch s = (PresetSearch) this.getItem(position);
+        PlaceCategory s = (PlaceCategory) this.getItem(position);
 
         String text = s.getFirstMatchingName(this.currentFilterText);
         text = text.replaceAll(this.currentFilterText, "<b>" + this.currentFilterText + "</b>");

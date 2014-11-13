@@ -17,7 +17,6 @@ public class Place implements OPPlaceInterface, Parcelable {
         this.delegation = place;
     }
 
-
     public Place(Parcel in){
         this.setId(in.readLong()); //cannot be null
         this.setName(in.readByte() == 0x00 ? null : in.readString());

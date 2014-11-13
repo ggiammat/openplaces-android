@@ -1,5 +1,6 @@
 package org.openplaces.search.fragments;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -10,9 +11,13 @@ import android.widget.GridView;
 
 import org.openplaces.R;
 import org.openplaces.SearchActivity;
+import org.openplaces.model.OPPlaceCategory;
+import org.openplaces.model.PlaceCategoriesManager;
+import org.openplaces.model.PlaceCategory;
+import org.openplaces.search.PlaceCategoriesAdapter;
 import org.openplaces.search.PresetSearch;
-import org.openplaces.search.PresetSearchesAdapter;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -22,7 +27,7 @@ import java.util.List;
 public class CategoriesFragment extends Fragment {
 
     private GridView presetsList;
-    private PresetSearchesAdapter presetsListAdapter;
+    private PlaceCategoriesAdapter presetsListAdapter;
 
 
     // Store instance variables based on arguments passed
@@ -37,9 +42,8 @@ public class CategoriesFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.searchtab_presets, container, false);
         this.presetsList = (GridView) view.findViewById(R.id.presetsSearchList);
-        this.presetsListAdapter = new PresetSearchesAdapter(view.getContext(), this.loadPresetSearches());
+        this.presetsListAdapter = new PlaceCategoriesAdapter(view.getContext(), this.loadPlaceCategories());
         this.presetsList.setAdapter(this.presetsListAdapter);
-
         this.setUpListeners();
         return view;
     }
@@ -49,11 +53,20 @@ public class CategoriesFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 if(isAdded()){
-                    ((SearchActivity) getActivity()).addPresetSearch((PresetSearch) presetsListAdapter.getItem(i));
+                    ((SearchActivity) getActivity()).addSearchPlaceCategory((PlaceCategory) presetsListAdapter.getItem(i));
                 }
             }
         });
+
+        ((SearchActivity) getActivity()).addSearchTextListener(new SearchActivity.SearchTextChangedListener() {
+            @Override
+            public void onSearchTextChanged(String text) {
+                presetsListAdapter.getFilter().filter(text.toLowerCase());
+            }
+        });
     }
+
+
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -65,31 +78,12 @@ public class CategoriesFragment extends Fragment {
         this.presetsListAdapter.getFilter().filter(filterText);
     }
 
-    private List<PresetSearch> loadPresetSearches(){
+    private List<PlaceCategory> loadPlaceCategories(){
+        if(!isAdded()){
+            return new ArrayList<PlaceCategory>();
+        }
 
-        List<PresetSearch> presets = new LinkedList<PresetSearch>();
-
-//        PresetSearch p1 = new PresetSearch(
-//                "restaurant",
-//                new OPTagsFilter().
-//                        setTagFilter("amenity", OPTagsFilter.TagFilterOperation.IS_EQUALS_TO, "restaurant"));
-//        p1.addOtherName("ristorante");
-//
-//        PresetSearch p2 = new PresetSearch(
-//                "supermarket",
-//                new OPTagsFilter().
-//                        setTagFilter("shop", OPTagsFilter.TagFilterOperation.IS_EQUALS_TO, "supermarket"));
-//        p2.addOtherName("supermercato");
-//
-//        PresetSearch p3 = new PresetSearch(
-//                "cinema",
-//                new OPTagsFilter().
-//                        setTagFilter("amenity", OPTagsFilter.TagFilterOperation.IS_EQUALS_TO, "cinema"));
-
-//        presets.add(p1);
-//        presets.add(p2);
-//        presets.add(p3);
-
-        return presets;
+        PlaceCategoriesManager pcm = PlaceCategoriesManager.getInstance(getActivity());
+        return pcm.getLibraryCategories(PlaceCategoriesManager.STANDARD_LIBRARY);
     }
 }

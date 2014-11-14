@@ -3,14 +3,26 @@ package org.openplaces;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.GridLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import org.openplaces.model.Place;
 import org.openplaces.model.ResultSet;
 import org.osmdroid.api.IMapController;
+import org.osmdroid.bonuspack.clustering.GridMarkerClusterer;
+import org.osmdroid.bonuspack.overlays.MapEventsOverlay;
+import org.osmdroid.bonuspack.overlays.MapEventsReceiver;
+import org.osmdroid.bonuspack.overlays.Marker;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
@@ -26,6 +38,9 @@ public class MapActivity extends Activity {
     Button searchButton;
     MapView mapView;
     private ResultSet resultSet;
+    private GridMarkerClusterer resultSetMarkersOverlay;
+    private Marker.OnMarkerClickListener markersClickListener;
+    private TextView placeNameLabelTV;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +54,8 @@ public class MapActivity extends Activity {
 
 
         this.searchButton = (Button) findViewById(R.id.searchButton);
+
+        this.placeNameLabelTV = (TextView) findViewById(R.id.textView1);
 
         this.initMapView();
         this.setUpListeners();
@@ -72,15 +89,79 @@ public class MapActivity extends Activity {
         compassOverlay.enableCompass();
         this.mapView.getOverlays().add(compassOverlay);
 
+        this.resultSetMarkersOverlay = new GridMarkerClusterer(MapActivity.this);
+        Drawable clusterIconD = getResources().getDrawable(R.drawable.marker_cluster);
+        Bitmap clusterIcon = ((BitmapDrawable)clusterIconD).getBitmap();
+        this.resultSetMarkersOverlay.setIcon(clusterIcon);
+        mapView.getOverlayManager().add(this.resultSetMarkersOverlay);
 
 
-//        //add listener
-//        this.mapViewListener = new MapViewListener(this);
-//        MapEventsOverlay mapEventsOverlay = new MapEventsOverlay(this, this.mapViewListener);
-//        this.mapView.getOverlays().add(0, mapEventsOverlay);
+
 
         this.mapView.invalidate();
     }
+
+
+    public void clearSelectedPlace(Boolean hidePanel){
+
+        if(resultSet != null && resultSet.getSelected() != null){
+
+            this.setSelectedPlace(-1);
+            mapView.invalidate();
+
+            if(hidePanel){
+                GridLayout tv = (GridLayout) findViewById(R.id.detailsPanel);
+                tv.setVisibility(View.INVISIBLE);
+            }
+        }
+    }
+
+
+    public void setSelectedPlace(int index){
+        Log.d(LOGTAG, "Selecting place at index " + index);
+        Place oldSelected = resultSet.getSelected();
+        resultSet.setSelected(index);
+        Log.d(LOGTAG, "Old selected place was " + oldSelected);
+        if(oldSelected != null){
+            Drawable icon = getResources().getDrawable(R.drawable.ic_launcher);
+            ((Marker) oldSelected.getRelatedObject()).setIcon(icon);
+        }
+        this.updateSelectedPlace();
+    }
+
+    public void updateSelectedPlace(){
+
+        Place newSelectedPlace = resultSet.getSelected();
+
+        Log.d(LOGTAG, "Selected place is " + newSelectedPlace);
+
+        if(newSelectedPlace == null){
+            return;
+        }
+
+
+        Drawable iconSelected = getResources().getDrawable(R.drawable.moreinfo_arrow_pressed);
+        ((Marker) newSelectedPlace.getRelatedObject()).setIcon(iconSelected);
+
+        mapView.invalidate();
+
+        TextView t1 = (TextView) findViewById(R.id.textView1);
+        t1.setText(newSelectedPlace.getName());
+
+        TextView t2 = (TextView) findViewById(R.id.textView2);
+        if(newSelectedPlace.getNumReviews()!=null && newSelectedPlace.getAverageRating() != null){
+            t2.setText(newSelectedPlace.getAverageRating() + " on " + newSelectedPlace.getNumReviews() + " reviews");
+        }
+        else {
+            t2.setText("");
+            //new UpdatePlaceTask().execute();
+        }
+
+        GridLayout panel = (GridLayout) findViewById(R.id.detailsPanel);
+        panel.setVisibility(View.VISIBLE);
+
+    }
+
 
     private void setUpListeners(){
         this.searchButton.setOnClickListener(new View.OnClickListener() {
@@ -89,45 +170,82 @@ public class MapActivity extends Activity {
                 startActivityForResult(searchIntent, 1);
             }
         });
+
+        this.markersClickListener = new Marker.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker, MapView mapView) {
+                setSelectedPlace((Integer) marker.getRelatedObject());
+                return true;
+            }
+        };
+
+        MapEventsOverlay mapEventsOverlay = new MapEventsOverlay(this, new MapEventsReceiver() {
+            @Override
+            public boolean singleTapConfirmedHelper(GeoPoint geoPoint) {
+                clearSelectedPlace(true);
+                return true;
+            }
+
+            @Override
+            public boolean longPressHelper(GeoPoint geoPoint) {
+                Toast.makeText(MapActivity.this, "Tap on (" + geoPoint.getLatitude() + "," + geoPoint.getLongitude() + ")", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+        });
+
+        this.mapView.getOverlays().add(0, mapEventsOverlay);
+
+        Button prevPlace = (Button) findViewById(R.id.button2);
+        prevPlace.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if(resultSet != null)
+                    setSelectedPlace(resultSet.getPreviousIndex());
+            }
+        });
+
+        Button nextPlace = (Button) findViewById(R.id.button1);
+        nextPlace.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if(resultSet != null)
+                    setSelectedPlace(resultSet.getNextIndex());
+            }
+        });
+
+        this.placeNameLabelTV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(resultSet != null && resultSet.getSelected() != null){
+                    Intent intent = new Intent(MapActivity.this, PlaceDetailsActivity.class);
+                    intent.putExtra("PLACE", resultSet.getSelected());
+                    startActivity(intent);
+                }
+            }
+        });
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == 1){
-            ResultSet rs = (ResultSet) data.getParcelableExtra("RESULTSET");
+            ResultSet rs = data.getParcelableExtra("RESULTSET");
             System.out.println(rs);
             resultSet = rs;
 
-//            if(mapMarkersOverlay == null){
-//                mapView.getOverlayManager().remove(mapMarkersOverlay);
-//                mapMarkersOverlay = new GridMarkerClusterer(MapActivity.this);
-//                Drawable clusterIconD = getResources().getDrawable(R.drawable.marker_cluster);
-//                Bitmap clusterIcon = ((BitmapDrawable)clusterIconD).getBitmap();
-//                mapMarkersOverlay.setIcon(clusterIcon);
-//                mapView.getOverlayManager().add(mapMarkersOverlay);
-//            }
-//            else {
-//                mapMarkersOverlay.getItems().clear();
-//            }
-//
-//
-//
-//
-//
-//            Drawable icon = getResources().getDrawable(R.drawable.ic_launcher);
-//            for(OSMPlace p: currentResultSet){
-//                Marker marker = new Marker(mapView);
-//
-//                marker.setOnMarkerClickListener(mapViewListener);
-//                marker.setPosition(new GeoPoint(p.getLat(), p.getLon()));
-//                marker.setIcon(icon);
-//                marker.setRelatedObject(p);
-//                p.setRelatedObject(marker);
-//                mapMarkersOverlay.add(marker);
-//            }
-//            mapMarkersOverlay.invalidate();
-//            mapView.invalidate();
+            resultSetMarkersOverlay.getItems().clear();
+
+            Drawable icon = getResources().getDrawable(R.drawable.ic_launcher);
+            for(Place p: resultSet){
+                Marker marker = new Marker(mapView);
+
+                marker.setOnMarkerClickListener(markersClickListener);
+                marker.setPosition(new GeoPoint(p.getPosition().getLat(), p.getPosition().getLon()));
+                marker.setIcon(icon);
+                marker.setRelatedObject(Integer.valueOf(resultSet.indexOf(p)));
+                p.setRelatedObject(marker);
+                resultSetMarkersOverlay.add(marker);
+            }
+            resultSetMarkersOverlay.invalidate();
+            mapView.invalidate();
 
             setProgressBarIndeterminateVisibility(Boolean.FALSE);
 

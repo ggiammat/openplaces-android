@@ -4,17 +4,21 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
  * Created by gabriele on 11/10/14.
  */
-public class ResultSet implements Parcelable {
+public class ResultSet implements Parcelable, Iterable<Place> {
 
     private List<Place> places;
 
+    private int selectedIndex;
+
     public ResultSet(){
         this.places = new ArrayList<Place>();
+        this.selectedIndex = -1;
     }
 
     public static ResultSet buildFromOPPlaces(List<OPPlaceInterface> opPlaces) {
@@ -30,6 +34,56 @@ public class ResultSet implements Parcelable {
         this.places.add(place);
     }
 
+
+    public int indexOf(Place place){
+        return this.places.indexOf(place);
+    }
+
+    public Place getSelected(){
+        if(this.selectedIndex>=0 && this.selectedIndex < this.places.size()){
+            return this.places.get(this.selectedIndex);
+        }
+        return null;
+    }
+
+    public int getPreviousIndex(){
+        if(this.selectedIndex == -1){
+            return -1;
+        }
+        int i = this.selectedIndex - 1;
+        if(i<0)
+            i = this.places.size()-1;
+
+
+        return i;
+    }
+
+    public int getNextIndex(){
+        if(this.selectedIndex == -1){
+            return -1;
+        }
+        int i = this.selectedIndex + 1;
+        if(i>=this.places.size())
+            i = 0;
+
+        return i;
+    }
+
+    public boolean setSelected(int index) {
+        if(index == -1 ){
+            this.clearSelected();
+            return true;
+        }
+        if (index >= 0 && index < this.places.size()) {
+            this.selectedIndex = index;
+            return true;
+        }
+        return false;
+    }
+
+    public void clearSelected(){
+        this.selectedIndex = -1;
+    }
 
     public ResultSet(Parcel in){
         List<Place> places = new ArrayList<Place>();
@@ -67,5 +121,10 @@ public class ResultSet implements Parcelable {
         }
         sb.append("============================\n");
         return sb.toString();
+    }
+
+    @Override
+    public Iterator<Place> iterator() {
+        return this.places.iterator();
     }
 }

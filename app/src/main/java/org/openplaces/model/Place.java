@@ -16,6 +16,7 @@ import java.util.Map;
 public class Place implements OPPlaceInterface, Parcelable {
 
     private OPPlaceInterface mDelegate;
+    private Object relatedObject;
 
     public Place(OPPlaceInterface place){
         Log.d(MapActivity.LOGTAG, "Creating place from " + place);
@@ -63,6 +64,14 @@ public class Place implements OPPlaceInterface, Parcelable {
             return new Place[size];
         }
     };
+
+    public void setRelatedObject(Object obj){
+        this.relatedObject = obj;
+    }
+
+    public Object getRelatedObject(){
+        return this.relatedObject;
+    }
 
     @Override
     public int describeContents() {

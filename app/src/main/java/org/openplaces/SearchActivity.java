@@ -1,6 +1,9 @@
 package org.openplaces;
 
+import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -64,6 +67,7 @@ public class SearchActivity extends FragmentActivity {
 
     public interface SearchLocationChangedListener {
         public void onSearchLocationChanged(String text);
+        public void onSearchLocationTokenCompleted(String text);
     }
 
     private List<SearchTextChangedListener> searchTextListeners;
@@ -129,6 +133,10 @@ public class SearchActivity extends FragmentActivity {
         this.searchLocationListeners.add(listener);
     }
 
+    public void setLocationEditTextEnabled(boolean status){
+        this.locationEditText.setEnabled(status);
+    }
+
     private void setupListeners(){
         this.searchEditText.addTextChangedListener(new TextWatcher() {
             public void afterTextChanged(Editable s) {
@@ -168,8 +176,15 @@ public class SearchActivity extends FragmentActivity {
 
         this.locationEditText.addTextChangedListener(new TextWatcher() {
             public void afterTextChanged(Editable s) {
+                String textForFiltering = locationEditText.getUnChipedText();
                 for(SearchLocationChangedListener listener: searchLocationListeners){
-                    listener.onSearchLocationChanged(s.toString());
+                    listener.onSearchLocationChanged(textForFiltering);
+                }
+
+                if(s.toString().endsWith(" ")){
+                    for(SearchLocationChangedListener listener: searchLocationListeners){
+                        listener.onSearchLocationTokenCompleted(textForFiltering);
+                    }
                 }
             }
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -269,7 +284,13 @@ public class SearchActivity extends FragmentActivity {
 
         protected List<OPPlaceInterface> doInBackground(String... query) {
 
-           List<OPPlaceInterface> res = opp.getPlaces(searchQueryBuilder.getSearchPlaceCategories(), searchQueryBuilder.getSearchLocations());
+            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            String locationProvider = LocationManager.NETWORK_PROVIDER;
+            Location location = locationManager.getLastKnownLocation(locationProvider);
+            searchQueryBuilder.setCurrentLocation(
+                    new OPGeoPoint(location.getLatitude(), location.getLongitude()));
+
+           List<OPPlaceInterface> res = searchQueryBuilder.doSearch(opp);
            return res;
         }
 

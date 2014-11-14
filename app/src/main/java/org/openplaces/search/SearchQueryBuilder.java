@@ -3,8 +3,13 @@ package org.openplaces.search;
 import android.util.Log;
 
 import org.openplaces.MapActivity;
+import org.openplaces.OpenPlacesProvider;
+import org.openplaces.model.OPGeoPoint;
 import org.openplaces.model.OPLocationInterface;
 import org.openplaces.model.OPPlaceCategoryInterface;
+import org.openplaces.model.OPPlaceInterface;
+import org.openplaces.model.impl.OPLocationImpl;
+import org.openplaces.utils.GeoFunctions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +20,7 @@ import java.util.List;
 public class SearchQueryBuilder {
 
     private boolean nearMeNow;
+    private OPGeoPoint currentLocation;
 
     private List<OPPlaceCategoryInterface> searchPlaceCategories = new ArrayList<OPPlaceCategoryInterface>();
     private List<OPLocationInterface> searchLocations = new ArrayList<OPLocationInterface>();
@@ -67,5 +73,28 @@ public class SearchQueryBuilder {
         if(this.nearMeNow == true){
             //this.reseatSearchLocations();
         }
+    }
+
+
+    public List<OPPlaceInterface> doSearch(OpenPlacesProvider opp){
+        List<OPPlaceInterface> res = null;
+        if(this.isNearMeNow()){
+            OPLocationImpl fakeLocation = new OPLocationImpl();
+            fakeLocation.setBoundingBox(GeoFunctions.generateBoundingBox(currentLocation, 50));
+            res = opp.getPlaces(this.getSearchPlaceCategories(), fakeLocation);
+        }
+        else {
+            res = opp.getPlaces(this.getSearchPlaceCategories(), this.getSearchLocations());
+        }
+
+        return res;
+    }
+
+    public OPGeoPoint getCurrentLocation() {
+        return currentLocation;
+    }
+
+    public void setCurrentLocation(OPGeoPoint currentLocation) {
+        this.currentLocation = currentLocation;
     }
 }

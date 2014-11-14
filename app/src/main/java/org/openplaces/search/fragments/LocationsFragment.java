@@ -90,6 +90,18 @@ public class LocationsFragment extends Fragment {
                 }
             }
         });
+
+        ((SearchActivity) getActivity()).addSearchLocationListener(new SearchActivity.SearchLocationChangedListener() {
+            @Override
+            public void onSearchLocationChanged(String text) {
+                locationsListAdapter.getFilter().filter(text.toLowerCase());
+            }
+
+            @Override
+            public void onSearchLocationTokenCompleted(String text) {
+                new SearchLocationByName().execute(text.trim().toLowerCase());
+            }
+        });
     }
 
     public void startSearch(){
@@ -105,13 +117,8 @@ public class LocationsFragment extends Fragment {
 
         protected List<OPLocationInterface> doInBackground(String... query) {
 
-            System.out.println("OPP is " + opp);
             List<OPLocationInterface> res = opp.getLocationsAround(myLocation, SearchActivity.SEARCH_LOCATION_AROUND_RADIUS);
 
-//            List<OPLocationInterface> wrappedObjects = new ArrayList<OPLocationInterface>();
-//            for(OPLocationInterface loc: res){
-//                wrappedObjects.add(new org.openplaces.model.Location(loc));
-//            }
             return res;
         }
 
@@ -131,6 +138,40 @@ public class LocationsFragment extends Fragment {
 
             if(isAdded()){
                 getActivity().setProgressBarIndeterminateVisibility(Boolean.FALSE);
+            }
+
+        }
+    }
+
+    private class SearchLocationByName extends AsyncTask<String, Integer, List<OPLocationInterface>> {
+
+        protected List<OPLocationInterface> doInBackground(String... query) {
+
+            Log.d(MapActivity.LOGTAG, "Searching for locations by name: " + query[0]);
+
+            List<OPLocationInterface> res = opp.getLocationsByName(query[0]);
+
+            return res;
+        }
+
+        protected void onProgressUpdate(Integer... progress) {
+        }
+
+        protected void onPreExecute() {
+            if(isAdded()){
+                getActivity().setProgressBarIndeterminateVisibility(Boolean.TRUE);
+                ((SearchActivity) getActivity()).setLocationEditTextEnabled(false);
+            }
+        }
+
+        protected void onPostExecute(List<OPLocationInterface> result) {
+
+            GeoFunctions.sortByDistanceFromPoint(result, myLocation);
+            locationsListAdapter.setLocations(result);
+
+            if(isAdded()){
+                getActivity().setProgressBarIndeterminateVisibility(Boolean.FALSE);
+                ((SearchActivity) getActivity()).setLocationEditTextEnabled(true);
             }
 
         }

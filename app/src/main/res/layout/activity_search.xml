@@ -10,7 +10,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/searchEditText"
-        android:hint="What...?" />
+        android:hint="What...?"
+        android:layout_toStartOf="@+id/startSearch" />
 
 
     <org.openplaces.widgets.OPChipsEditText
@@ -19,7 +20,7 @@
         android:hint="Where...?"
         android:id="@+id/locationEditText"
         android:layout_below="@+id/searchEditText"
-        android:layout_centerHorizontal="true" />
+        android:layout_toStartOf="@+id/startSearch" />
 
     <Button
         style="?android:attr/buttonStyleSmall"
@@ -28,7 +29,8 @@
         android:text="Search"
         android:id="@+id/startSearch"
         android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignEnd="@+id/searchTabsViewPager"
+        android:layout_above="@+id/searchTabsViewPager" />
 
 
         <android.support.v4.view.ViewPager
@@ -45,6 +47,8 @@
                 android:paddingBottom="4dp"/>
 
         </android.support.v4.view.ViewPager>
+
+
 
 
 </RelativeLayout>

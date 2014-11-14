@@ -2,11 +2,15 @@ package org.openplaces;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,6 +28,7 @@ import org.osmdroid.bonuspack.overlays.MapEventsOverlay;
 import org.osmdroid.bonuspack.overlays.MapEventsReceiver;
 import org.osmdroid.bonuspack.overlays.Marker;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.util.BoundingBoxE6;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.compass.CompassOverlay;
@@ -41,6 +46,12 @@ public class MapActivity extends Activity {
     private GridMarkerClusterer resultSetMarkersOverlay;
     private Marker.OnMarkerClickListener markersClickListener;
     private TextView placeNameLabelTV;
+    private TextView numPlacesTV;
+    MyLocationNewOverlay oMapLocationOverlay;
+
+    //TODO: these will be replaced by places icons... one day
+    Drawable iconSelected;
+    Drawable iconUnselected;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +67,11 @@ public class MapActivity extends Activity {
         this.searchButton = (Button) findViewById(R.id.searchButton);
 
         this.placeNameLabelTV = (TextView) findViewById(R.id.textView1);
+
+        this.numPlacesTV = (TextView) findViewById(R.id.numPlaces);
+
+        this.iconSelected = getResources().getDrawable(R.drawable.marker_red);
+        this.iconUnselected = getResources().getDrawable(R.drawable.marker_gray);
 
         this.initMapView();
         this.setUpListeners();
@@ -75,15 +91,18 @@ public class MapActivity extends Activity {
 
         //set initial position and zoom
         GeoPoint startPoint = new GeoPoint(41.666667, 12.783333); //Velletri, home sweet home :)
+
         IMapController mapController = this.mapView.getController();
 
-        mapController.setZoom(17);
+        mapController.setZoom(16);
         mapController.setCenter(startPoint);
 
-        MyLocationNewOverlay oMapLocationOverlay = new MyLocationNewOverlay(getApplicationContext(),this.mapView);
+        this.oMapLocationOverlay = new MyLocationNewOverlay(getApplicationContext(),this.mapView);
         this.mapView.getOverlays().add(oMapLocationOverlay);
         oMapLocationOverlay.enableMyLocation();
+
         oMapLocationOverlay.enableFollowLocation();
+
         oMapLocationOverlay.setDrawAccuracyEnabled(true);
         CompassOverlay compassOverlay = new CompassOverlay(this, this.mapView);
         compassOverlay.enableCompass();
@@ -94,9 +113,6 @@ public class MapActivity extends Activity {
         Bitmap clusterIcon = ((BitmapDrawable)clusterIconD).getBitmap();
         this.resultSetMarkersOverlay.setIcon(clusterIcon);
         mapView.getOverlayManager().add(this.resultSetMarkersOverlay);
-
-
-
 
         this.mapView.invalidate();
     }
@@ -123,8 +139,7 @@ public class MapActivity extends Activity {
         resultSet.setSelected(index);
         Log.d(LOGTAG, "Old selected place was " + oldSelected);
         if(oldSelected != null){
-            Drawable icon = getResources().getDrawable(R.drawable.ic_launcher);
-            ((Marker) oldSelected.getRelatedObject()).setIcon(icon);
+            ((Marker) oldSelected.getRelatedObject()).setIcon(iconUnselected);
         }
         this.updateSelectedPlace();
     }
@@ -140,7 +155,7 @@ public class MapActivity extends Activity {
         }
 
 
-        Drawable iconSelected = getResources().getDrawable(R.drawable.moreinfo_arrow_pressed);
+
         ((Marker) newSelectedPlace.getRelatedObject()).setIcon(iconSelected);
 
         mapView.invalidate();
@@ -167,6 +182,7 @@ public class MapActivity extends Activity {
         this.searchButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Intent searchIntent = new Intent(MapActivity.this, SearchActivity.class);
+                searchIntent.putExtra("VISIBLEAREA", (Parcelable) mapView.getBoundingBox());
                 startActivityForResult(searchIntent, 1);
             }
         });
@@ -233,17 +249,43 @@ public class MapActivity extends Activity {
 
             resultSetMarkersOverlay.getItems().clear();
 
-            Drawable icon = getResources().getDrawable(R.drawable.ic_launcher);
-            for(Place p: resultSet){
-                Marker marker = new Marker(mapView);
+            if(rs.size() > 0){
 
-                marker.setOnMarkerClickListener(markersClickListener);
-                marker.setPosition(new GeoPoint(p.getPosition().getLat(), p.getPosition().getLon()));
-                marker.setIcon(icon);
-                marker.setRelatedObject(Integer.valueOf(resultSet.indexOf(p)));
-                p.setRelatedObject(marker);
-                resultSetMarkersOverlay.add(marker);
+                double minLat = Double.MAX_VALUE;
+                double maxLat = Double.MIN_VALUE;
+                double minLon = Double.MAX_VALUE;
+                double maxLon = Double.MIN_VALUE;
+
+                for(Place p: resultSet){
+                    Marker marker = new Marker(mapView);
+
+                    marker.setOnMarkerClickListener(markersClickListener);
+                    marker.setPosition(new GeoPoint(p.getPosition().getLat(), p.getPosition().getLon()));
+                    marker.setIcon(iconUnselected);
+                    marker.setRelatedObject(Integer.valueOf(resultSet.indexOf(p)));
+                    p.setRelatedObject(marker);
+                    resultSetMarkersOverlay.add(marker);
+
+
+                    minLat = Math.min(minLat, p.getPosition().getLat());
+                    maxLat = Math.max(maxLat, p.getPosition().getLat());
+                    minLon = Math.min(minLon, p.getPosition().getLon());
+                    maxLon = Math.max(maxLon, p.getPosition().getLon());
+
+                }
+
+                BoundingBoxE6 zoomTo = new BoundingBoxE6(maxLat, maxLon, minLat, minLon);
+                Log.d(LOGTAG, "Moving map to " + zoomTo);
+
+
+
+                this.oMapLocationOverlay.disableFollowLocation();
+                mapView.zoomToBoundingBox(zoomTo);
+
             }
+
+            this.numPlacesTV.setText("Showing " + rs.size() + " Places");
+
             resultSetMarkersOverlay.invalidate();
             mapView.invalidate();
 

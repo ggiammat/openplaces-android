@@ -21,6 +21,7 @@ import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ListView;
 
+import org.openplaces.model.OPBoundingBox;
 import org.openplaces.model.OPGeoPoint;
 import org.openplaces.model.OPLocationInterface;
 import org.openplaces.model.OPPlaceCategoryInterface;
@@ -33,6 +34,7 @@ import org.openplaces.search.SearchQueryBuilder;
 import org.openplaces.search.SearchTabsPagerAdapter;
 import org.openplaces.utils.HttpHelper;
 import org.openplaces.widgets.OPChipsEditText;
+import org.osmdroid.util.BoundingBoxE6;
 
 
 import java.util.ArrayList;
@@ -55,6 +57,7 @@ public class SearchActivity extends FragmentActivity {
     private SearchTabsPagerAdapter tabsViewPagerAdapter;
     private ViewPager tabsViewPager;
     private Button searchButton;
+    private BoundingBoxE6 mapViewVisibleArea;
 
     private OPLocationInterface specialLocationNearMeNow = new OPLocationImpl();
     private OPLocationInterface specialLocationInVisibleArea = new OPLocationImpl();
@@ -103,6 +106,10 @@ public class SearchActivity extends FragmentActivity {
         this.searchEditText = (OPChipsEditText) findViewById(R.id.searchEditText);
         this.locationEditText = (OPChipsEditText) findViewById(R.id.locationEditText);
         this.searchButton = (Button) findViewById(R.id.startSearch);
+
+
+        Intent i = getIntent();
+        this.mapViewVisibleArea = i.getParcelableExtra("VISIBLEAREA");
         this.setupListeners();
 
     }
@@ -110,6 +117,14 @@ public class SearchActivity extends FragmentActivity {
 
     public SearchQueryBuilder getQueryBuilder(){
         return this.searchQueryBuilder;
+    }
+
+
+    public void setCurrentViewSearchLocation(boolean startSearch){
+        this.locationEditText.appendChip("Visible area", this.specialLocationInVisibleArea);
+        if(startSearch){
+            new SearchTask().execute();
+        }
     }
 
     public void setNearMeNowSearchLocation(boolean startSearch){
@@ -212,6 +227,9 @@ public class SearchActivity extends FragmentActivity {
                     searchQueryBuilder.setNearMeNow(true);
 
                 }
+                else if(relatedObj.equals(specialLocationInVisibleArea)){
+                    searchQueryBuilder.setVisibleArea(true);
+                }
                 else {
                     searchQueryBuilder.addSearchLocation((OPLocationInterface) relatedObj);
                 }
@@ -221,6 +239,9 @@ public class SearchActivity extends FragmentActivity {
             public void onChipRemoved(ReplacementSpan chip, Object relatedObj) {
                 if(relatedObj.equals(specialLocationNearMeNow)){
                     searchQueryBuilder.setNearMeNow(false);
+                }
+                else if(relatedObj.equals(specialLocationInVisibleArea)){
+                    searchQueryBuilder.setVisibleArea(false);
                 }
                 else {
                     searchQueryBuilder.removeSearchLocation((OPLocationInterface) relatedObj);
@@ -296,6 +317,12 @@ public class SearchActivity extends FragmentActivity {
                     new OPGeoPoint(location.getLatitude(), location.getLongitude()));
 
             searchQueryBuilder.setFreeTextQuery(searchEditText.getUnChipedText().trim());
+
+            searchQueryBuilder.setVisibleMapBB(new OPBoundingBox(
+                    (double) mapViewVisibleArea.getLatNorthE6()/1E6d,
+                    (double) mapViewVisibleArea.getLonEastE6()/1E6d,
+                    (double) mapViewVisibleArea.getLatSouthE6()/1E6d,
+                    (double) mapViewVisibleArea.getLonWestE6()/1E6d));
 
            List<OPPlaceInterface> res = searchQueryBuilder.doSearch();
            return res;

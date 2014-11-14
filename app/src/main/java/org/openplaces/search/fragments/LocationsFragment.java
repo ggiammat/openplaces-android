@@ -23,6 +23,7 @@ import org.openplaces.search.SearchLocationsAdapter;
 import org.openplaces.utils.GeoFunctions;
 import org.openplaces.utils.HttpHelper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -84,6 +85,9 @@ public class LocationsFragment extends Fragment {
                     if(i== SearchLocationsAdapter.NEAR_ME_NOW_LOCATION_POSITION) {
                         ((SearchActivity) getActivity()).setNearMeNowSearchLocation(true);
                     }
+                    else if(i== SearchLocationsAdapter.CURRENT_BB_LOCATION_POSITION) {
+                        ((SearchActivity) getActivity()).setCurrentViewSearchLocation(true);
+                    }
                     else {
                         ((SearchActivity) getActivity()).addSearchLocation((OPLocationInterface) locationsListAdapter.getItem(i), true);
                     }
@@ -97,6 +101,9 @@ public class LocationsFragment extends Fragment {
                 if(isAdded()){
                     if(position== SearchLocationsAdapter.NEAR_ME_NOW_LOCATION_POSITION) {
                         ((SearchActivity) getActivity()).setNearMeNowSearchLocation(false);
+                    }
+                    else if(position== SearchLocationsAdapter.CURRENT_BB_LOCATION_POSITION) {
+                        ((SearchActivity) getActivity()).setCurrentViewSearchLocation(false);
                     }
                     else {
                         ((SearchActivity) getActivity()).addSearchLocation((OPLocationInterface) locationsListAdapter.getItem(position), false);
@@ -132,9 +139,14 @@ public class LocationsFragment extends Fragment {
 
         protected List<OPLocationInterface> doInBackground(String... query) {
 
-            List<OPLocationInterface> res = opp.getLocationsAround(myLocation, SearchActivity.SEARCH_LOCATION_AROUND_RADIUS);
-
-            return res;
+            try {
+                List<OPLocationInterface> res = opp.getLocationsAround(myLocation, SearchActivity.SEARCH_LOCATION_AROUND_RADIUS);
+                return res;
+            }
+            catch (Exception ex){
+                ex.printStackTrace();
+                return new ArrayList<OPLocationInterface>();
+            }
         }
 
         protected void onProgressUpdate(Integer... progress) {

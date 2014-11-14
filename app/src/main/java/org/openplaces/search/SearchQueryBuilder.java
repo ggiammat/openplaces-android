@@ -4,6 +4,7 @@ import android.util.Log;
 
 import org.openplaces.MapActivity;
 import org.openplaces.OpenPlacesProvider;
+import org.openplaces.model.OPBoundingBox;
 import org.openplaces.model.OPGeoPoint;
 import org.openplaces.model.OPLocationInterface;
 import org.openplaces.model.OPPlaceCategoryInterface;
@@ -20,7 +21,9 @@ import java.util.List;
 public class SearchQueryBuilder {
 
     private boolean nearMeNow;
+    private boolean visibleArea;
     private OPGeoPoint currentLocation;
+    private OPBoundingBox visibleMapBB;
     private OpenPlacesProvider opp;
     private String freeTextQuery;
 
@@ -89,6 +92,19 @@ public class SearchQueryBuilder {
         if(this.searchLocations.isEmpty() && this.searchPlaceCategories.isEmpty() && !this.freeTextQuery.isEmpty()){
             res = this.opp.getPlacesByFreeQuery(this.freeTextQuery);
         }
+        //only place categories (and free text selected). Search in the current bounding box
+        else if(this.searchLocations.isEmpty() && !this.isNearMeNow() && !this.searchPlaceCategories.isEmpty()){
+            OPLocationImpl fakeLocationVisibleMap = new OPLocationImpl();
+            fakeLocationVisibleMap.setBoundingBox(this.getVisibleMapBB());
+            this.addSearchLocation(fakeLocationVisibleMap);
+
+            if(this.freeTextQuery != null && !this.freeTextQuery.trim().isEmpty()){
+                res = this.opp.getPlaces(this.getSearchPlaceCategories(), this.getSearchLocations(), this.freeTextQuery);
+            }
+            else{
+                res = this.opp.getPlaces(this.getSearchPlaceCategories(), this.getSearchLocations());
+            }
+        }
         else {
 
             //if near me now, create a fake bounding box to search
@@ -96,6 +112,12 @@ public class SearchQueryBuilder {
                 OPLocationImpl fakeLocation = new OPLocationImpl();
                 fakeLocation.setBoundingBox(GeoFunctions.generateBoundingBox(currentLocation, 50));
                 this.addSearchLocation(fakeLocation);
+            }
+
+            if(this.isVisibleArea()){
+                OPLocationImpl fakeLocationVisibleMap = new OPLocationImpl();
+                fakeLocationVisibleMap.setBoundingBox(this.getVisibleMapBB());
+                this.addSearchLocation(fakeLocationVisibleMap);
             }
 
             if(this.freeTextQuery != null && !this.freeTextQuery.trim().isEmpty()){
@@ -125,5 +147,22 @@ public class SearchQueryBuilder {
     public void setFreeTextQuery(String freeTextQuery) {
         Log.d(MapActivity.LOGTAG, "Setting free text query to: " + freeTextQuery);
         this.freeTextQuery = freeTextQuery;
+    }
+
+    public boolean isVisibleArea() {
+        return visibleArea;
+    }
+
+    public void setVisibleArea(boolean visibleArea) {
+        Log.d(MapActivity.LOGTAG, "Setting visible_area search to: " + visibleArea);
+        this.visibleArea = visibleArea;
+    }
+
+    public OPBoundingBox getVisibleMapBB() {
+        return visibleMapBB;
+    }
+
+    public void setVisibleMapBB(OPBoundingBox visibleMapBB) {
+        this.visibleMapBB = visibleMapBB;
     }
 }

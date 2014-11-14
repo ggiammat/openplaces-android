@@ -27,6 +27,7 @@ import java.util.List;
 public class SearchLocationsAdapter extends BaseAdapter implements Filterable {
 
     public static final int NEAR_ME_NOW_LOCATION_POSITION = 0;
+    public static final int CURRENT_BB_LOCATION_POSITION = 1;
 
     private Context context;
     private LayoutInflater inflater;
@@ -50,6 +51,7 @@ public class SearchLocationsAdapter extends BaseAdapter implements Filterable {
 
             List<OPLocationInterface> filteringResults = new ArrayList<OPLocationInterface>();
             filteringResults.add(0, null); //add placeholder for "Near me now" location
+            filteringResults.add(1, null); //add placeholder for "current_view" location
             currentFilterText = constraint.toString();
             for(OPLocationInterface l: locations){
                 if(l.getDisplayName().toLowerCase().contains(currentFilterText.toLowerCase())){
@@ -107,6 +109,12 @@ public class SearchLocationsAdapter extends BaseAdapter implements Filterable {
         if(position == 0){
             //TODO add localization
             locNameTV.setText("[Near me now]");
+            locNameTV.setTypeface(null, Typeface.ITALIC);
+            locInfoTV.setText("");
+        }
+        else if(position == 1){
+            //TODO add localization
+            locNameTV.setText("[Current view]");
             locNameTV.setTypeface(null, Typeface.ITALIC);
             locInfoTV.setText("");
         }

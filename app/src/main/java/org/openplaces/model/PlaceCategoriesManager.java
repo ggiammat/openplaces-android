@@ -36,7 +36,7 @@ public class PlaceCategoriesManager {
         this.libraries = new HashMap<String, OPPlaceCategoriesLibrary>();
 
         //load standard categories library
-        InputStream is = this.ctx.getResources().openRawResource(R.raw.default_categorie_library);
+        InputStream is = this.ctx.getResources().openRawResource(R.raw.default_categories_library);
         OPPlaceCategoriesLibrary lib = OPPlaceCategoriesLibrary.loadFromResource(is);
         this.libraries.put(lib.getLibraryName(), lib);
     }

@@ -46,6 +46,10 @@ public class ResultSet implements Parcelable, Iterable<Place> {
         return null;
     }
 
+    public int size(){
+        return this.places.size();
+    }
+
     public int getPreviousIndex(){
         if(this.selectedIndex == -1){
             return -1;

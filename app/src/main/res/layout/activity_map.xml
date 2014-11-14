@@ -17,7 +17,7 @@
             style="?android:attr/buttonStyleSmall"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="New Button"
+            android:text="Search"
             android:id="@+id/searchButton"
             android:layout_gravity="right|top" />
 
@@ -71,6 +71,14 @@
                 android:text="TextView" />
 
         </GridLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Showing 0 Places"
+            android:background="@color/mapoverlaypanelsbackground"
+            android:id="@+id/numPlaces"
+            android:layout_gravity="center_horizontal|top" />
 
     </FrameLayout>
 

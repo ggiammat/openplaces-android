@@ -15,6 +15,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.TextView;
@@ -30,6 +32,8 @@ import org.osmdroid.bonuspack.overlays.Marker;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.BoundingBoxE6;
 import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.MapController;
+import org.osmdroid.views.MapControllerOld;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.compass.CompassOverlay;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
@@ -248,6 +252,7 @@ public class MapActivity extends Activity {
             resultSet = rs;
 
             resultSetMarkersOverlay.getItems().clear();
+            BoundingBoxE6 zoomTo = null;
 
             if(rs.size() > 0){
 
@@ -274,13 +279,12 @@ public class MapActivity extends Activity {
 
                 }
 
-                BoundingBoxE6 zoomTo = new BoundingBoxE6(maxLat, maxLon, minLat, minLon);
+                zoomTo = new BoundingBoxE6(maxLat, maxLon, minLat, minLon);
                 Log.d(LOGTAG, "Moving map to " + zoomTo);
 
 
 
-                this.oMapLocationOverlay.disableFollowLocation();
-                mapView.zoomToBoundingBox(zoomTo);
+
 
             }
 
@@ -288,6 +292,12 @@ public class MapActivity extends Activity {
 
             resultSetMarkersOverlay.invalidate();
             mapView.invalidate();
+
+            if(zoomTo != null){
+                this.oMapLocationOverlay.disableFollowLocation();
+                //mapView.getController().animateTo(zoomTo.getCenter());
+                mapView.zoomToBoundingBox(zoomTo);
+            }
 
             setProgressBarIndeterminateVisibility(Boolean.FALSE);
 

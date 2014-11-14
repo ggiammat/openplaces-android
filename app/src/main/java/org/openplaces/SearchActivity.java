@@ -333,12 +333,17 @@ public class SearchActivity extends FragmentActivity {
 
         protected void onPreExecute() {
             setProgressBarIndeterminateVisibility(Boolean.TRUE);
-
+            searchEditText.setEnabled(false);
+            locationEditText.setEnabled(false);
+            searchButton.setEnabled(false);
         }
 
         protected void onPostExecute(List<OPPlaceInterface> result) {
 
             setProgressBarIndeterminateVisibility(Boolean.FALSE);
+            searchEditText.setEnabled(true);
+            locationEditText.setEnabled(true);
+            searchButton.setEnabled(true);
 
             if(result == null){
                 Log.d(MapActivity.LOGTAG, "result is null");

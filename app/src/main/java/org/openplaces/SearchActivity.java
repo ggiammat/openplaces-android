@@ -59,7 +59,7 @@ public class SearchActivity extends FragmentActivity {
     private OPLocationInterface specialLocationNearMeNow = new OPLocationImpl();
     private OPLocationInterface specialLocationInVisibleArea = new OPLocationImpl();
 
-    private SearchQueryBuilder searchQueryBuilder = new SearchQueryBuilder();
+    private SearchQueryBuilder searchQueryBuilder;
 
     public interface SearchTextChangedListener {
         public void onSearchTextChanged(String text);
@@ -90,7 +90,7 @@ public class SearchActivity extends FragmentActivity {
                 OpenPlacesProvider.OVERPASS_SERVER,
                 OpenPlacesProvider.REVIEW_SERVER_SERVER
         );
-
+        this.searchQueryBuilder = new SearchQueryBuilder(this.opp);
 
         this.tabsViewPagerAdapter = new SearchTabsPagerAdapter(getSupportFragmentManager());
         this.tabsViewPager = (ViewPager) super.findViewById(R.id.searchTabsViewPager);
@@ -112,17 +112,25 @@ public class SearchActivity extends FragmentActivity {
         return this.searchQueryBuilder;
     }
 
-    public void setNearMeNowSearchLocation(){
+    public void setNearMeNowSearchLocation(boolean startSearch){
         this.locationEditText.appendChip("Near me now", this.specialLocationNearMeNow);
+        if(startSearch){
+            new SearchTask().execute();
+        }
     }
 
-    public void addSearchLocation(OPLocationInterface loc){
-        //this.searchQueryBuilder.addSearchLocation(loc);
+    public void addSearchLocation(OPLocationInterface loc, boolean startSearch){
         this.locationEditText.appendChip(loc.getDisplayName(), loc);
+        if(startSearch){
+            new SearchTask().execute();
+        }
     }
 
-    public void addSearchPlaceCategory(OPPlaceCategoryInterface s){
+    public void addSearchPlaceCategory(OPPlaceCategoryInterface s, boolean moveFocusToLocation){
         this.searchEditText.appendChip(s.getFirstNameMatch(this.searchEditText.getUnChipedText()), s);
+        if(moveFocusToLocation){
+            this.locationEditText.requestFocus();
+        }
     }
 
     public void addSearchTextListener(SearchTextChangedListener listener){
@@ -154,9 +162,6 @@ public class SearchActivity extends FragmentActivity {
             public void onFocusChange(View v, boolean hasFocus) {
                 if(hasFocus){
                     tabsViewPager.setCurrentItem(SearchTabsPagerAdapter.CATEGORIES_FRAGMENT_POSITION, true);
-                }
-                else {
-                    //searchEditText.setChips();
                 }
             }
         });
@@ -290,7 +295,9 @@ public class SearchActivity extends FragmentActivity {
             searchQueryBuilder.setCurrentLocation(
                     new OPGeoPoint(location.getLatitude(), location.getLongitude()));
 
-           List<OPPlaceInterface> res = searchQueryBuilder.doSearch(opp);
+            searchQueryBuilder.setFreeTextQuery(searchEditText.getUnChipedText().trim());
+
+           List<OPPlaceInterface> res = searchQueryBuilder.doSearch();
            return res;
         }
 

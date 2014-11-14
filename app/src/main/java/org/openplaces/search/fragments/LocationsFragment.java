@@ -82,12 +82,27 @@ public class LocationsFragment extends Fragment {
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 if(isAdded()){
                     if(i== SearchLocationsAdapter.NEAR_ME_NOW_LOCATION_POSITION) {
-                        ((SearchActivity) getActivity()).setNearMeNowSearchLocation();
+                        ((SearchActivity) getActivity()).setNearMeNowSearchLocation(true);
                     }
                     else {
-                        ((SearchActivity) getActivity()).addSearchLocation((OPLocationInterface) locationsListAdapter.getItem(i));
+                        ((SearchActivity) getActivity()).addSearchLocation((OPLocationInterface) locationsListAdapter.getItem(i), true);
                     }
                 }
+            }
+        });
+
+        this.locationsList.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                if(isAdded()){
+                    if(position== SearchLocationsAdapter.NEAR_ME_NOW_LOCATION_POSITION) {
+                        ((SearchActivity) getActivity()).setNearMeNowSearchLocation(false);
+                    }
+                    else {
+                        ((SearchActivity) getActivity()).addSearchLocation((OPLocationInterface) locationsListAdapter.getItem(position), false);
+                    }
+                }
+                return true;
             }
         });
 

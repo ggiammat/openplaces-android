@@ -51,8 +51,17 @@ public class CategoriesFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 if(isAdded()){
-                    ((SearchActivity) getActivity()).addSearchPlaceCategory((OPPlaceCategoryInterface) presetsListAdapter.getItem(i));
+                    ((SearchActivity) getActivity()).addSearchPlaceCategory((OPPlaceCategoryInterface) presetsListAdapter.getItem(i), true);
                 }
+            }
+        });
+        this.presetsList.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                if(isAdded()){
+                    ((SearchActivity) getActivity()).addSearchPlaceCategory((OPPlaceCategoryInterface) presetsListAdapter.getItem(position), false);
+                }
+                return true;
             }
         });
 

@@ -21,6 +21,12 @@ public class SearchQueryBuilder {
 
     private boolean nearMeNow;
     private OPGeoPoint currentLocation;
+    private OpenPlacesProvider opp;
+    private String freeTextQuery;
+
+    public SearchQueryBuilder(OpenPlacesProvider opp){
+        this.opp = opp;
+    }
 
     private List<OPPlaceCategoryInterface> searchPlaceCategories = new ArrayList<OPPlaceCategoryInterface>();
     private List<OPLocationInterface> searchLocations = new ArrayList<OPLocationInterface>();
@@ -76,15 +82,29 @@ public class SearchQueryBuilder {
     }
 
 
-    public List<OPPlaceInterface> doSearch(OpenPlacesProvider opp){
+    public List<OPPlaceInterface> doSearch(){
         List<OPPlaceInterface> res = null;
-        if(this.isNearMeNow()){
-            OPLocationImpl fakeLocation = new OPLocationImpl();
-            fakeLocation.setBoundingBox(GeoFunctions.generateBoundingBox(currentLocation, 50));
-            res = opp.getPlaces(this.getSearchPlaceCategories(), fakeLocation);
+
+        //no categories and locations set. Pure free text search via Nominatim
+        if(this.searchLocations.isEmpty() && this.searchPlaceCategories.isEmpty() && !this.freeTextQuery.isEmpty()){
+            res = this.opp.getPlacesByFreeQuery(this.freeTextQuery);
         }
         else {
-            res = opp.getPlaces(this.getSearchPlaceCategories(), this.getSearchLocations());
+
+            //if near me now, create a fake bounding box to search
+            if (this.isNearMeNow()) {
+                OPLocationImpl fakeLocation = new OPLocationImpl();
+                fakeLocation.setBoundingBox(GeoFunctions.generateBoundingBox(currentLocation, 50));
+                this.addSearchLocation(fakeLocation);
+            }
+
+            if(this.freeTextQuery != null && !this.freeTextQuery.trim().isEmpty()){
+                res = this.opp.getPlaces(this.getSearchPlaceCategories(), this.getSearchLocations(), this.freeTextQuery);
+            }
+            else{
+                res = this.opp.getPlaces(this.getSearchPlaceCategories(), this.getSearchLocations());
+            }
+
         }
 
         return res;
@@ -96,5 +116,14 @@ public class SearchQueryBuilder {
 
     public void setCurrentLocation(OPGeoPoint currentLocation) {
         this.currentLocation = currentLocation;
+    }
+
+    public String getFreeTextQuery() {
+        return freeTextQuery;
+    }
+
+    public void setFreeTextQuery(String freeTextQuery) {
+        Log.d(MapActivity.LOGTAG, "Setting free text query to: " + freeTextQuery);
+        this.freeTextQuery = freeTextQuery;
     }
 }

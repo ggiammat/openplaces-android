@@ -1,10 +1,13 @@
 package org.openplaces.starred;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+
+import org.openplaces.model.Place;
 
 import java.util.Set;
 
@@ -13,14 +16,12 @@ import java.util.Set;
  */
 public class StarredListChooserFragment extends DialogFragment {
 
-    Long placeId;
-    StarredListsManager slm = StarredListsManager.getInstance(getActivity());
-
-
+    Place place;
+    StarredListsManager slm;
 
     @Override
     public void setArguments(Bundle args) {
-        this.placeId = args.getLong("PLACEID");
+        this.place = (Place) args.getParcelable("PLACE");
     }
 
     String[] starredLists;
@@ -37,18 +38,26 @@ public class StarredListChooserFragment extends DialogFragment {
                         if(which == starredLists.length - 1) {
                             DialogFragment frag = new CreateNewStarredListFragment();
                             Bundle b = new Bundle();
-                            b.putLong("PLACEID", placeId);
+                            b.putParcelable("PLACE", place);
                             frag.setArguments(b);
                             frag.show(getFragmentManager(), "newStarredListDialog");
 
                         }
                         else {
-                            slm.starPlace(starredLists[which], placeId);
+                            slm.starPlace(starredLists[which], place);
                             ((PlaceStarCapability)getActivity()).placeIsNowStarred(starredLists[which]);
                         }
                     }
                 });
         return builder.create();
+    }
+
+
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        this.slm = StarredListsManager.getInstance(getActivity());
     }
 
 

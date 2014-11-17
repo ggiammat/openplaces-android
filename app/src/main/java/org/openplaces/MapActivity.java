@@ -5,12 +5,16 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -22,8 +26,14 @@ import android.widget.GridLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.openplaces.model.OPBoundingBox;
+import org.openplaces.model.OPGeoPoint;
+import org.openplaces.model.OPPlaceInterface;
 import org.openplaces.model.Place;
 import org.openplaces.model.ResultSet;
+import org.openplaces.starred.StarredListChooserFragment;
+import org.openplaces.starred.StarredListsManager;
+import org.openplaces.utils.HttpHelper;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.bonuspack.clustering.GridMarkerClusterer;
 import org.osmdroid.bonuspack.overlays.MapEventsOverlay;
@@ -38,13 +48,17 @@ import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.compass.CompassOverlay;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
+import java.util.List;
 
-public class MapActivity extends Activity {
+
+public class MapActivity extends FragmentActivity implements StarredListChooserFragment.PlaceStarCapability {
 
     public static final String LOGTAG = "OpenPlaceSearch";
 
-
+    StarredListsManager slm;
     Button searchButton;
+    Button showStarredButton;
+    Button starButton;
     MapView mapView;
     private ResultSet resultSet;
     private GridMarkerClusterer resultSetMarkersOverlay;
@@ -52,6 +66,9 @@ public class MapActivity extends Activity {
     private TextView placeNameLabelTV;
     private TextView numPlacesTV;
     MyLocationNewOverlay oMapLocationOverlay;
+    private OpenPlacesProvider opp;
+    private View.OnClickListener unStarPlaceListener;
+    private View.OnClickListener starPlaceListener;
 
     //TODO: these will be replaced by places icons... one day
     Drawable iconSelected;
@@ -66,10 +83,18 @@ public class MapActivity extends Activity {
 
         setContentView(R.layout.activity_map);
 
+        this.opp = new OpenPlacesProvider(
+                new HttpHelper(),
+                "gabriele.giammatteo@gmail.com",
+                OpenPlacesProvider.NOMINATIM_SERVER,
+                OpenPlacesProvider.OVERPASS_SERVER,
+                OpenPlacesProvider.REVIEW_SERVER_SERVER
+        );
 
-
+        this.slm = StarredListsManager.getInstance(this);
+        this.showStarredButton = (Button) findViewById(R.id.showStarred);
         this.searchButton = (Button) findViewById(R.id.searchButton);
-
+        this.starButton = (Button) findViewById(R.id.starButtonMapView);
         this.placeNameLabelTV = (TextView) findViewById(R.id.textView1);
 
         this.numPlacesTV = (TextView) findViewById(R.id.numPlaces);
@@ -122,6 +147,16 @@ public class MapActivity extends Activity {
     }
 
 
+    public void placeIsNowStarred(String listName){
+        this.starButton.setText("Unstar (" + listName + ")");
+        this.starButton.setOnClickListener(unStarPlaceListener);
+    }
+
+    public void placeIsNowUnstarred(){
+        this.starButton.setText("Star");
+        this.starButton.setOnClickListener(starPlaceListener);
+    }
+
     public void clearSelectedPlace(Boolean hidePanel){
 
         if(resultSet != null && resultSet.getSelected() != null){
@@ -163,6 +198,7 @@ public class MapActivity extends Activity {
         ((Marker) newSelectedPlace.getRelatedObject()).setIcon(iconSelected);
 
         mapView.invalidate();
+        mapView.getController().animateTo(new GeoPoint(newSelectedPlace.getPosition().getLat(), newSelectedPlace.getPosition().getLon()));
 
         TextView t1 = (TextView) findViewById(R.id.textView1);
         t1.setText(newSelectedPlace.getName());
@@ -176,6 +212,14 @@ public class MapActivity extends Activity {
             //new UpdatePlaceTask().execute();
         }
 
+        String starredList = slm.getStarredList(newSelectedPlace);
+        if(starredList != null){
+            this.placeIsNowStarred(starredList);
+        }
+        else {
+            this.placeIsNowUnstarred();
+        }
+
         GridLayout panel = (GridLayout) findViewById(R.id.detailsPanel);
         panel.setVisibility(View.VISIBLE);
 
@@ -183,6 +227,33 @@ public class MapActivity extends Activity {
 
 
     private void setUpListeners(){
+
+        this.unStarPlaceListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                slm.unstarPlace(slm.getStarredList(resultSet.getSelected()), resultSet.getSelected());
+                placeIsNowUnstarred();
+            }
+        };
+
+        this.starPlaceListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DialogFragment f = new StarredListChooserFragment();
+                Bundle b = new Bundle();
+                b.putParcelable("PLACE", resultSet.getSelected());
+                f.setArguments(b);
+                f.show(getSupportFragmentManager(), "StarredListChooser");
+            }
+        };
+
+        this.showStarredButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new LoadStarredPlaces().execute();
+            }
+        });
+
         this.searchButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Intent searchIntent = new Intent(MapActivity.this, SearchActivity.class);
@@ -243,66 +314,66 @@ public class MapActivity extends Activity {
         });
     }
 
+    private void setNewResultSet(ResultSet rs){
+        System.out.println(rs);
+        resultSet = rs;
+
+        resultSetMarkersOverlay.getItems().clear();
+
+        GridLayout tv = (GridLayout) findViewById(R.id.detailsPanel);
+        tv.setVisibility(View.INVISIBLE);
+
+        BoundingBoxE6 zoomTo = null;
+
+        if(rs.size() > 0) {
+
+            double minLat = Double.MAX_VALUE;
+            double maxLat = Double.MIN_VALUE;
+            double minLon = Double.MAX_VALUE;
+            double maxLon = Double.MIN_VALUE;
+
+            for (Place p : resultSet) {
+                Marker marker = new Marker(mapView);
+
+                marker.setOnMarkerClickListener(markersClickListener);
+                marker.setPosition(new GeoPoint(p.getPosition().getLat(), p.getPosition().getLon()));
+                marker.setIcon(iconUnselected);
+                marker.setRelatedObject(Integer.valueOf(resultSet.indexOf(p)));
+                p.setRelatedObject(marker);
+                resultSetMarkersOverlay.add(marker);
+
+
+                minLat = Math.min(minLat, p.getPosition().getLat());
+                maxLat = Math.max(maxLat, p.getPosition().getLat());
+                minLon = Math.min(minLon, p.getPosition().getLon());
+                maxLon = Math.max(maxLon, p.getPosition().getLon());
+
+            }
+
+            zoomTo = new BoundingBoxE6(maxLat, maxLon, minLat, minLon);
+            Log.d(LOGTAG, "Moving map to " + zoomTo);
+        }
+
+
+        this.numPlacesTV.setText("Showing " + rs.size() + " Places");
+
+        resultSetMarkersOverlay.invalidate();
+        mapView.invalidate();
+
+        if(zoomTo != null){
+            this.oMapLocationOverlay.disableFollowLocation();
+            //mapView.getController().animateTo(zoomTo.getCenter());
+            mapView.zoomToBoundingBox(zoomTo);
+        }
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == 1){
+        if(requestCode == 1) {
             ResultSet rs = data.getParcelableExtra("RESULTSET");
-            System.out.println(rs);
-            resultSet = rs;
-
-            resultSetMarkersOverlay.getItems().clear();
-            BoundingBoxE6 zoomTo = null;
-
-            if(rs.size() > 0){
-
-                double minLat = Double.MAX_VALUE;
-                double maxLat = Double.MIN_VALUE;
-                double minLon = Double.MAX_VALUE;
-                double maxLon = Double.MIN_VALUE;
-
-                for(Place p: resultSet){
-                    Marker marker = new Marker(mapView);
-
-                    marker.setOnMarkerClickListener(markersClickListener);
-                    marker.setPosition(new GeoPoint(p.getPosition().getLat(), p.getPosition().getLon()));
-                    marker.setIcon(iconUnselected);
-                    marker.setRelatedObject(Integer.valueOf(resultSet.indexOf(p)));
-                    p.setRelatedObject(marker);
-                    resultSetMarkersOverlay.add(marker);
-
-
-                    minLat = Math.min(minLat, p.getPosition().getLat());
-                    maxLat = Math.max(maxLat, p.getPosition().getLat());
-                    minLon = Math.min(minLon, p.getPosition().getLon());
-                    maxLon = Math.max(maxLon, p.getPosition().getLon());
-
-                }
-
-                zoomTo = new BoundingBoxE6(maxLat, maxLon, minLat, minLon);
-                Log.d(LOGTAG, "Moving map to " + zoomTo);
-
-
-
-
-
-            }
-
-            this.numPlacesTV.setText("Showing " + rs.size() + " Places");
-
-            resultSetMarkersOverlay.invalidate();
-            mapView.invalidate();
-
-            if(zoomTo != null){
-                this.oMapLocationOverlay.disableFollowLocation();
-                //mapView.getController().animateTo(zoomTo.getCenter());
-                mapView.zoomToBoundingBox(zoomTo);
-            }
-
-            setProgressBarIndeterminateVisibility(Boolean.FALSE);
-
+            setNewResultSet(rs);
         }
-
     }
 
 
@@ -327,5 +398,31 @@ public class MapActivity extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private class LoadStarredPlaces extends AsyncTask<String, Integer, List<OPPlaceInterface>> {
+
+        protected List<OPPlaceInterface> doInBackground(String... query) {
+
+
+            List<OPPlaceInterface> res = opp.getPlacesByTypesAndIds(slm.getAllStarredPlaces());
+            return res;
+        }
+
+        protected void onProgressUpdate(Integer... progress) {
+        }
+
+        protected void onPreExecute() {
+            setProgressBarIndeterminateVisibility(Boolean.TRUE);
+        }
+
+        protected void onPostExecute(List<OPPlaceInterface> result) {
+
+            setProgressBarIndeterminateVisibility(Boolean.FALSE);
+
+            ResultSet rs = ResultSet.buildFromOPPlaces(result);
+            Log.d(MapActivity.LOGTAG, rs.toString());
+            setNewResultSet(rs);
+        }
     }
 }

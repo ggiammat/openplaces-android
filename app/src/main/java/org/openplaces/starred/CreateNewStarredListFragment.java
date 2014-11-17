@@ -1,6 +1,7 @@
 package org.openplaces.starred;
 
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -8,18 +9,20 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.widget.EditText;
 
+import org.openplaces.model.Place;
+
 /**
  * Created by ggiammat on 11/17/14.
  */
 public class CreateNewStarredListFragment extends DialogFragment {
 
-    StarredListsManager slm = StarredListsManager.getInstance(getActivity());
-    Long placeId;
+    StarredListsManager slm;
+    Place place;
 
 
     @Override
     public void setArguments(Bundle args) {
-        this.placeId = args.getLong("PLACEID");
+        this.place = (Place) args.getParcelable("PLACE");
     }
 
 
@@ -39,7 +42,7 @@ public class CreateNewStarredListFragment extends DialogFragment {
         builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
                 slm.addStarredList(input.getText().toString());
-                slm.starPlace(input.getText().toString(), placeId);
+                slm.starPlace(input.getText().toString(), place);
                 ((StarredListChooserFragment.PlaceStarCapability)getActivity()).placeIsNowStarred(input.getText().toString());
             }
         });
@@ -51,5 +54,12 @@ public class CreateNewStarredListFragment extends DialogFragment {
         });
 
         return builder.create();
+    }
+
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        this.slm = StarredListsManager.getInstance(getActivity());
     }
 }

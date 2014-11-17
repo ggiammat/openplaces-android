@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,7 +18,7 @@ import org.openplaces.starred.StarredListsManager;
 
 public class PlaceDetailsActivity extends FragmentActivity implements StarredListChooserFragment.PlaceStarCapability {
 
-    StarredListsManager slm = StarredListsManager.getInstance(this);
+    StarredListsManager slm;
 
 
     private TextView placeNameTV;
@@ -27,6 +28,7 @@ public class PlaceDetailsActivity extends FragmentActivity implements StarredLis
     private Place place;
     private View.OnClickListener unStarPlaceListener;
     private View.OnClickListener starPlaceListener;
+    String starredList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,11 +48,15 @@ public class PlaceDetailsActivity extends FragmentActivity implements StarredLis
         this.placeOsmIdTV.setText(Long.toString(place.getId()));
 
 
-        final String starredList = slm.getStarredList(this.place.getId());
+        this.slm = StarredListsManager.getInstance(this);
+
+        this.starredList = slm.getStarredList(this.place);
+        Log.d(MapActivity.LOGTAG, "Place starred in " + starredList);
+
         this.unStarPlaceListener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                slm.unstarPlace(starredList, place.getId());
+                slm.unstarPlace(starredList, place);
                 placeIsNowUnstarred();
             }
         };
@@ -60,7 +66,7 @@ public class PlaceDetailsActivity extends FragmentActivity implements StarredLis
             public void onClick(View v) {
                 DialogFragment f = new StarredListChooserFragment();
                 Bundle b = new Bundle();
-                b.putLong("PLACEID", place.getId());
+                b.putParcelable("PLACE", place);
                 f.setArguments(b);
                 f.show(getSupportFragmentManager(), "StarredListChooser");
             }
@@ -68,13 +74,11 @@ public class PlaceDetailsActivity extends FragmentActivity implements StarredLis
 
 
 
-        if(starredList != null){
-            this.starPlace.setText("Unstar (" + starredList + ")");
-            this.starPlace.setOnClickListener(unStarPlaceListener);
+        if(this.starredList != null){
+            this.placeIsNowStarred(this.starredList);
         }
         else {
-            this.starPlace.setText("Star");
-            this.starPlace.setOnClickListener(starPlaceListener);
+            this.placeIsNowUnstarred();
         }
 
 
@@ -87,6 +91,7 @@ public class PlaceDetailsActivity extends FragmentActivity implements StarredLis
     public void placeIsNowStarred(String listName){
         starPlace.setText("Unstar (" + listName + ")");
         starPlace.setOnClickListener(unStarPlaceListener);
+        this.starredList = listName;
     }
 
     public void placeIsNowUnstarred(){

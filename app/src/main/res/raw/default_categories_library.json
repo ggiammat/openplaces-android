@@ -1,0 +1,214 @@
+{
+"library-name": "standard",
+"library-version": "1.0.0",
+"released-on": "2014-11-11",
+"categories": [
+{
+ "name": "restaurant",
+ "type": "food",
+ "description": "place with sit-down facilities selling full meals",
+ "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "restaurant"}}],
+ "localization": {
+	"en": "restaurant",
+	"en_plural": "restaurants",
+	"it": "ristorante",
+	"it_plural": "ristoranti"
+ }
+},
+{
+ "name": "regional restaurant",
+ "type": "food",
+ "description": "place with sit-down facilities selling full meals",
+ "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "restaurant"}, "cuisine": {"IS_EQUALS_TO": "regional"}}],
+ "localization": {
+	"en": "regional restaurant",
+	"en_plural": "regional restaurants",
+	"it": "ristorante regionale",
+	"it_plural": "ristoranti regionale"
+ }
+},
+{
+ "name": "chinese restaurant",
+ "type": "food",
+ "description": "place with sit-down facilities selling full meals",
+ "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "restaurant"}, "cuisine": {"IS_EQUALS_TO": "chinese"}}],
+ "localization": {
+	"en": "chinese restaurant",
+	"en_plural": "chinese restaurants",
+	"it": "ristorante cinese",
+	"it_plural": "ristoranti cinese"
+ }
+},
+{
+ "name": "pizzeria",
+ "type": "food",
+ "description": "place with sit-down facilities selling full meals",
+ "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "restaurant"}, "cuisine": {"IS_EQUALS_TO": "pizza"}}],
+ "localization": {
+	"en": "pizzeria",
+	"en_plural": "pizzerie",
+	"it": "pizzeria",
+	"it_plural": "pizzerie"
+ }
+},
+{
+ "name": "pizza take away",
+ "type": "food",
+ "description": "places that sells pizza take away",
+ "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "fast_food"}, "cuisine": {"IS_EQUALS_TO": "pizza"}}],
+ "localization": {
+	"en": "pizza take away",
+	"it": "pizza al taglio"
+ }
+},
+{
+ "name": "power tower",
+ "type": "manmade",
+ "description": "towers or pylons carrying high voltage electricity cables",
+ "osm-tag-filter-groups": [{"power": {"IS_EQUALS_TO": "tower"}}],
+ "localization": {
+	"en": "power tower",
+	"en_plural": "power towers",
+	"it": "traliccio",
+	"it_plural": "tralicci"
+ }
+},
+{
+ "name": "trees",
+ "type": "nature",
+ "description": "lone or a line of significant trees",
+ "osm-tag-filter-groups": [{"natural": {"IS_EQUALS_TO": "tree"}}, {"natural": {"IS_EQUALS_TO": "tree_row"}}],
+ "localization": {
+	"en": "tree",
+	"en_plural": "trees",
+	"it": "albero",
+	"it_plural": "alberi"
+ }
+},
+{
+ "name": "cinema",
+ "type": "entertainment",
+ "description": "A place where films are shown",
+ "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "cinema"}}],
+ "localization": {
+	"en": "cinema",
+	"en_plural": "cinemas"
+ }
+},
+{
+ "name": "drinking water",
+ "type": "nature",
+ "description": "a place where humans can obtain potable water for consumption",
+ "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "drinking_water"}}, {"drinking_water": {"HAS_TAG": "true"}}],
+ "localization": {
+	"en": "drinking water",
+	"en_plural": "drinking water",
+	"it2": "fontanella",
+	"it": "acqua potabile",
+	"it_plural": "acqua potabile"
+ }
+},
+{
+ "name": "atm",
+ "type": "bank",
+ "description": "An automated teller machine",
+ "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "atm"}}],
+ "localization": {
+	"en": "atm",
+	"en2": "cash machine",
+	"it": "bancomat"
+ }
+},
+{
+ "name": "fuel",
+ "type": "car",
+ "description": "petrol station; gas station",
+ "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "fuel"}}],
+ "localization": {
+	"en": "petrol station",
+	"en2": "gas station",
+	"it": "benzinaio",
+	"it_plural": "benzinai"
+ }
+},
+{
+ "name": "parking",
+ "type": "car",
+ "description": "a facility use for use by the public or by customers or other authorised users for the parking of cars, trucks, motorcycles, etc.",
+ "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "parking"}}],
+ "localization": {
+	"en": "parking",
+	"it": "parcheggio",
+	"it_plural": "parcheggi"
+ }
+},
+{
+ "name": "fast food",
+ "type": "food",
+ "description": "a place concentrating on very fast counter-only service and take-away food.",
+ "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "fast_food"}}],
+ "localization": {
+	"en": "fast food"
+ }
+},
+ {
+  "name": "cafè",
+  "type": "food",
+  "description": "a generally informal place with sit-down facilities selling beverages and light meals and/or snacks",
+  "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "cafe"}}],
+  "localization": {
+ 	"en": "cafè",
+ 	"en2": "cafe",
+ 	"it": "caffè"
+  }
+ },
+ {
+  "name": "pub",
+  "type": "food",
+  "description": "an establishment that sells alcoholic drinks that can be consumed on the premises.",
+  "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "pub"}}],
+  "localization": {
+ 	"en": "pub"
+  }
+ },
+   {
+    "name": "cocktail bar",
+    "type": "food",
+    "description": " purpose-built commercial establishment that sells alcoholic drinks to be consumed on the premises",
+    "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "bar"}}],
+    "localization": {
+   	"en": "cocktail bar",
+   	"it": "cocktail bar"
+    }
+   },
+   {
+    "name": "hotel",
+    "type": "tourism",
+    "description": "an establishment that provides paid lodging, usually on a short-term basis",
+    "osm-tag-filter-groups": [{"tourism": {"IS_EQUALS_TO": "hotel"}}, {"building": {"IS_EQUALS_TO": "hotel"}}],
+    "localization": {
+    "en": "hotel"
+    }
+   },
+   {
+    "name": "building",
+    "type": "building",
+    "description": "an establishment that provides paid lodging, usually on a short-term basis",
+    "osm-tag-filter-groups": [{"building": {"IS_EQUALS_TO": "yes"}}],
+    "localization": {
+    "en": "building",
+    "it": "edificio"
+    }
+   },
+   {
+    "name": "office",
+    "type": "office",
+    "description": "generic office",
+    "osm-tag-filter-groups": [{"office": {"HAS_TAG": "true"}}],
+    "localization": {
+    "en": "office",
+    "it": "ufficio"
+    }
+   }
+]
+}

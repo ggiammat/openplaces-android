@@ -37,7 +37,7 @@
             android:columnCount="4"
             android:orientation="horizontal"
             android:rowCount="3"
-            android:visibility="visible"
+            android:visibility="invisible"
             android:layout_gravity="center_horizontal|bottom">
 
             <Button

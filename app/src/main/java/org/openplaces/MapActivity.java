@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.AsyncTask;
@@ -73,6 +74,8 @@ public class MapActivity extends FragmentActivity implements StarredListChooserF
     //TODO: these will be replaced by places icons... one day
     Drawable iconSelected;
     Drawable iconUnselected;
+    Drawable iconStarred;
+    Drawable iconStarredSelected;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,8 +102,18 @@ public class MapActivity extends FragmentActivity implements StarredListChooserF
 
         this.numPlacesTV = (TextView) findViewById(R.id.numPlaces);
 
-        this.iconSelected = getResources().getDrawable(R.drawable.marker_red);
-        this.iconUnselected = getResources().getDrawable(R.drawable.marker_gray);
+        this.iconUnselected = new LayerDrawable(new Drawable[]{
+                getResources().getDrawable(R.drawable.marker_bg),
+                getResources().getDrawable(R.drawable.place_restaurant)});
+        this.iconSelected = new LayerDrawable(new Drawable[]{
+                getResources().getDrawable(R.drawable.marker_bg_selected),
+                getResources().getDrawable(R.drawable.place_restaurant)});
+        this.iconStarred = new LayerDrawable(new Drawable[]{
+                getResources().getDrawable(R.drawable.marker_bg_starred),
+                getResources().getDrawable(R.drawable.place_restaurant)});
+        this.iconStarredSelected = new LayerDrawable(new Drawable[]{
+                getResources().getDrawable(R.drawable.marker_bg_starred_selected),
+                getResources().getDrawable(R.drawable.place_restaurant)});
 
         this.initMapView();
         this.setUpListeners();
@@ -178,7 +191,7 @@ public class MapActivity extends FragmentActivity implements StarredListChooserF
         resultSet.setSelected(index);
         Log.d(LOGTAG, "Old selected place was " + oldSelected);
         if(oldSelected != null){
-            ((Marker) oldSelected.getRelatedObject()).setIcon(iconUnselected);
+            ((Marker) oldSelected.getRelatedObject()).setIcon(slm.getStarredList(oldSelected) == null ? this.iconUnselected : this.iconStarred);
         }
         this.updateSelectedPlace();
     }
@@ -195,7 +208,7 @@ public class MapActivity extends FragmentActivity implements StarredListChooserF
 
 
 
-        ((Marker) newSelectedPlace.getRelatedObject()).setIcon(iconSelected);
+        ((Marker) newSelectedPlace.getRelatedObject()).setIcon(slm.getStarredList(newSelectedPlace) == null ? this.iconSelected : this.iconStarredSelected);
 
         mapView.invalidate();
         mapView.getController().animateTo(new GeoPoint(newSelectedPlace.getPosition().getLat(), newSelectedPlace.getPosition().getLon()));
@@ -337,8 +350,10 @@ public class MapActivity extends FragmentActivity implements StarredListChooserF
 
                 marker.setOnMarkerClickListener(markersClickListener);
                 marker.setPosition(new GeoPoint(p.getPosition().getLat(), p.getPosition().getLon()));
-                marker.setIcon(iconUnselected);
+                marker.setIcon(slm.getStarredList(p) == null ? this.iconUnselected : this.iconStarred);
                 marker.setRelatedObject(Integer.valueOf(resultSet.indexOf(p)));
+                marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
+                marker.setInfoWindowAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
                 p.setRelatedObject(marker);
                 resultSetMarkersOverlay.add(marker);
 

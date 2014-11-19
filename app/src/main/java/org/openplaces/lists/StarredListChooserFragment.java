@@ -1,4 +1,4 @@
-package org.openplaces.starred;
+package org.openplaces.lists;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -9,15 +9,13 @@ import android.support.v4.app.DialogFragment;
 
 import org.openplaces.model.Place;
 
-import java.util.Set;
-
 /**
  * Created by ggiammat on 11/17/14.
  */
 public class StarredListChooserFragment extends DialogFragment {
 
     Place place;
-    StarredListsManager slm;
+    ListsManager slm;
 
     @Override
     public void setArguments(Bundle args) {
@@ -57,7 +55,7 @@ public class StarredListChooserFragment extends DialogFragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        this.slm = StarredListsManager.getInstance(getActivity());
+        this.slm = ListsManager.getInstance(getActivity());
     }
 
 

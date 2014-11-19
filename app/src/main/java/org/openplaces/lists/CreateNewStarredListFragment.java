@@ -1,4 +1,4 @@
-package org.openplaces.starred;
+package org.openplaces.lists;
 
 
 import android.app.Activity;
@@ -16,7 +16,7 @@ import org.openplaces.model.Place;
  */
 public class CreateNewStarredListFragment extends DialogFragment {
 
-    StarredListsManager slm;
+    ListsManager slm;
     Place place;
 
 
@@ -60,6 +60,6 @@ public class CreateNewStarredListFragment extends DialogFragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        this.slm = StarredListsManager.getInstance(getActivity());
+        this.slm = ListsManager.getInstance(getActivity());
     }
 }

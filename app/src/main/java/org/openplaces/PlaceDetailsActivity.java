@@ -11,14 +11,17 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import org.openplaces.lists.ListsManager;
+import org.openplaces.lists.PlaceList;
 import org.openplaces.model.Place;
-import org.openplaces.starred.StarredListChooserFragment;
-import org.openplaces.starred.StarredListsManager;
+import org.openplaces.lists.StarredListChooserFragment;
+
+import java.util.List;
 
 
 public class PlaceDetailsActivity extends FragmentActivity implements StarredListChooserFragment.PlaceStarCapability {
 
-    StarredListsManager slm;
+    ListsManager slm;
 
 
     private TextView placeNameTV;
@@ -28,7 +31,7 @@ public class PlaceDetailsActivity extends FragmentActivity implements StarredLis
     private Place place;
     private View.OnClickListener unStarPlaceListener;
     private View.OnClickListener starPlaceListener;
-    String starredList;
+    List<PlaceList> starredList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,15 +51,15 @@ public class PlaceDetailsActivity extends FragmentActivity implements StarredLis
         this.placeOsmIdTV.setText(Long.toString(place.getId()));
 
 
-        this.slm = StarredListsManager.getInstance(this);
+        this.slm = ListsManager.getInstance(this);
 
-        this.starredList = slm.getStarredList(this.place);
+        this.starredList = slm.getStarredListsFor(this.place);
         Log.d(MapActivity.LOGTAG, "Place starred in " + starredList);
 
         this.unStarPlaceListener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                slm.unstarPlace(starredList, place);
+                //slm.unstarPlace(starredList, place);
                 placeIsNowUnstarred();
             }
         };
@@ -75,7 +78,7 @@ public class PlaceDetailsActivity extends FragmentActivity implements StarredLis
 
 
         if(this.starredList != null){
-            this.placeIsNowStarred(this.starredList);
+            //this.placeIsNowStarred(this.starredList);
         }
         else {
             this.placeIsNowUnstarred();
@@ -91,7 +94,7 @@ public class PlaceDetailsActivity extends FragmentActivity implements StarredLis
     public void placeIsNowStarred(String listName){
         starPlace.setText("Unstar (" + listName + ")");
         starPlace.setOnClickListener(unStarPlaceListener);
-        this.starredList = listName;
+        //this.starredList = listName;
     }
 
     public void placeIsNowUnstarred(){

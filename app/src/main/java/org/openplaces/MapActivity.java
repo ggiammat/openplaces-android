@@ -1,16 +1,11 @@
 package org.openplaces;
 
 import android.app.ActionBar;
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
-import android.location.Location;
-import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -20,20 +15,16 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.openplaces.model.OPBoundingBox;
-import org.openplaces.model.OPGeoPoint;
+import org.openplaces.lists.ListsManager;
 import org.openplaces.model.OPPlaceInterface;
 import org.openplaces.model.Place;
 import org.openplaces.model.ResultSet;
-import org.openplaces.starred.StarredListChooserFragment;
-import org.openplaces.starred.StarredListsManager;
+import org.openplaces.lists.StarredListChooserFragment;
 import org.openplaces.utils.HttpHelper;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.bonuspack.clustering.GridMarkerClusterer;
@@ -43,8 +34,6 @@ import org.osmdroid.bonuspack.overlays.Marker;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.BoundingBoxE6;
 import org.osmdroid.util.GeoPoint;
-import org.osmdroid.views.MapController;
-import org.osmdroid.views.MapControllerOld;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.compass.CompassOverlay;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
@@ -56,7 +45,7 @@ public class MapActivity extends FragmentActivity implements StarredListChooserF
 
     public static final String LOGTAG = "OpenPlaceSearch";
 
-    StarredListsManager slm;
+    ListsManager slm;
     Button searchButton;
     Button showStarredButton;
     Button starButton;
@@ -68,8 +57,8 @@ public class MapActivity extends FragmentActivity implements StarredListChooserF
     private TextView numPlacesTV;
     MyLocationNewOverlay oMapLocationOverlay;
     private OpenPlacesProvider opp;
-    private View.OnClickListener unStarPlaceListener;
-    private View.OnClickListener starPlaceListener;
+//    private View.OnClickListener unStarPlaceListener;
+//    private View.OnClickListener starPlaceListener;
 
     //TODO: these will be replaced by places icons... one day
     Drawable iconSelected;
@@ -94,7 +83,7 @@ public class MapActivity extends FragmentActivity implements StarredListChooserF
                 OpenPlacesProvider.REVIEW_SERVER_SERVER
         );
 
-        this.slm = StarredListsManager.getInstance(this);
+        this.slm = ListsManager.getInstance(this);
         this.showStarredButton = (Button) findViewById(R.id.showStarred);
         this.searchButton = (Button) findViewById(R.id.searchButton);
         this.starButton = (Button) findViewById(R.id.starButtonMapView);
@@ -162,12 +151,12 @@ public class MapActivity extends FragmentActivity implements StarredListChooserF
 
     public void placeIsNowStarred(String listName){
         this.starButton.setText("Unstar (" + listName + ")");
-        this.starButton.setOnClickListener(unStarPlaceListener);
+        //this.starButton.setOnClickListener(unStarPlaceListener);
     }
 
     public void placeIsNowUnstarred(){
         this.starButton.setText("Star");
-        this.starButton.setOnClickListener(starPlaceListener);
+        //this.starButton.setOnClickListener(starPlaceListener);
     }
 
     public void clearSelectedPlace(Boolean hidePanel){
@@ -191,7 +180,7 @@ public class MapActivity extends FragmentActivity implements StarredListChooserF
         resultSet.setSelected(index);
         Log.d(LOGTAG, "Old selected place was " + oldSelected);
         if(oldSelected != null){
-            ((Marker) oldSelected.getRelatedObject()).setIcon(slm.getStarredList(oldSelected) == null ? this.iconUnselected : this.iconStarred);
+            ((Marker) oldSelected.getRelatedObject()).setIcon(slm.getStarredListsFor(oldSelected) == null ? this.iconUnselected : this.iconStarred);
         }
         this.updateSelectedPlace();
     }
@@ -208,7 +197,7 @@ public class MapActivity extends FragmentActivity implements StarredListChooserF
 
 
 
-        ((Marker) newSelectedPlace.getRelatedObject()).setIcon(slm.getStarredList(newSelectedPlace) == null ? this.iconSelected : this.iconStarredSelected);
+        ((Marker) newSelectedPlace.getRelatedObject()).setIcon(slm.getStarredListsFor(newSelectedPlace) == null ? this.iconSelected : this.iconStarredSelected);
 
         mapView.invalidate();
         mapView.getController().animateTo(new GeoPoint(newSelectedPlace.getPosition().getLat(), newSelectedPlace.getPosition().getLon()));
@@ -224,14 +213,14 @@ public class MapActivity extends FragmentActivity implements StarredListChooserF
             t2.setText("");
             //new UpdatePlaceTask().execute();
         }
-
-        String starredList = slm.getStarredList(newSelectedPlace);
-        if(starredList != null){
-            this.placeIsNowStarred(starredList);
-        }
-        else {
-            this.placeIsNowUnstarred();
-        }
+//
+//        String starredList = slm.getStarredListsFor(newSelectedPlace);
+//        if(starredList != null){
+//            this.placeIsNowStarred(starredList);
+//        }
+//        else {
+//            this.placeIsNowUnstarred();
+//        }
 
         GridLayout panel = (GridLayout) findViewById(R.id.detailsPanel);
         panel.setVisibility(View.VISIBLE);
@@ -241,24 +230,24 @@ public class MapActivity extends FragmentActivity implements StarredListChooserF
 
     private void setUpListeners(){
 
-        this.unStarPlaceListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                slm.unstarPlace(slm.getStarredList(resultSet.getSelected()), resultSet.getSelected());
-                placeIsNowUnstarred();
-            }
-        };
-
-        this.starPlaceListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                DialogFragment f = new StarredListChooserFragment();
-                Bundle b = new Bundle();
-                b.putParcelable("PLACE", resultSet.getSelected());
-                f.setArguments(b);
-                f.show(getSupportFragmentManager(), "StarredListChooser");
-            }
-        };
+//        this.unStarPlaceListener = new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                slm.unstarPlace(slm.getStarredList(resultSet.getSelected()), resultSet.getSelected());
+//                placeIsNowUnstarred();
+//            }
+//        };
+//
+//        this.starPlaceListener = new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                DialogFragment f = new StarredListChooserFragment();
+//                Bundle b = new Bundle();
+//                b.putParcelable("PLACE", resultSet.getSelected());
+//                f.setArguments(b);
+//                f.show(getSupportFragmentManager(), "StarredListChooser");
+//            }
+//        };
 
         this.showStarredButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -350,7 +339,7 @@ public class MapActivity extends FragmentActivity implements StarredListChooserF
 
                 marker.setOnMarkerClickListener(markersClickListener);
                 marker.setPosition(new GeoPoint(p.getPosition().getLat(), p.getPosition().getLon()));
-                marker.setIcon(slm.getStarredList(p) == null ? this.iconUnselected : this.iconStarred);
+                marker.setIcon(slm.getStarredListsFor(p) == null ? this.iconUnselected : this.iconStarred);
                 marker.setRelatedObject(Integer.valueOf(resultSet.indexOf(p)));
                 marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
                 marker.setInfoWindowAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
@@ -419,9 +408,11 @@ public class MapActivity extends FragmentActivity implements StarredListChooserF
 
         protected List<OPPlaceInterface> doInBackground(String... query) {
 
+//
+//            List<OPPlaceInterface> res = opp.getPlacesByTypesAndIds(slm.getAllStarredPlaces());
+//            return res;
 
-            List<OPPlaceInterface> res = opp.getPlacesByTypesAndIds(slm.getAllStarredPlaces());
-            return res;
+            return null;
         }
 
         protected void onProgressUpdate(Integer... progress) {

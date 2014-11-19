@@ -1,5 +1,8 @@
 package org.openplaces.lists;
 
+import android.util.Log;
+
+import org.openplaces.MapActivity;
 import org.openplaces.model.Place;
 
 import java.util.ArrayList;
@@ -11,11 +14,14 @@ import java.util.List;
  */
 public class PlaceList implements Iterable<String> {
 
-
-
     public enum PlaceListType{
         AUTOLIST, STARREDLIST
     };
+
+    public interface ListChangedListener{
+        public void placeAdded(PlaceList list, Place place, String placeEnc);
+        public void placeRemoved(PlaceList list, Place place, String placeEnc);
+    }
 
     private String name;
     private PlaceListType type;
@@ -23,11 +29,22 @@ public class PlaceList implements Iterable<String> {
     //places are encoded in the form osmType:osmId
     private List<String> placesInList;
 
+    //declared transient to avoid gson serialization
+    private transient List<ListChangedListener> listeners;
+
+    public PlaceList(){
+        this.placesInList = new ArrayList<String>();
+        this.listeners = new ArrayList<ListChangedListener>();
+    }
 
     public PlaceList(PlaceListType type, String name){
+        this();
         this.name = name;
         this.type = type;
-        this.placesInList = new ArrayList<String>();
+    }
+
+    public void addListChangedListener(ListChangedListener listener){
+        this.listeners.add(listener);
     }
 
 
@@ -37,11 +54,27 @@ public class PlaceList implements Iterable<String> {
 
 
     public boolean addPlaceToList(Place place){
-        return this.placesInList.add(this.encodePlace(place));
+        String placeEnc = this.encodePlace(place);
+        boolean res = this.placesInList.add(placeEnc);
+        if(res){
+            for(ListChangedListener l: this.listeners){
+                l.placeAdded(this, place, placeEnc);
+            }
+            Log.d(MapActivity.LOGTAG, "Place " + place + " added to list " + this.getName() + "(" + this.getType() + ")");
+        }
+        return res;
     }
 
     public boolean removePlaceFromList(Place place){
-        return this.placesInList.remove(this.encodePlace(place));
+        String placeEnc = this.encodePlace(place);
+        boolean res = this.placesInList.remove(placeEnc);
+        if(res){
+            for(ListChangedListener l: this.listeners){
+                l.placeRemoved(this, place, placeEnc);
+            }
+            Log.d(MapActivity.LOGTAG, "Place " + place + " removed from list " + this.getName() + "(" + this.getType() + ")");
+        }
+        return res;
     }
 
 
@@ -80,5 +113,11 @@ public class PlaceList implements Iterable<String> {
     @Override
     public Iterator<String> iterator() {
         return this.placesInList.iterator();
+    }
+
+
+    @Override
+    public String toString() {
+        return this.getType() + "-" + this.getName() + "[" + this.placesInList + "]";
     }
 }

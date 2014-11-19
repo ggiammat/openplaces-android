@@ -27,7 +27,7 @@ import java.util.Set;
 /**
  * Created by ggiammat on 11/17/14.
  */
-public class ListsManager {
+public class ListsManager implements PlaceList.ListChangedListener {
 
 
     private static final String AUTOLISTS_FILE="autolists.json";
@@ -41,7 +41,7 @@ public class ListsManager {
     private Map<String, Set<String>> perPlaceStarredTable;
     private Map<String, Set<String>> perPlaceAutoTable;
 
-    private List<ListsEventsListener> listeners = new ArrayList<ListsEventsListener>();
+    private List<ListManagerEventListener> listeners = new ArrayList<ListManagerEventListener>();
 
 
     private static ListsManager instance = null;
@@ -55,29 +55,70 @@ public class ListsManager {
         return instance;
     }
 
-    public void addListsEventListener(ListsEventsListener listener){
-        this.listeners.add(listener);
-    }
-
-
-    public void starPlace(Place place, String listName){
-        this.addPlaceToList(PlaceList.PlaceListType.STARREDLIST, listName, place);
-        this.flagDirty();
-
-        //call listeners
-        for(ListsEventsListener l: this.listeners){
-            l.placeAddedToStarredList(place, this.starredLists.get(listName));
+    private void registerListenerForListsChanges(){
+        for(PlaceList l: this.starredLists.values()){
+            l.addListChangedListener(this);
+        }
+        for(PlaceList l: this.autoLists.values()){
+            l.addListChangedListener(this);
         }
     }
 
-    public List<PlaceList> getStarredListsFor(Place place){
+    public Set<String> getAllStarredPlaces(){
+        Set<String> res = new HashSet<String>();
+
+        for(PlaceList l: this.starredLists.values()){
+            res.addAll(l.getPlacesInList());
+        }
+
+        return res;
+    }
+
+    public void addListsEventListener(ListManagerEventListener listener){
+        this.listeners.add(listener);
+    }
+
+    public PlaceList createNewStarredList(String name){
+        PlaceList newList = new PlaceList(PlaceList.PlaceListType.STARREDLIST, name);
+        this.starredLists.put(name, newList);
+        newList.addListChangedListener(this);
+        this.flagDirty();
+
+        //call listeners
+        for(ListManagerEventListener l: this.listeners){
+            l.starredListAdded(newList);
+        }
+
+        return newList;
+    }
+
+
+    public boolean isStarredIn(Place place, PlaceList list){
         String placeEnc = PlaceList.encodePlace(place);
-        if(this.perPlaceStarredTable.get(placeEnc) == null){
+        if(this.perPlaceStarredTable.get(placeEnc) == null ||
+                !this.perPlaceStarredTable.get(placeEnc).contains(list.getName())){
+            return false;
+        }
+        return true;
+    }
+
+    public boolean isStarred(Place place){
+        String placeEnc = PlaceList.encodePlace(place);
+        if(this.perPlaceStarredTable.get(placeEnc) == null ||
+                this.perPlaceStarredTable.get(placeEnc).isEmpty()){
+            return false;
+        }
+        return true;
+    }
+
+
+    public List<PlaceList> getStarredListsFor(Place place){
+        if(!this.isStarred(place)){
             return null;
         }
 
         List<PlaceList> res = new ArrayList<PlaceList>();
-        for(String listName: this.perPlaceStarredTable.get(placeEnc)){
+        for(String listName: this.perPlaceStarredTable.get(PlaceList.encodePlace(place))){
             res.add(this.starredLists.get(listName));
         }
 
@@ -85,175 +126,77 @@ public class ListsManager {
     }
 
 
-    public void unstarPlace(Place place, String listName){
-        this.addPlaceToList(PlaceList.PlaceListType.STARREDLIST, listName, place);
-        this.flagDirty();
-
-        //call listeners
-        for(ListsEventsListener l: this.listeners){
-            l.placeRemovedFromStarredList(place, this.starredLists.get(listName));
-        }
-    }
-
-    public void addPlaceToAutoList(Place place, String listName){
-        this.addPlaceToList(PlaceList.PlaceListType.AUTOLIST, listName, place);
-        this.flagDirty();
-
-        //call listeners
-        for(ListsEventsListener l: this.listeners){
-            l.placeAddedToAutoList(place, this.starredLists.get(listName));
-        }
-    }
-
-
-    public void removePlaceFromAutolist(Place place, String listName){
-        this.addPlaceToList(PlaceList.PlaceListType.AUTOLIST, listName, place);
-        this.flagDirty();
-
-        //call listeners
-        for(ListsEventsListener l: this.listeners){
-            l.placeRemovedFromAutoList(place, this.starredLists.get(listName));
-        }
-    }
-
-
-
-
-
-
-
-
-
 
     private ListsManager(Context ctx){
         this.ctx = ctx;
-        //this.loadStarredLists();
+        this.loadLists();
+        this.createPerPlaceAutoTable();
+        this.createPerPlaceStarredTable();
+        this.registerListenerForListsChanges();
+        Log.d(MapActivity.LOGTAG, "Lists loaded:");
+        Log.d(MapActivity.LOGTAG, this.starredLists.values().toString());
+        Log.d(MapActivity.LOGTAG, this.autoLists.values().toString());
+    }
+
+    //TODO: should be returned always in the same order
+    public List<PlaceList> getStarredLists(){
+        return new ArrayList<PlaceList>(this.starredLists.values());
     }
 
     private void createPerPlaceStarredTable(){
         this.perPlaceStarredTable = new HashMap<String, Set<String>>();
         for(String listName: this.starredLists.keySet()){
             for(String placeEnc: this.starredLists.get(listName)){
-                this.addtoPerPlaceStarredTable(placeEnc, listName);
+                this.updatePerPlaceStarredTable("add", placeEnc, listName);
             }
         }
     }
 
     private void updatePerPlaceStarredTable(String operation, String placeEnc, String listName){
+        Log.d(MapActivity.LOGTAG, "Updating perPlace starred table: " + operation + " " + placeEnc + " in " + listName);
         if("add".equals(operation)) {
-            this.addtoPerPlaceStarredTable(placeEnc, listName);
+            Set<String> listsName = this.perPlaceStarredTable.get(placeEnc);
+            if(listsName == null){
+                listsName = new HashSet<String>();
+                this.perPlaceStarredTable.put(placeEnc, listsName);
+            }
+            listsName.add(listName);
         }
         else if("remove".equals(operation)) {
-            this.removeFromPerPlaceStarredTable(placeEnc, listName);
+            Set<String> listsName = this.perPlaceStarredTable.get(placeEnc);
+            if(listsName != null){
+                listsName.remove(listName);
+            }
         }
     }
-
-    private void addtoPerPlaceStarredTable(String placeEnc, String listName){
-        Set<String> listsName = this.perPlaceStarredTable.get(placeEnc);
-        if(listsName == null){
-            listsName = new HashSet<String>();
-            this.perPlaceStarredTable.put(listName, listsName);
-        }
-        listsName.add(placeEnc);
-    }
-
 
     private void createPerPlaceAutoTable(){
         this.perPlaceAutoTable = new HashMap<String, Set<String>>();
         for(String listName: this.autoLists.keySet()){
             for(String placeEnc: this.autoLists.get(listName)){
-                this.addtoPerPlaceAutoTable(placeEnc, listName);
+                this.updatePerPlaceAutoTable("add", placeEnc, listName);
             }
         }
     }
 
     private void updatePerPlaceAutoTable(String operation, String placeEnc, String listName){
+        Log.d(MapActivity.LOGTAG, "Updating perPlace auto table: " + operation + " " + placeEnc + " in " + listName);
         if("add".equals(operation)) {
-            this.addtoPerPlaceAutoTable(placeEnc, listName);
+            Set<String> listsName = this.perPlaceAutoTable.get(placeEnc);
+            if(listsName == null){
+                listsName = new HashSet<String>();
+                this.perPlaceAutoTable.put(placeEnc, listsName);
+            }
+            listsName.add(listName);
         }
         else if("remove".equals(operation)) {
-            this.removeFromPerPlaceAutoTable(placeEnc, listName);
+            Set<String> listsName = this.perPlaceAutoTable.get(placeEnc);
+            if(listsName != null){
+                listsName.remove(listName);
+            }
         }
     }
 
-
-    private void removeFromPerPlaceStarredTable(String placeEnc, String listName){
-        Set<String> listsName = this.perPlaceStarredTable.get(placeEnc);
-        if(listsName != null){
-            listsName.remove(listName);
-        }
-    }
-
-    private void removeFromPerPlaceAutoTable(String placeEnc, String listName){
-        Set<String> listsName = this.perPlaceAutoTable.get(placeEnc);
-        if(listsName != null){
-            listsName.remove(listName);
-        }
-    }
-
-    private void addtoPerPlaceAutoTable(String placeEnc, String listName){
-        Set<String> listsName = this.perPlaceAutoTable.get(placeEnc);
-        if(listsName == null){
-            listsName = new HashSet<String>();
-            this.perPlaceAutoTable.put(listName, listsName);
-        }
-        listsName.add(placeEnc);
-    }
-
-
-
-    private void removePlaceFromList(PlaceList.PlaceListType type, String listName, Place place){
-        if(type.equals(PlaceList.PlaceListType.AUTOLIST)){
-            PlaceList list = this.autoLists.get(listName);
-            if(list != null) {
-                list.removePlaceFromList(place);
-                this.updatePerPlaceAutoTable("remove", PlaceList.encodePlace(place), listName);
-            }
-            else {
-                Log.d(MapActivity.LOGTAG, "AutoList " + listName + " not exists. Aborting operation");
-            }
-        }
-        else if(type.equals(PlaceList.PlaceListType.STARREDLIST)){
-            PlaceList list = this.starredLists.get(listName);
-            if(list != null) {
-                list.removePlaceFromList(place);
-                this.updatePerPlaceStarredTable("remove", PlaceList.encodePlace(place), listName);
-            }
-            else {
-                Log.d(MapActivity.LOGTAG, "Starred " + listName + " not exists. Aborting operation");
-            }
-        }
-        else {
-            Log.d(MapActivity.LOGTAG, "List type " + type + " not recognized. Aborting operation");
-        }
-    }
-
-
-    private void addPlaceToList(PlaceList.PlaceListType type, String listName, Place place){
-        if(type.equals(PlaceList.PlaceListType.AUTOLIST)){
-            PlaceList list = this.autoLists.get(listName);
-            if(list == null){
-                Log.d(MapActivity.LOGTAG, "AutoList " + listName + " not exists. Creating it");
-                list = new PlaceList(PlaceList.PlaceListType.AUTOLIST, listName);
-                this.autoLists.put(listName, list);
-            }
-            list.addPlaceToList(place);
-            this.updatePerPlaceAutoTable("add", PlaceList.encodePlace(place), listName);
-        }
-        else if(type.equals(PlaceList.PlaceListType.STARREDLIST)){
-            PlaceList list = this.starredLists.get(listName);
-            if(list == null){
-                Log.d(MapActivity.LOGTAG, "StarredList " + listName + " not exists. Creating it");
-                list = new PlaceList(PlaceList.PlaceListType.STARREDLIST, listName);
-                this.starredLists.put(listName, list);
-            }
-            list.addPlaceToList(place);
-            this.updatePerPlaceStarredTable("add", PlaceList.encodePlace(place), listName);
-        }
-        else {
-            Log.d(MapActivity.LOGTAG, "List type " + type + " not recognized. Aborting operation");
-        }
-    }
 
 
     private void flagDirty(){
@@ -264,7 +207,7 @@ public class ListsManager {
 
 
 
-    private void loadStarredLists() {
+    private void loadLists() {
         this.starredLists = new HashMap<String, PlaceList>();
         this.autoLists = new HashMap<String, PlaceList>();
         if(!this.isExternalStorageReadable()){
@@ -272,51 +215,96 @@ public class ListsManager {
             return;
         }
 
+        File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "open-places");
+
+
         try {
-            File f = new File(this.ctx.getExternalFilesDir(null), STARREDLISTS_FILE);
+            File f = new File(dir, STARREDLISTS_FILE);
             Gson gson = new Gson();
             Reader fr = new FileReader(f);
             Type t = new TypeToken<Map<String, PlaceList>>(){}.getType();
             this.starredLists = gson.fromJson(fr, t);
             fr.close();
 
-            File f2 = new File(this.ctx.getExternalFilesDir(null), AUTOLISTS_FILE);
+
+            Log.d(MapActivity.LOGTAG, "Starred lists loaded from " + f.getAbsolutePath());
+        }
+        catch (FileNotFoundException e){
+            Log.w(MapActivity.LOGTAG, "Starred lists file not found. Initializing default lists");
+            this.initializeDefaultStarredLists();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+            Log.w(MapActivity.LOGTAG, "Loading of starred lists failed: " + e);
+        }
+
+
+        try {
+            File f2 = new File(dir ,AUTOLISTS_FILE);
             Gson gson2 = new Gson();
             Reader fr2 = new FileReader(f2);
             Type t2 = new TypeToken<Map<String, PlaceList>>(){}.getType();
-            this.autoLists = gson.fromJson(fr2, t2);
-            fr.close();
+            this.autoLists = gson2.fromJson(fr2, t2);
+            fr2.close();
 
-            Log.d(MapActivity.LOGTAG, "Lists loaded from " + f.getAbsolutePath());
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.w(MapActivity.LOGTAG, "Loading of lists failed: " + e);
+
+            Log.d(MapActivity.LOGTAG, "Auto lists loaded from " + f2.getAbsolutePath());
         }
+        catch (FileNotFoundException e){
+            Log.w(MapActivity.LOGTAG, "Auto lists file not found. Initializing default lists");
+            this.initializeDefaultAutoLists();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+            Log.w(MapActivity.LOGTAG, "Loading of auto lists failed: " + e);
+        }
+
+
     }
 
+    private void initializeDefaultStarredLists(){
+        this.starredLists.put("Favourites", new PlaceList(PlaceList.PlaceListType.STARREDLIST, "Favourites"));
+        this.starredLists.put("Restaurants", new PlaceList(PlaceList.PlaceListType.STARREDLIST, "Restaurants"));
+        this.starredLists.put("Todo", new PlaceList(PlaceList.PlaceListType.STARREDLIST, "Todo"));
+    }
+
+    private void initializeDefaultAutoLists(){
+        this.autoLists.put("Visited", new PlaceList(PlaceList.PlaceListType.AUTOLIST, "Visited"));
+    }
 
     private void storeStarredLists(){
         if(!this.isExternalStorageWritable()){
             Log.w(MapActivity.LOGTAG, "External Storage not available for writing. Impossible to store lists. Aborting operation");
             return;
         }
-        File f = new File(this.ctx.getExternalFilesDir(null), AUTOLISTS_FILE);
-        File f2 = new File(this.ctx.getExternalFilesDir(null), STARREDLISTS_FILE);
+        File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "open-places");
+        if(!dir.exists()){
+            dir.mkdirs();
+        }
+        File f = new File(dir, STARREDLISTS_FILE);
+        File f2 = new File(dir, AUTOLISTS_FILE);
 
 
         Gson gson = new Gson();
         String starredSerialization = gson.toJson(this.starredLists);
         String autoSerialization = gson.toJson(this.autoLists);
 
+
         try {
+            if(!f.exists()){
+                f.createNewFile();
+            }
             PrintWriter out = new PrintWriter(f);
             out.print(starredSerialization);
             out.close();
+            if(!f2.exists()){
+                f2.createNewFile();
+            }
             PrintWriter out2 = new PrintWriter(f2);
             out2.print(autoSerialization);
             out2.close();
             Log.d(MapActivity.LOGTAG, "lists stored to " + f.getAbsolutePath());
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             Log.w(MapActivity.LOGTAG, "Storing of starred lists failed: " + e);
         }
@@ -339,6 +327,57 @@ public class ListsManager {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public void placeAdded(PlaceList list, Place place, String placeEnc) {
+
+        if(list.getType().equals(PlaceList.PlaceListType.AUTOLIST)){
+            this.updatePerPlaceAutoTable("add", placeEnc, list.getName());
+            //call listeners
+            for(ListManagerEventListener l: this.listeners){
+                l.placeAddedToAutoList(place, list);
+            }
+        }
+        else if(list.getType().equals(PlaceList.PlaceListType.STARREDLIST)){
+            this.updatePerPlaceStarredTable("add", placeEnc, list.getName());
+            //call listeners
+            for(ListManagerEventListener l: this.listeners){
+                l.placeAddedToStarredList(place, list);
+            }
+        }
+        else {
+            Log.d(MapActivity.LOGTAG, "list type not recognized: " + list.getType());
+        }
+
+        this.flagDirty();
+
+
+    }
+
+    @Override
+    public void placeRemoved(PlaceList list, Place place, String placeEnc) {
+
+        if(list.getType().equals(PlaceList.PlaceListType.AUTOLIST)){
+            this.updatePerPlaceAutoTable("remove", placeEnc, list.getName());
+            //call listeners
+            for(ListManagerEventListener l: this.listeners){
+                l.placeRemovedFromAutoList(place, list);
+            }
+        }
+        else if(list.getType().equals(PlaceList.PlaceListType.STARREDLIST)){
+            this.updatePerPlaceStarredTable("remove", placeEnc, list.getName());
+            //call listeners
+            for(ListManagerEventListener l: this.listeners){
+                l.placeRemovedFromStarredList(place, list);
+            }
+        }
+        else {
+            Log.d(MapActivity.LOGTAG,"list type not recognized: " + list.getType());
+        }
+
+        this.flagDirty();
+
     }
 
 //    public Set<String> getAllStarredPlaces(){

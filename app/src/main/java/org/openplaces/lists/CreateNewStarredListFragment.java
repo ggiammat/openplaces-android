@@ -41,9 +41,9 @@ public class CreateNewStarredListFragment extends DialogFragment {
 
         builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-                slm.addStarredList(input.getText().toString());
-                slm.starPlace(input.getText().toString(), place);
-                ((StarredListChooserFragment.PlaceStarCapability)getActivity()).placeIsNowStarred(input.getText().toString());
+                PlaceList l = slm.createNewStarredList(input.getText().toString());
+                l.addPlaceToList(place);
+               // ((StarredListChooserFragment.PlaceStarCapability)getActivity()).placeIsNowStarred(input.getText().toString());
             }
         });
 

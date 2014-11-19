@@ -17,10 +17,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.GridLayout;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.openplaces.lists.ListManagerEventListener;
 import org.openplaces.lists.ListsManager;
+import org.openplaces.lists.PlaceList;
 import org.openplaces.model.OPPlaceInterface;
 import org.openplaces.model.Place;
 import org.openplaces.model.ResultSet;
@@ -41,14 +44,14 @@ import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 import java.util.List;
 
 
-public class MapActivity extends FragmentActivity implements StarredListChooserFragment.PlaceStarCapability {
+public class MapActivity extends FragmentActivity implements ListManagerEventListener {
 
     public static final String LOGTAG = "OpenPlaceSearch";
 
     ListsManager slm;
     Button searchButton;
     Button showStarredButton;
-    Button starButton;
+    ImageButton starButton;
     MapView mapView;
     private ResultSet resultSet;
     private GridMarkerClusterer resultSetMarkersOverlay;
@@ -84,9 +87,10 @@ public class MapActivity extends FragmentActivity implements StarredListChooserF
         );
 
         this.slm = ListsManager.getInstance(this);
+        this.slm.addListsEventListener(this);
         this.showStarredButton = (Button) findViewById(R.id.showStarred);
         this.searchButton = (Button) findViewById(R.id.searchButton);
-        this.starButton = (Button) findViewById(R.id.starButtonMapView);
+        this.starButton = (ImageButton) findViewById(R.id.starButtonMapView);
         this.placeNameLabelTV = (TextView) findViewById(R.id.textView1);
 
         this.numPlacesTV = (TextView) findViewById(R.id.numPlaces);
@@ -149,15 +153,15 @@ public class MapActivity extends FragmentActivity implements StarredListChooserF
     }
 
 
-    public void placeIsNowStarred(String listName){
-        this.starButton.setText("Unstar (" + listName + ")");
-        //this.starButton.setOnClickListener(unStarPlaceListener);
-    }
-
-    public void placeIsNowUnstarred(){
-        this.starButton.setText("Star");
-        //this.starButton.setOnClickListener(starPlaceListener);
-    }
+//    public void placeIsNowStarred(String listName){
+//        this.starButton.setText("Unstar (" + listName + ")");
+//        //this.starButton.setOnClickListener(unStarPlaceListener);
+//    }
+//
+//    public void placeIsNowUnstarred(){
+//        this.starButton.setText("Star");
+//        //this.starButton.setOnClickListener(starPlaceListener);
+//    }
 
     public void clearSelectedPlace(Boolean hidePanel){
 
@@ -180,7 +184,7 @@ public class MapActivity extends FragmentActivity implements StarredListChooserF
         resultSet.setSelected(index);
         Log.d(LOGTAG, "Old selected place was " + oldSelected);
         if(oldSelected != null){
-            ((Marker) oldSelected.getRelatedObject()).setIcon(slm.getStarredListsFor(oldSelected) == null ? this.iconUnselected : this.iconStarred);
+            ((Marker) oldSelected.getRelatedObject()).setIcon(slm.isStarred(oldSelected) ? this.iconStarred : this.iconUnselected);
         }
         this.updateSelectedPlace();
     }
@@ -197,7 +201,7 @@ public class MapActivity extends FragmentActivity implements StarredListChooserF
 
 
 
-        ((Marker) newSelectedPlace.getRelatedObject()).setIcon(slm.getStarredListsFor(newSelectedPlace) == null ? this.iconSelected : this.iconStarredSelected);
+        ((Marker) newSelectedPlace.getRelatedObject()).setIcon(slm.isStarred(newSelectedPlace) ? this.iconStarredSelected : this.iconSelected);
 
         mapView.invalidate();
         mapView.getController().animateTo(new GeoPoint(newSelectedPlace.getPosition().getLat(), newSelectedPlace.getPosition().getLon()));
@@ -213,6 +217,8 @@ public class MapActivity extends FragmentActivity implements StarredListChooserF
             t2.setText("");
             //new UpdatePlaceTask().execute();
         }
+
+        this.starButton.setImageResource(slm.isStarred(newSelectedPlace) ? android.R.drawable.star_big_on : android.R.drawable.star_big_off);
 //
 //        String starredList = slm.getStarredListsFor(newSelectedPlace);
 //        if(starredList != null){
@@ -229,6 +235,18 @@ public class MapActivity extends FragmentActivity implements StarredListChooserF
 
 
     private void setUpListeners(){
+
+
+        this.starButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                DialogFragment f = new StarredListChooserFragment();
+                Bundle b = new Bundle();
+                b.putParcelable("PLACE", resultSet.getSelected());
+                f.setArguments(b);
+                f.show(getSupportFragmentManager(), "StarredListChooser");
+            }
+        });
 
 //        this.unStarPlaceListener = new View.OnClickListener() {
 //            @Override
@@ -339,7 +357,7 @@ public class MapActivity extends FragmentActivity implements StarredListChooserF
 
                 marker.setOnMarkerClickListener(markersClickListener);
                 marker.setPosition(new GeoPoint(p.getPosition().getLat(), p.getPosition().getLon()));
-                marker.setIcon(slm.getStarredListsFor(p) == null ? this.iconUnselected : this.iconStarred);
+                marker.setIcon(slm.isStarred(p) ? this.iconStarred : this.iconUnselected);
                 marker.setRelatedObject(Integer.valueOf(resultSet.indexOf(p)));
                 marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
                 marker.setInfoWindowAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
@@ -404,15 +422,42 @@ public class MapActivity extends FragmentActivity implements StarredListChooserF
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void placeAddedToStarredList(Place place, PlaceList list) {
+        ((Marker) this.resultSet.getSelected().getRelatedObject()).setIcon(slm.isStarred(this.resultSet.getSelected()) ? this.iconStarredSelected : this.iconSelected);
+        this.starButton.setImageResource(slm.isStarred(this.resultSet.getSelected()) ? android.R.drawable.star_big_on : android.R.drawable.star_big_off);
+
+    }
+
+    @Override
+    public void placeAddedToAutoList(Place place, PlaceList list) {
+
+    }
+
+    @Override
+    public void placeRemovedFromStarredList(Place place, PlaceList list) {
+        ((Marker) this.resultSet.getSelected().getRelatedObject()).setIcon(slm.isStarred(this.resultSet.getSelected()) ? this.iconStarredSelected : this.iconSelected);
+        this.starButton.setImageResource(slm.isStarred(this.resultSet.getSelected()) ? android.R.drawable.star_big_on : android.R.drawable.star_big_off);
+
+    }
+
+    @Override
+    public void placeRemovedFromAutoList(Place place, PlaceList list) {
+
+    }
+
+    @Override
+    public void starredListAdded(PlaceList list) {
+
+    }
+
     private class LoadStarredPlaces extends AsyncTask<String, Integer, List<OPPlaceInterface>> {
 
         protected List<OPPlaceInterface> doInBackground(String... query) {
 
-//
-//            List<OPPlaceInterface> res = opp.getPlacesByTypesAndIds(slm.getAllStarredPlaces());
-//            return res;
 
-            return null;
+            List<OPPlaceInterface> res = opp.getPlacesByTypesAndIds(slm.getAllStarredPlaces());
+            return res;
         }
 
         protected void onProgressUpdate(Integer... progress) {

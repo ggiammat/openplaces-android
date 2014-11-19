@@ -209,6 +209,16 @@
     "en": "office",
     "it": "ufficio"
     }
+   },
+   {
+    "name": "supermarket",
+    "type": "shop",
+    "description": "a large store for groceries and other goods",
+    "osm-tag-filter-groups": [{"shop": {"IS_EQUALS_TO": "supermarket"}}],
+    "localization": {
+    "en": "supermarket",
+    "it": "supermercato"
+    }
    }
 ]
 }

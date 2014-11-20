@@ -215,10 +215,10 @@ public class StarredListChooserFragment extends DialogFragment implements Adapte
             PlaceList l = (PlaceList) getItem(position);
             text.setText(l.getName() + " (" + l.size() + ")");
             if(this.lm.isStarredIn(this.place, l)){
-                img.setImageResource(android.R.drawable.star_big_on);
+                img.setImageResource(android.R.drawable.btn_star_big_on);
             }
             else {
-                img.setImageResource(android.R.drawable.star_big_off);
+                img.setImageResource(android.R.drawable.btn_star_big_off);
             }
 
 

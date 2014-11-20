@@ -86,7 +86,7 @@
                 android:id="@+id/starButtonMapView"
                 android:layout_row="1"
                 android:layout_column="2"
-                android:src="@android:drawable/star_big_off" />
+                android:src="@android:drawable/btn_star_big_off" />
 
         </GridLayout>
 

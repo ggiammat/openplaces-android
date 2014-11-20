@@ -9,11 +9,14 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Filter;
 import android.widget.Filterable;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.openplaces.MapActivity;
 import org.openplaces.R;
+import org.openplaces.model.IconsManager;
 import org.openplaces.model.OPPlaceCategoryInterface;
+import org.openplaces.model.PlaceCategory;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -27,15 +30,15 @@ public class PlaceCategoriesAdapter extends BaseAdapter implements Filterable {
     private Context context;
     private LayoutInflater inflater;
 
-    private List<OPPlaceCategoryInterface> searches;
-    private List<OPPlaceCategoryInterface> filteredSearches;
+    private List<PlaceCategory> searches;
+    private List<PlaceCategory> filteredSearches;
     private String currentFilterText;
 
     private Filter filter = new Filter(){
         @Override
         protected void publishResults(CharSequence constraint, FilterResults results) {
 
-            filteredSearches = (List<OPPlaceCategoryInterface>) results.values;
+            filteredSearches = (List<PlaceCategory>) results.values;
             notifyDataSetChanged();
         }
 
@@ -60,11 +63,14 @@ public class PlaceCategoriesAdapter extends BaseAdapter implements Filterable {
     };
 
 
-    public PlaceCategoriesAdapter(Context context, List<OPPlaceCategoryInterface> presetSearches){
+    private IconsManager icoMgnr;
+
+    public PlaceCategoriesAdapter(Context context, List<PlaceCategory> presetSearches){
         this.context = context;
         this.searches = presetSearches;
         this.filteredSearches = this.searches;
         this.currentFilterText = "";
+        this.icoMgnr = IconsManager.getInstance(context);
         inflater = (LayoutInflater) this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
@@ -93,10 +99,13 @@ public class PlaceCategoriesAdapter extends BaseAdapter implements Filterable {
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.listitem_preset_search, null);
         }
+
+        ImageView img = (ImageView) convertView.findViewById(R.id.presetSearchIcon);
+
         TextView textView = (TextView) convertView.findViewById(R.id.presetSearchText);
 
-        OPPlaceCategoryInterface s = (OPPlaceCategoryInterface) this.getItem(position);
-
+        PlaceCategory s = (PlaceCategory) this.getItem(position);
+        img.setImageDrawable(this.icoMgnr.getCategoryIcon(s));
 //        System.out.println(s);
 //        System.out.println("S name is " + s.getName());
 //        Log.d(MapActivity.LOGTAG, "currentFilterText is " + this.currentFilterText);

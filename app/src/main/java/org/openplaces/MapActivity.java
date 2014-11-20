@@ -24,8 +24,10 @@ import android.widget.Toast;
 import org.openplaces.lists.ListManagerEventListener;
 import org.openplaces.lists.ListsManager;
 import org.openplaces.lists.PlaceList;
+import org.openplaces.model.IconsManager;
 import org.openplaces.model.OPPlaceInterface;
 import org.openplaces.model.Place;
+import org.openplaces.model.PlaceCategoriesManager;
 import org.openplaces.model.ResultSet;
 import org.openplaces.lists.StarredListChooserFragment;
 import org.openplaces.utils.HttpHelper;
@@ -60,14 +62,16 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
     private TextView numPlacesTV;
     MyLocationNewOverlay oMapLocationOverlay;
     private OpenPlacesProvider opp;
+    private IconsManager icoMngr;
+
 //    private View.OnClickListener unStarPlaceListener;
 //    private View.OnClickListener starPlaceListener;
 
     //TODO: these will be replaced by places icons... one day
-    Drawable iconSelected;
-    Drawable iconUnselected;
-    Drawable iconStarred;
-    Drawable iconStarredSelected;
+    //Drawable iconSelected;
+    //Drawable iconUnselected;
+    //Drawable iconStarred;
+    //Drawable iconStarredSelected;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +90,8 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
                 OpenPlacesProvider.REVIEW_SERVER_SERVER
         );
 
+        this.icoMngr = IconsManager.getInstance(this);
+
         this.slm = ListsManager.getInstance(this);
         this.slm.addListsEventListener(this);
         this.showStarredButton = (Button) findViewById(R.id.showStarred);
@@ -95,18 +101,18 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
 
         this.numPlacesTV = (TextView) findViewById(R.id.numPlaces);
 
-        this.iconUnselected = new LayerDrawable(new Drawable[]{
-                getResources().getDrawable(R.drawable.marker_bg),
-                getResources().getDrawable(R.drawable.pic_chinese_restaurant_3224)});
-        this.iconSelected = new LayerDrawable(new Drawable[]{
-                getResources().getDrawable(R.drawable.marker_bg_selected),
-                getResources().getDrawable(R.drawable.pic_fast_food_3224)});
-        this.iconStarred = new LayerDrawable(new Drawable[]{
-                getResources().getDrawable(R.drawable.marker_bg_starred),
-                getResources().getDrawable(R.drawable.pic_cafe_3224)});
-        this.iconStarredSelected = new LayerDrawable(new Drawable[]{
-                getResources().getDrawable(R.drawable.marker_bg_starred_selected),
-                getResources().getDrawable(R.drawable.pic_unknown_3224)});
+//        this.iconUnselected = new LayerDrawable(new Drawable[]{
+//                getResources().getDrawable(R.drawable.marker_bg),
+//                getResources().getDrawable(R.drawable.pic_chinese_restaurant_3224)});
+//        this.iconSelected = new LayerDrawable(new Drawable[]{
+//                getResources().getDrawable(R.drawable.marker_bg_selected),
+//                getResources().getDrawable(R.drawable.pic_fast_food_3224)});
+//        this.iconStarred = new LayerDrawable(new Drawable[]{
+//                getResources().getDrawable(R.drawable.marker_bg_starred),
+//                getResources().getDrawable(R.drawable.pic_cafe_3224)});
+//        this.iconStarredSelected = new LayerDrawable(new Drawable[]{
+//                getResources().getDrawable(R.drawable.marker_bg_starred_selected),
+//                getResources().getDrawable(R.drawable.pic_unknown_3224)});
 
         this.initMapView();
         this.setUpListeners();
@@ -184,7 +190,8 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
         resultSet.setSelected(index);
         Log.d(LOGTAG, "Old selected place was " + oldSelected);
         if(oldSelected != null){
-            ((Marker) oldSelected.getRelatedObject()).setIcon(slm.isStarred(oldSelected) ? this.iconStarred : this.iconUnselected);
+            ((Marker) oldSelected.getRelatedObject()).setIcon(
+                    slm.isStarred(oldSelected) ? this.icoMngr.getStrredMarker(oldSelected) : this.icoMngr.getMarker(oldSelected));
         }
         this.updateSelectedPlace();
     }
@@ -201,7 +208,8 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
 
 
 
-        ((Marker) newSelectedPlace.getRelatedObject()).setIcon(slm.isStarred(newSelectedPlace) ? this.iconStarredSelected : this.iconSelected);
+        ((Marker) newSelectedPlace.getRelatedObject()).setIcon(
+                slm.isStarred(newSelectedPlace) ? this.icoMngr.getSelectedStarredMarker(newSelectedPlace) : this.icoMngr.getSelectedMarker(newSelectedPlace));
 
         mapView.invalidate();
         mapView.getController().animateTo(new GeoPoint(newSelectedPlace.getPosition().getLat(), newSelectedPlace.getPosition().getLon()));
@@ -218,7 +226,7 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
             //new UpdatePlaceTask().execute();
         }
 
-        this.starButton.setImageResource(slm.isStarred(newSelectedPlace) ? android.R.drawable.star_big_on : android.R.drawable.star_big_off);
+        this.starButton.setImageResource(slm.isStarred(newSelectedPlace) ? android.R.drawable.btn_star_big_on : android.R.drawable.btn_star_big_off);
 //
 //        String starredList = slm.getStarredListsFor(newSelectedPlace);
 //        if(starredList != null){
@@ -357,7 +365,7 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
 
                 marker.setOnMarkerClickListener(markersClickListener);
                 marker.setPosition(new GeoPoint(p.getPosition().getLat(), p.getPosition().getLon()));
-                marker.setIcon(slm.isStarred(p) ? this.iconStarred : this.iconUnselected);
+                marker.setIcon(slm.isStarred(p) ? this.icoMngr.getStrredMarker(p) : this.icoMngr.getMarker(p));
                 marker.setRelatedObject(Integer.valueOf(resultSet.indexOf(p)));
                 marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
                 marker.setInfoWindowAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
@@ -424,7 +432,8 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
 
     @Override
     public void placeAddedToStarredList(Place place, PlaceList list) {
-        ((Marker) this.resultSet.getSelected().getRelatedObject()).setIcon(slm.isStarred(this.resultSet.getSelected()) ? this.iconStarredSelected : this.iconSelected);
+        ((Marker) this.resultSet.getSelected().getRelatedObject()).setIcon(
+                slm.isStarred(this.resultSet.getSelected()) ? this.icoMngr.getSelectedStarredMarker(this.resultSet.getSelected()) : this.icoMngr.getSelectedMarker(this.resultSet.getSelected()));
         this.starButton.setImageResource(slm.isStarred(this.resultSet.getSelected()) ? android.R.drawable.star_big_on : android.R.drawable.star_big_off);
 
     }
@@ -436,7 +445,8 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
 
     @Override
     public void placeRemovedFromStarredList(Place place, PlaceList list) {
-        ((Marker) this.resultSet.getSelected().getRelatedObject()).setIcon(slm.isStarred(this.resultSet.getSelected()) ? this.iconStarredSelected : this.iconSelected);
+        ((Marker) this.resultSet.getSelected().getRelatedObject()).setIcon(
+                slm.isStarred(this.resultSet.getSelected()) ? this.icoMngr.getSelectedStarredMarker(this.resultSet.getSelected()) : this.icoMngr.getSelectedMarker(this.resultSet.getSelected()));
         this.starButton.setImageResource(slm.isStarred(this.resultSet.getSelected()) ? android.R.drawable.star_big_on : android.R.drawable.star_big_off);
 
     }
@@ -471,7 +481,7 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
 
             setProgressBarIndeterminateVisibility(Boolean.FALSE);
 
-            ResultSet rs = ResultSet.buildFromOPPlaces(result);
+            ResultSet rs = ResultSet.buildFromOPPlaces(result, PlaceCategoriesManager.getInstance(MapActivity.this));
             Log.d(MapActivity.LOGTAG, rs.toString());
             setNewResultSet(rs);
         }

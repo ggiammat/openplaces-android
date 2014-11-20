@@ -28,20 +28,50 @@ public class PlaceCategoriesManager {
         return instance;
     }
 
-
-    private Map<String, OPPlaceCategoriesLibrary> libraries;
+    private Map<String, List<PlaceCategory>> libraries;
 
     private PlaceCategoriesManager(Context ctx){
         this.ctx = ctx;
-        this.libraries = new HashMap<String, OPPlaceCategoriesLibrary>();
+        this.libraries = new HashMap<String, List<PlaceCategory>>();
 
         //load standard categories library
         InputStream is = this.ctx.getResources().openRawResource(R.raw.default_categories_library);
         OPPlaceCategoriesLibrary lib = OPPlaceCategoriesLibrary.loadFromResource(is);
-         this.libraries.put(lib.getLibraryName(), lib);
+
+        //replace objects with PlaceCategory objects that are Parcelable
+        List<PlaceCategory> newObjs = new ArrayList<PlaceCategory>();
+        for(OPPlaceCategoryInterface o: lib.getCategories()){
+            newObjs.add(new PlaceCategory(o));
+        }
+
+         this.libraries.put(lib.getLibraryName(), newObjs);
     }
 
-    public List<OPPlaceCategoryInterface> getLibraryCategories(String libraryName){
-        return this.libraries.get(libraryName).getCategories();
+    public List<PlaceCategory> getLibraryCategories(String libraryName){
+        return this.libraries.get(libraryName);
+    }
+
+    public List<PlaceCategory> getAllCategories(){
+        List<PlaceCategory> res = new ArrayList<PlaceCategory>();
+        for(String lib: this.libraries.keySet()){
+            res.addAll(this.libraries.get(lib));
+        }
+        return res;
+    }
+
+    //TODO: highly inefficent. Scan all categories for each place
+    public PlaceCategory getPlaceCategory(Place place){
+        int maxMatchIndex = -1;
+        PlaceCategory matchingCat = null;
+
+        for(PlaceCategory c: this.getAllCategories()){
+            int i = c.placeMatchesCategory(place);
+            if(i > maxMatchIndex){
+                maxMatchIndex = i;
+                matchingCat = c;
+            }
+        }
+
+        return matchingCat;
     }
 }

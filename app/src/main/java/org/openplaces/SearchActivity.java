@@ -26,6 +26,7 @@ import org.openplaces.model.OPGeoPoint;
 import org.openplaces.model.OPLocationInterface;
 import org.openplaces.model.OPPlaceCategoryInterface;
 import org.openplaces.model.OPPlaceInterface;
+import org.openplaces.model.PlaceCategoriesManager;
 import org.openplaces.model.impl.OPLocationImpl;
 import org.openplaces.search.PlaceCategoriesAdapter;
 import org.openplaces.model.ResultSet;
@@ -350,7 +351,7 @@ public class SearchActivity extends FragmentActivity {
                 return;
             }
 
-            ResultSet rs = ResultSet.buildFromOPPlaces(result);
+            ResultSet rs = ResultSet.buildFromOPPlaces(result, PlaceCategoriesManager.getInstance(SearchActivity.this));
             Log.d(MapActivity.LOGTAG, rs.toString());
 
             Intent intent=new Intent();

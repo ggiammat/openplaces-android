@@ -13,6 +13,7 @@ import org.openplaces.R;
 import org.openplaces.SearchActivity;
 import org.openplaces.model.OPPlaceCategoryInterface;
 import org.openplaces.model.PlaceCategoriesManager;
+import org.openplaces.model.PlaceCategory;
 import org.openplaces.search.PlaceCategoriesAdapter;
 
 import java.util.ArrayList;
@@ -85,12 +86,12 @@ public class CategoriesFragment extends Fragment {
         this.presetsListAdapter.getFilter().filter(filterText);
     }
 
-    private List<OPPlaceCategoryInterface> loadPlaceCategories(){
+    private List<PlaceCategory> loadPlaceCategories(){
         if(!isAdded()){
-            return new ArrayList<OPPlaceCategoryInterface>();
+            return new ArrayList<PlaceCategory>();
         }
 
         PlaceCategoriesManager pcm = PlaceCategoriesManager.getInstance(getActivity());
-        return pcm.getLibraryCategories(PlaceCategoriesManager.STANDARD_LIBRARY);
+        return pcm.getAllCategories();
     }
 }

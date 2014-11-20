@@ -6,6 +6,7 @@
 {
  "name": "restaurant",
  "type": "food",
+ "symbol": "restaurant",
  "description": "place with sit-down facilities selling full meals",
  "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "restaurant"}}],
  "localization": {
@@ -18,6 +19,7 @@
 {
  "name": "regional restaurant",
  "type": "food",
+ "symbol": "restaurant",
  "description": "place with sit-down facilities selling full meals",
  "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "restaurant"}, "cuisine": {"IS_EQUALS_TO": "regional"}}],
  "localization": {
@@ -30,6 +32,7 @@
 {
  "name": "chinese restaurant",
  "type": "food",
+ "symbol": "chinese_restaurant",
  "description": "place with sit-down facilities selling full meals",
  "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "restaurant"}, "cuisine": {"IS_EQUALS_TO": "chinese"}}],
  "localization": {
@@ -42,6 +45,7 @@
 {
  "name": "pizzeria",
  "type": "food",
+ "symbol": "restaurant",
  "description": "place with sit-down facilities selling full meals",
  "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "restaurant"}, "cuisine": {"IS_EQUALS_TO": "pizza"}}],
  "localization": {
@@ -54,6 +58,7 @@
 {
  "name": "pizza take away",
  "type": "food",
+ "symbol": "fast_food",
  "description": "places that sells pizza take away",
  "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "fast_food"}, "cuisine": {"IS_EQUALS_TO": "pizza"}}],
  "localization": {
@@ -76,6 +81,7 @@
 {
  "name": "trees",
  "type": "nature",
+ "symbol": "park",
  "description": "lone or a line of significant trees",
  "osm-tag-filter-groups": [{"natural": {"IS_EQUALS_TO": "tree"}}, {"natural": {"IS_EQUALS_TO": "tree_row"}}],
  "localization": {
@@ -111,6 +117,7 @@
 {
  "name": "atm",
  "type": "bank",
+ "symbol": "bank",
  "description": "An automated teller machine",
  "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "atm"}}],
  "localization": {
@@ -122,6 +129,7 @@
 {
  "name": "fuel",
  "type": "car",
+ "symbol": "fuel",
  "description": "petrol station; gas station",
  "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "fuel"}}],
  "localization": {
@@ -145,6 +153,7 @@
 {
  "name": "fast food",
  "type": "food",
+ "symbol": "fast_food",
  "description": "a place concentrating on very fast counter-only service and take-away food.",
  "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "fast_food"}}],
  "localization": {
@@ -154,6 +163,7 @@
  {
   "name": "cafè",
   "type": "food",
+ "symbol": "cafe",
   "description": "a generally informal place with sit-down facilities selling beverages and light meals and/or snacks",
   "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "cafe"}}],
   "localization": {
@@ -165,6 +175,7 @@
  {
   "name": "pub",
   "type": "food",
+ "symbol": "bar",
   "description": "an establishment that sells alcoholic drinks that can be consumed on the premises.",
   "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "pub"}}],
   "localization": {
@@ -174,6 +185,7 @@
    {
     "name": "cocktail bar",
     "type": "food",
+ "symbol": "bar",
     "description": " purpose-built commercial establishment that sells alcoholic drinks to be consumed on the premises",
     "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "bar"}}],
     "localization": {
@@ -184,6 +196,7 @@
    {
     "name": "hotel",
     "type": "tourism",
+ "symbol": "lodging",
     "description": "an establishment that provides paid lodging, usually on a short-term basis",
     "osm-tag-filter-groups": [{"tourism": {"IS_EQUALS_TO": "hotel"}}, {"building": {"IS_EQUALS_TO": "hotel"}}],
     "localization": {
@@ -193,6 +206,7 @@
    {
     "name": "building",
     "type": "building",
+ "symbol": "commercial",
     "description": "an establishment that provides paid lodging, usually on a short-term basis",
     "osm-tag-filter-groups": [{"building": {"IS_EQUALS_TO": "yes"}}],
     "localization": {
@@ -203,6 +217,7 @@
    {
     "name": "office",
     "type": "office",
+ "symbol": "commercial",
     "description": "generic office",
     "osm-tag-filter-groups": [{"office": {"HAS_TAG": "true"}}],
     "localization": {
@@ -213,6 +228,7 @@
    {
     "name": "supermarket",
     "type": "shop",
+ "symbol": "grocery",
     "description": "a large store for groceries and other goods",
     "osm-tag-filter-groups": [{"shop": {"IS_EQUALS_TO": "supermarket"}}],
     "localization": {

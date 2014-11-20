@@ -2,6 +2,9 @@ package org.openplaces.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
+
+import org.openplaces.MapActivity;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -21,11 +24,14 @@ public class ResultSet implements Parcelable, Iterable<Place> {
         this.selectedIndex = -1;
     }
 
-    public static ResultSet buildFromOPPlaces(List<OPPlaceInterface> opPlaces) {
+    public static ResultSet buildFromOPPlaces(List<OPPlaceInterface> opPlaces, PlaceCategoriesManager catMan) {
         ResultSet rs = new ResultSet();
 
         for (OPPlaceInterface opp : opPlaces) {
-            rs.addPlace(new Place(opp));
+            Place p = new Place(opp);
+            p.setCategory(catMan.getPlaceCategory(p));
+            Log.d(MapActivity.LOGTAG, "Place matched category " + p.getCategory() + " with symbol "+p.getCategory().getSymbol()+", " + p);
+            rs.addPlace(p);
         }
         return rs;
     }

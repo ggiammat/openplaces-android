@@ -18,6 +18,9 @@ public class Place implements OPPlaceInterface, Parcelable {
     private OPPlaceInterface mDelegate;
     private Object relatedObject;
 
+    //TODO add to parcel
+    private PlaceCategory category;
+
     public Place(OPPlaceInterface place){
         Log.d(MapActivity.LOGTAG, "Creating place from " + place);
         this.mDelegate = place;
@@ -39,7 +42,7 @@ public class Place implements OPPlaceInterface, Parcelable {
         this.setAddressString(in.readByte() == 0x00 ? null : in.readString());
         this.setType(in.readByte() == 0x00 ? null : in.readString());
 
-
+        //addressTokens
         if(in.readByte() == 0x00){
             this.setAddressTokens(null);
         }
@@ -53,6 +56,23 @@ public class Place implements OPPlaceInterface, Parcelable {
             }
             this.setAddressTokens(addrTokens);
         }
+
+        //osmTags
+        if(in.readByte() == 0x00){
+            this.setOsmTags(null);
+        }
+        else {
+            int size = in.readInt();
+            Map<String, String> osmTags = new HashMap<String, String>();
+            for (int i = 0; i < size; i++) {
+                String key = in.readString();
+                String value = in.readString();
+                osmTags.put(key, value);
+            }
+            this.setOsmTags(osmTags);
+        }
+
+        this.category = in.readParcelable(PlaceCategory.class.getClassLoader());
     }
 
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
@@ -128,6 +148,8 @@ public class Place implements OPPlaceInterface, Parcelable {
             dest.writeByte((byte) (0x01));
             dest.writeString(this.getType());
         }
+
+        //addressTokens
         if(this.getAddressTokens() == null) {
             dest.writeByte((byte) (0x00));
         }
@@ -140,6 +162,20 @@ public class Place implements OPPlaceInterface, Parcelable {
             }
         }
 
+        //osmTags
+        if(this.getOsmTags() == null) {
+            dest.writeByte((byte) (0x00));
+        }
+        else {
+            dest.writeByte((byte) (0x01));
+            dest.writeInt(this.getOsmTags().size());
+            for(String key : this.getOsmTags().keySet()){
+                dest.writeString(key);
+                dest.writeString(this.getOsmTags().get(key));
+            }
+        }
+
+        dest.writeParcelable(this.category, 0);
     }
 
     @Override
@@ -235,5 +271,23 @@ public class Place implements OPPlaceInterface, Parcelable {
     @Override
     public void setType(String s) {
         this.mDelegate.setType(s);
+    }
+
+    @Override
+    public Map<String, String> getOsmTags() {
+        return this.mDelegate.getOsmTags();
+    }
+
+    @Override
+    public void setOsmTags(Map<String, String> osmTags) {
+        this.mDelegate.setOsmTags(osmTags);
+    }
+
+    public PlaceCategory getCategory() {
+        return category;
+    }
+
+    public void setCategory(PlaceCategory category) {
+        this.category = category;
     }
 }

@@ -97,16 +97,16 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
 
         this.iconUnselected = new LayerDrawable(new Drawable[]{
                 getResources().getDrawable(R.drawable.marker_bg),
-                getResources().getDrawable(R.drawable.place_restaurant)});
+                getResources().getDrawable(R.drawable.pic_chinese_restaurant_3224)});
         this.iconSelected = new LayerDrawable(new Drawable[]{
                 getResources().getDrawable(R.drawable.marker_bg_selected),
-                getResources().getDrawable(R.drawable.place_restaurant)});
+                getResources().getDrawable(R.drawable.pic_fast_food_3224)});
         this.iconStarred = new LayerDrawable(new Drawable[]{
                 getResources().getDrawable(R.drawable.marker_bg_starred),
-                getResources().getDrawable(R.drawable.place_restaurant)});
+                getResources().getDrawable(R.drawable.pic_cafe_3224)});
         this.iconStarredSelected = new LayerDrawable(new Drawable[]{
                 getResources().getDrawable(R.drawable.marker_bg_starred_selected),
-                getResources().getDrawable(R.drawable.place_restaurant)});
+                getResources().getDrawable(R.drawable.pic_unknown_3224)});
 
         this.initMapView();
         this.setUpListeners();

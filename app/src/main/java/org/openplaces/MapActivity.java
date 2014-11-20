@@ -392,7 +392,7 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == 1) {
+        if(requestCode == 1 && data !=null) {
             ResultSet rs = data.getParcelableExtra("RESULTSET");
             setNewResultSet(rs);
         }

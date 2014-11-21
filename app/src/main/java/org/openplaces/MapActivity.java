@@ -15,9 +15,12 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.ImageButton;
+import android.widget.ListPopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,7 +46,10 @@ import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.compass.CompassOverlay;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 public class MapActivity extends FragmentActivity implements ListManagerEventListener {
@@ -63,6 +69,10 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
     MyLocationNewOverlay oMapLocationOverlay;
     private OpenPlacesProvider opp;
     private IconsManager icoMngr;
+
+    private ListPopupWindow selectListsToShowPopup;
+    private List<String> selectListsToShowItems;
+
 
 //    private View.OnClickListener unStarPlaceListener;
 //    private View.OnClickListener starPlaceListener;
@@ -98,7 +108,11 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
         this.searchButton = (Button) findViewById(R.id.searchButton);
         this.starButton = (ImageButton) findViewById(R.id.starButtonMapView);
         this.placeNameLabelTV = (TextView) findViewById(R.id.textView1);
-
+        this.selectListsToShowPopup = new ListPopupWindow(this);
+        this.selectListsToShowPopup.setModal(true);
+        selectListsToShowPopup.setAnchorView(showStarredButton);
+        selectListsToShowPopup.setWidth(500);
+        selectListsToShowPopup.setHeight(700);
         this.numPlacesTV = (TextView) findViewById(R.id.numPlaces);
 
 //        this.iconUnselected = new LayerDrawable(new Drawable[]{
@@ -244,6 +258,17 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
 
     private void setUpListeners(){
 
+        this.selectListsToShowPopup.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                String clickedListName = null;
+                if(i > 0){
+                    clickedListName = selectListsToShowItems.get(i).replaceAll("\\(.*\\)$", "").trim();
+                }
+                selectListsToShowPopup.dismiss();
+                new LoadStarredPlaces().execute(clickedListName);
+            }
+        });
 
         this.starButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -278,7 +303,15 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
         this.showStarredButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new LoadStarredPlaces().execute();
+
+                selectListsToShowItems = new ArrayList<String>();
+                for(PlaceList l: slm.getStarredLists()){
+                    selectListsToShowItems.add(l.getName() + " (" + l.size() + ")");
+                }
+                selectListsToShowItems.add(0, "ALL");
+
+                selectListsToShowPopup.setAdapter(new ArrayAdapter<String>(MapActivity.this, R.layout.select_starredliststoshow_item, selectListsToShowItems));
+                selectListsToShowPopup.show();
             }
         });
 
@@ -465,9 +498,15 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
 
         protected List<OPPlaceInterface> doInBackground(String... query) {
 
-
-            List<OPPlaceInterface> res = opp.getPlacesByTypesAndIds(slm.getAllStarredPlaces());
-            return res;
+            String listName = query[0];
+            Log.d(LOGTAG, "Getting places in starred list " + listName);
+            if(listName == null){
+                return opp.getPlacesByTypesAndIds(slm.getAllStarredPlaces());
+            }
+            else {
+                Set<String> places = new HashSet<String>(slm.getStarredListByName(listName).getPlacesInList());
+                return opp.getPlacesByTypesAndIds(places);
+            }
         }
 
         protected void onProgressUpdate(Integer... progress) {

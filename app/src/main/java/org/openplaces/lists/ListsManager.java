@@ -64,6 +64,10 @@ public class ListsManager implements PlaceList.ListChangedListener {
         }
     }
 
+    public PlaceList getStarredListByName(String name){
+        return this.starredLists.get(name);
+    }
+
     public Set<String> getAllStarredPlaces(){
         Set<String> res = new HashSet<String>();
 

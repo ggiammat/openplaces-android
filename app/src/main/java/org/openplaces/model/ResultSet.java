@@ -30,7 +30,7 @@ public class ResultSet implements Parcelable, Iterable<Place> {
         for (OPPlaceInterface opp : opPlaces) {
             Place p = new Place(opp);
             p.setCategory(catMan.getPlaceCategory(p));
-            Log.d(MapActivity.LOGTAG, "Place matched category " + p.getCategory() + " with symbol "+p.getCategory().getSymbol()+", " + p);
+            Log.d(MapActivity.LOGTAG, "Place matched category " + p.getCategory());
             rs.addPlace(p);
         }
         return rs;

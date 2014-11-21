@@ -45,7 +45,7 @@
 {
  "name": "pizzeria",
  "type": "food",
- "symbol": "restaurant",
+ "symbol": "pizzeria",
  "description": "place with sit-down facilities selling full meals",
  "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "restaurant"}, "cuisine": {"IS_EQUALS_TO": "pizza"}}],
  "localization": {
@@ -58,7 +58,7 @@
 {
  "name": "pizza take away",
  "type": "food",
- "symbol": "fast_food",
+ "symbol": "pizza",
  "description": "places that sells pizza take away",
  "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "fast_food"}, "cuisine": {"IS_EQUALS_TO": "pizza"}}],
  "localization": {

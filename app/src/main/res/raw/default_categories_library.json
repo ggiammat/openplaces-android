@@ -204,6 +204,28 @@
     }
    },
    {
+    "name": "apartment",
+    "type": "tourism",
+ "symbol": "lodging",
+    "description": "an establishment that provides paid lodging, usually on a short-term basis",
+    "osm-tag-filter-groups": [{"tourism": {"IS_EQUALS_TO": "apartment"}}],
+    "localization": {
+    "en": "apartment",
+    "it": "appartamento"
+    }
+   },
+   {
+    "name": "bed & breakfast",
+    "type": "tourism",
+    "symbol": "lodging",
+    "description": "an establishment that provides paid lodging, usually on a short-term basis",
+    "osm-tag-filter-groups": [{"tourism": {"IS_EQUALS_TO": "guest_house"}}],
+    "localization": {
+    "en": "bed & breakfast",
+    "en2": "guest house"
+    }
+   },
+   {
     "name": "building",
     "type": "building",
  "symbol": "commercial",

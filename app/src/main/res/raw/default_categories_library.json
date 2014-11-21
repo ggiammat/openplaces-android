@@ -257,6 +257,16 @@
     "en": "supermarket",
     "it": "supermercato"
     }
+   },
+   {
+    "name": "beach",
+    "type": "natural",
+    "description": "a large store for groceries and other goods",
+    "osm-tag-filter-groups": [{"natural": {"IS_EQUALS_TO": "beach"}}],
+    "localization": {
+    "en": "beach",
+    "it": "spiaggia"
+    }
    }
 ]
 }

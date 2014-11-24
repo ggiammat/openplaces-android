@@ -267,6 +267,16 @@
     "en": "beach",
     "it": "spiaggia"
     }
+   },
+   {
+    "name": "place of worshipo",
+    "type": "religion",
+    "description": "a large store for groceries and other goods",
+    "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "place_of_worship"}}],
+    "localization": {
+    "en": "place of worshipo",
+    "it": "luogo di culto"
+    }
    }
 ]
 }

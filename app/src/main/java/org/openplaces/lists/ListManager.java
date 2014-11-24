@@ -27,11 +27,12 @@ import java.util.Set;
 /**
  * Created by ggiammat on 11/17/14.
  */
-public class ListsManager implements PlaceList.ListChangedListener {
+public class ListManager implements PlaceList.ListChangedListener {
 
 
     private static final String AUTOLISTS_FILE="autolists.json";
     private static final String STARREDLISTS_FILE="starredlists.json";
+    public static final String AUTOLIST_VISITED = "Visited";
 
 
     private Map<String, PlaceList> starredLists;
@@ -44,12 +45,12 @@ public class ListsManager implements PlaceList.ListChangedListener {
     private List<ListManagerEventListener> listeners = new ArrayList<ListManagerEventListener>();
 
 
-    private static ListsManager instance = null;
+    private static ListManager instance = null;
     private Context ctx;
 
-    public static ListsManager getInstance(Context ctx){
+    public static ListManager getInstance(Context ctx){
         if(instance == null) {
-            instance = new ListsManager(ctx);
+            instance = new ListManager(ctx);
         }
 
         return instance;
@@ -64,6 +65,11 @@ public class ListsManager implements PlaceList.ListChangedListener {
         }
     }
 
+    public PlaceList getAutoListByName(String name){
+        return this.autoLists.get(name);
+    }
+
+
     public PlaceList getStarredListByName(String name){
         return this.starredLists.get(name);
     }
@@ -72,7 +78,9 @@ public class ListsManager implements PlaceList.ListChangedListener {
         Set<String> res = new HashSet<String>();
 
         for(PlaceList l: this.starredLists.values()){
-            res.addAll(l.getPlacesInList());
+            for(PlaceListItem it: l.getPlacesInList()){
+                res.add(it.getOsmType() + ":" + it.getOsmId());
+            }
         }
 
         return res;
@@ -98,7 +106,7 @@ public class ListsManager implements PlaceList.ListChangedListener {
 
 
     public boolean isStarredIn(Place place, PlaceList list){
-        String placeEnc = PlaceList.encodePlace(place);
+        String placeEnc = encodePlace(place);
         if(this.perPlaceStarredTable.get(placeEnc) == null ||
                 !this.perPlaceStarredTable.get(placeEnc).contains(list.getName())){
             return false;
@@ -107,7 +115,7 @@ public class ListsManager implements PlaceList.ListChangedListener {
     }
 
     public boolean isStarred(Place place){
-        String placeEnc = PlaceList.encodePlace(place);
+        String placeEnc = encodePlace(place);
         if(this.perPlaceStarredTable.get(placeEnc) == null ||
                 this.perPlaceStarredTable.get(placeEnc).isEmpty()){
             return false;
@@ -115,6 +123,13 @@ public class ListsManager implements PlaceList.ListChangedListener {
         return true;
     }
 
+    private String encodePlace(Place place){
+        return place.getOsmType() + ":" + place.getId();
+    }
+
+    private String encodePlace(PlaceListItem item){
+        return item.getOsmType() + ":" + item.getOsmId();
+    }
 
     public List<PlaceList> getStarredListsFor(Place place){
         if(!this.isStarred(place)){
@@ -122,7 +137,7 @@ public class ListsManager implements PlaceList.ListChangedListener {
         }
 
         List<PlaceList> res = new ArrayList<PlaceList>();
-        for(String listName: this.perPlaceStarredTable.get(PlaceList.encodePlace(place))){
+        for(String listName: this.perPlaceStarredTable.get(encodePlace(place))){
             res.add(this.starredLists.get(listName));
         }
 
@@ -131,7 +146,7 @@ public class ListsManager implements PlaceList.ListChangedListener {
 
 
 
-    private ListsManager(Context ctx){
+    private ListManager(Context ctx){
         this.ctx = ctx;
         this.loadLists();
         this.createPerPlaceAutoTable();
@@ -150,8 +165,8 @@ public class ListsManager implements PlaceList.ListChangedListener {
     private void createPerPlaceStarredTable(){
         this.perPlaceStarredTable = new HashMap<String, Set<String>>();
         for(String listName: this.starredLists.keySet()){
-            for(String placeEnc: this.starredLists.get(listName)){
-                this.updatePerPlaceStarredTable("add", placeEnc, listName);
+            for(PlaceListItem placeEnc: this.starredLists.get(listName)){
+                this.updatePerPlaceStarredTable("add", encodePlace(placeEnc), listName);
             }
         }
     }
@@ -177,8 +192,8 @@ public class ListsManager implements PlaceList.ListChangedListener {
     private void createPerPlaceAutoTable(){
         this.perPlaceAutoTable = new HashMap<String, Set<String>>();
         for(String listName: this.autoLists.keySet()){
-            for(String placeEnc: this.autoLists.get(listName)){
-                this.updatePerPlaceAutoTable("add", placeEnc, listName);
+            for(PlaceListItem placeEnc: this.autoLists.get(listName)){
+                this.updatePerPlaceAutoTable("add", encodePlace(placeEnc), listName);
             }
         }
     }
@@ -273,7 +288,7 @@ public class ListsManager implements PlaceList.ListChangedListener {
     }
 
     private void initializeDefaultAutoLists(){
-        this.autoLists.put("Visited", new PlaceList(PlaceList.PlaceListType.AUTOLIST, "Visited"));
+        this.autoLists.put(AUTOLIST_VISITED, new PlaceList(PlaceList.PlaceListType.AUTOLIST, "Visited"));
     }
 
     private void storeStarredLists(){
@@ -334,7 +349,9 @@ public class ListsManager implements PlaceList.ListChangedListener {
     }
 
     @Override
-    public void placeAdded(PlaceList list, Place place, String placeEnc) {
+    public void placeAdded(PlaceList list, Place place, PlaceListItem item) {
+
+        String placeEnc = item.getOsmType() + ":" + item.getOsmId();
 
         if(list.getType().equals(PlaceList.PlaceListType.AUTOLIST)){
             this.updatePerPlaceAutoTable("add", placeEnc, list.getName());
@@ -360,7 +377,10 @@ public class ListsManager implements PlaceList.ListChangedListener {
     }
 
     @Override
-    public void placeRemoved(PlaceList list, Place place, String placeEnc) {
+    public void placeRemoved(PlaceList list, Place place, PlaceListItem item) {
+
+        String placeEnc = item.getOsmType() + ":" + item.getOsmId();
+
 
         if(list.getType().equals(PlaceList.PlaceListType.AUTOLIST)){
             this.updatePerPlaceAutoTable("remove", placeEnc, list.getName());

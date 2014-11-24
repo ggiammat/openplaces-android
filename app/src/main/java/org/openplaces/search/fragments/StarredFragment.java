@@ -13,19 +13,17 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Filter;
 import android.widget.Filterable;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import org.openplaces.MapActivity;
 import org.openplaces.OpenPlacesProvider;
 import org.openplaces.R;
-import org.openplaces.lists.ListsManager;
+import org.openplaces.lists.ListManager;
 import org.openplaces.model.IconsManager;
 import org.openplaces.model.OPPlaceInterface;
 import org.openplaces.model.Place;
 import org.openplaces.model.PlaceCategoriesManager;
-import org.openplaces.model.PlaceCategory;
 import org.openplaces.model.ResultSet;
 import org.openplaces.utils.HttpHelper;
 
@@ -35,7 +33,7 @@ import java.util.List;
 
 public class StarredFragment extends Fragment {
 
-    ListsManager lm;
+    ListManager lm;
     OpenPlacesProvider opp;
     StarredPlacesListAdapter adapter;
     List<Place> starredPlaces;
@@ -61,7 +59,7 @@ public class StarredFragment extends Fragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        this.lm = ListsManager.getInstance(getActivity().getApplicationContext());
+        this.lm = ListManager.getInstance(getActivity().getApplicationContext());
 
 
         this.opp = new OpenPlacesProvider(

@@ -6,34 +6,35 @@ import org.openplaces.MapActivity;
 import org.openplaces.model.Place;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
 /**
  * Created by ggiammat on 11/19/14.
  */
-public class PlaceList implements Iterable<String> {
+public class PlaceList implements Iterable<PlaceListItem> {
 
     public enum PlaceListType{
         AUTOLIST, STARREDLIST
     };
 
     public interface ListChangedListener{
-        public void placeAdded(PlaceList list, Place place, String placeEnc);
-        public void placeRemoved(PlaceList list, Place place, String placeEnc);
+        public void placeAdded(PlaceList list, Place place, PlaceListItem placeEnc);
+        public void placeRemoved(PlaceList list, Place place, PlaceListItem placeEnc);
     }
 
     private String name;
     private PlaceListType type;
 
     //places are encoded in the form osmType:osmId
-    private List<String> placesInList;
+    private List<PlaceListItem> placesInList;
 
     //declared transient to avoid gson serialization
     private transient List<ListChangedListener> listeners;
 
     public PlaceList(){
-        this.placesInList = new ArrayList<String>();
+        this.placesInList = new ArrayList<PlaceListItem>();
         this.listeners = new ArrayList<ListChangedListener>();
     }
 
@@ -52,21 +53,51 @@ public class PlaceList implements Iterable<String> {
         return this.placesInList.contains(this.encodePlace(place));
     }
 
-
-    public boolean addPlaceToList(Place place){
-        String placeEnc = this.encodePlace(place);
-        boolean res = this.placesInList.add(placeEnc);
-        if(res){
-            for(ListChangedListener l: this.listeners){
-                l.placeAdded(this, place, placeEnc);
-            }
-            Log.d(MapActivity.LOGTAG, "Place " + place + " added to list " + this.getName() + "(" + this.getType() + ")");
+    public PlaceListItem getPlaceListItemByPlace(Place place){
+        if(this.placesInList.contains(encodePlace(place))){
+           return this.placesInList.get(this.placesInList.indexOf(encodePlace(place)));
         }
+        else {
+            return null;
+        }
+    }
+
+    public boolean addNote(Place place, String note){
+        PlaceListItem item = this.addOrUpdatePlaceListItem(place);
+        item.setNote(note);
+
+        for(ListChangedListener l: this.listeners){
+            l.placeAdded(this, place, item);
+        }
+        return true;
+    }
+
+    private PlaceListItem addOrUpdatePlaceListItem(Place place){
+        PlaceListItem res = encodePlace(place);
+        if(this.placesInList.contains(res)){
+            res = this.placesInList.get(this.placesInList.indexOf(res));
+            res.setModifiedDate(new Date().getTime());
+        }
+        else {
+            this.placesInList.add(res);
+        }
+
         return res;
     }
 
+    public void addPlaceToList(Place place){
+
+        PlaceListItem item = this.addOrUpdatePlaceListItem(place);
+
+        for(ListChangedListener l: this.listeners){
+            l.placeAdded(this, place, item);
+        }
+        Log.d(MapActivity.LOGTAG, "Place " + place + " added to list " + this.getName() + "(" + this.getType() + ")");
+
+    }
+
     public boolean removePlaceFromList(Place place){
-        String placeEnc = this.encodePlace(place);
+        PlaceListItem placeEnc = this.encodePlace(place);
         boolean res = this.placesInList.remove(placeEnc);
         if(res){
             for(ListChangedListener l: this.listeners){
@@ -82,8 +113,8 @@ public class PlaceList implements Iterable<String> {
         return this.placesInList.size();
     }
 
-    public static String encodePlace(Place place){
-        return place.getOsmType() + ":" + place.getId();
+    private PlaceListItem encodePlace(Place place){
+        return new PlaceListItem(place.getId(), place.getOsmType());
     }
 
     public String getName() {
@@ -94,11 +125,11 @@ public class PlaceList implements Iterable<String> {
         this.name = name;
     }
 
-    public List<String> getPlacesInList() {
+    public List<PlaceListItem> getPlacesInList() {
         return placesInList;
     }
 
-    public void setPlacesInList(List<String> placesInList) {
+    public void setPlacesInList(List<PlaceListItem> placesInList) {
         this.placesInList = placesInList;
     }
 
@@ -111,7 +142,7 @@ public class PlaceList implements Iterable<String> {
     }
 
     @Override
-    public Iterator<String> iterator() {
+    public Iterator<PlaceListItem> iterator() {
         return this.placesInList.iterator();
     }
 

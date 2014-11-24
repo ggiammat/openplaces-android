@@ -1,6 +1,5 @@
 package org.openplaces.lists;
 
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -12,17 +11,19 @@ import android.widget.EditText;
 import org.openplaces.model.Place;
 
 /**
- * Created by ggiammat on 11/17/14.
+ * Created by gabriele on 11/24/14.
  */
-public class CreateNewStarredListFragment extends DialogFragment {
+public class AddNoteFragment extends DialogFragment {
 
-    ListManager slm;
+    String listName;
     Place place;
+    ListManager slm;
 
 
     @Override
     public void setArguments(Bundle args) {
         this.place = (Place) args.getParcelable("PLACE");
+        this.listName = args.getString("LISTNAME");
     }
 
 
@@ -32,18 +33,19 @@ public class CreateNewStarredListFragment extends DialogFragment {
 
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle("Create new Starred list");
+        builder.setTitle("Add note");
 
         // Set an EditText view to get user input
         final EditText input = new EditText(getActivity());
+        PlaceList list = this.slm.getStarredListByName(listName);
+        input.setText(list.getPlaceListItemByPlace(this.place).getNote());
         builder.setView(input);
 
 
         builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-                PlaceList l = slm.createNewStarredList(input.getText().toString());
-                l.addPlaceToList(place);
-               // ((StarredListChooserFragment.PlaceStarCapability)getActivity()).placeIsNowStarred(input.getText().toString());
+                PlaceList list = slm.getStarredListByName(listName);
+                list.addNote(place, input.getText().toString());
             }
         });
 

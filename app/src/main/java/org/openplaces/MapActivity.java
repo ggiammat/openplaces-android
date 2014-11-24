@@ -1,15 +1,15 @@
 package org.openplaces;
 
 import android.app.ActionBar;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.LayerDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -24,15 +24,16 @@ import android.widget.ListPopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.openplaces.lists.ListManager;
 import org.openplaces.lists.ListManagerEventListener;
-import org.openplaces.lists.ListsManager;
+import org.openplaces.lists.ListManagerFragment;
 import org.openplaces.lists.PlaceList;
+import org.openplaces.lists.PlaceListItem;
 import org.openplaces.model.IconsManager;
 import org.openplaces.model.OPPlaceInterface;
 import org.openplaces.model.Place;
 import org.openplaces.model.PlaceCategoriesManager;
 import org.openplaces.model.ResultSet;
-import org.openplaces.lists.StarredListChooserFragment;
 import org.openplaces.utils.HttpHelper;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.bonuspack.clustering.GridMarkerClusterer;
@@ -56,7 +57,7 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
 
     public static final String LOGTAG = "OpenPlaceSearch";
 
-    ListsManager slm;
+    ListManager slm;
     Button searchButton;
     Button showStarredButton;
     ImageButton starButton;
@@ -72,6 +73,7 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
 
     private ListPopupWindow selectListsToShowPopup;
     private List<String> selectListsToShowItems;
+    private ListManagerFragment listsManagerFragment;
 
 
 //    private View.OnClickListener unStarPlaceListener;
@@ -102,7 +104,7 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
 
         this.icoMngr = IconsManager.getInstance(this);
 
-        this.slm = ListsManager.getInstance(this);
+        this.slm = ListManager.getInstance(this);
         this.slm.addListsEventListener(this);
         this.showStarredButton = (Button) findViewById(R.id.showStarred);
         this.searchButton = (Button) findViewById(R.id.searchButton);
@@ -114,6 +116,12 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
         selectListsToShowPopup.setWidth(500);
         selectListsToShowPopup.setHeight(700);
         this.numPlacesTV = (TextView) findViewById(R.id.numPlaces);
+
+
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        this.listsManagerFragment = new ListManagerFragment();
+
 
 //        this.iconUnselected = new LayerDrawable(new Drawable[]{
 //                getResources().getDrawable(R.drawable.marker_bg),
@@ -232,11 +240,13 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
         t1.setText(newSelectedPlace.getName());
 
         TextView t2 = (TextView) findViewById(R.id.textView2);
-        if(newSelectedPlace.getNumReviews()!=null && newSelectedPlace.getAverageRating() != null){
-            t2.setText(newSelectedPlace.getAverageRating() + " on " + newSelectedPlace.getNumReviews() + " reviews");
+        PlaceListItem item = this.slm.getAutoListByName(ListManager.AUTOLIST_VISITED).getPlaceListItemByPlace(newSelectedPlace);
+        if(item != null){
+
+            t2.setText("Last visited on " + item.getModifiedDate() + "|" + item.getNote());
         }
         else {
-            t2.setText("");
+            t2.setText("Never visited");
             //new UpdatePlaceTask().execute();
         }
 
@@ -273,11 +283,16 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
         this.starButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                DialogFragment f = new StarredListChooserFragment();
+//                DialogFragment f = new StarredListChooserFragment();
+//                Bundle b = new Bundle();
+//                b.putParcelable("PLACE", resultSet.getSelected());
+//                f.setArguments(b);
+//                f.show(getSupportFragmentManager(), "StarredListChooser");
+
                 Bundle b = new Bundle();
                 b.putParcelable("PLACE", resultSet.getSelected());
-                f.setArguments(b);
-                f.show(getSupportFragmentManager(), "StarredListChooser");
+                listsManagerFragment.setArguments(b);
+                listsManagerFragment.show(getFragmentManager(), "listsManagerFragmentInMapActivity");
             }
         });
 
@@ -504,7 +519,10 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
                 return opp.getPlacesByTypesAndIds(slm.getAllStarredPlaces());
             }
             else {
-                Set<String> places = new HashSet<String>(slm.getStarredListByName(listName).getPlacesInList());
+                Set<String> places = new HashSet<String>();
+                for(PlaceListItem item: slm.getStarredListByName(listName).getPlacesInList()){
+                    places.add(item.getOsmType()+":"+item.getOsmId());
+                }
                 return opp.getPlacesByTypesAndIds(places);
             }
         }

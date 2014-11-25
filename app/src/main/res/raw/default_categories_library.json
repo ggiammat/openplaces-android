@@ -260,6 +260,7 @@
    {
     "name": "place of worship",
     "type": "religion",
+    "symbol": "religion",
     "description": "a large store for groceries and other goods",
     "osm-tag-filter-groups": [{"amenity": {"IS_EQUALS_TO": "place_of_worship"}}],
     "localization": {
@@ -270,7 +271,7 @@
    {
     "name": "viewpoint",
     "type": "tourism",
-    "symbol": "commercial",
+    "symbol": "camera",
     "description": "an establishment that provides paid lodging, usually on a short-term basis",
     "osm-tag-filter-groups": [{"tourism": {"IS_EQUALS_TO": "viewpoint"}}],
     "localization": {
@@ -279,22 +280,11 @@
     }
    },
    {
-    "name": "art gallery",
-    "type": "tourism",
-    "symbol": "commercial",
-    "description": "an establishment that provides paid lodging, usually on a short-term basis",
-    "osm-tag-filter-groups": [{"tourism": {"IS_EQUALS_TO": "gallery"}}],
-    "localization": {
-    "en": "art gallery",
-    "it": "galleria d'arte"
-    }
-   },
-   {
     "name": "museum",
     "type": "tourism",
-    "symbol": "commercial",
+    "symbol": "museum",
     "description": "an establishment that provides paid lodging, usually on a short-term basis",
-    "osm-tag-filter-groups": [{"tourism": {"IS_EQUALS_TO": "museum"}}],
+    "osm-tag-filter-groups": [{"tourism": {"IS_EQUALS_TO": "museum"}}, {"tourism": {"IS_EQUALS_TO": "gallery"}}],
     "localization": {
     "en": "museum",
     "it": "museo"
@@ -303,7 +293,7 @@
    {
     "name": "building",
     "type": "building",
- "symbol": "commercial",
+    "symbol": "commercial",
     "description": "an establishment that provides paid lodging, usually on a short-term basis",
     "osm-tag-filter-groups": [{"building": {"IS_EQUALS_TO": "yes"}}],
     "localization": {

@@ -148,6 +148,7 @@ public class ListManagerFragment extends android.app.DialogFragment implements A
             ImageView setNoteButton = (ImageView) convertView.findViewById(R.id.setNoteIV);
             TextView text = (TextView) convertView.findViewById(R.id.starredListText);
             ImageView img = (ImageView) convertView.findViewById(R.id.starImage);
+            TextView noteText = (TextView) convertView.findViewById(R.id.textView4);
 
             PlaceList l = (PlaceList) getItem(position);
             text.setText(l.getName() + " (" + l.size() + ")");
@@ -158,9 +159,12 @@ public class ListManagerFragment extends android.app.DialogFragment implements A
 
                 if(l.getPlaceListItemByPlace(this.place).getNote() != null){
                     setNoteButton.setImageResource(R.drawable.note_on);
+
+                    noteText.setText(l.getPlaceListItemByPlace(this.place).getNote());
                 }
                 else {
                     setNoteButton.setImageResource(R.drawable.note_off);
+                    noteText.setText("");
                 }
 
             }
@@ -169,6 +173,7 @@ public class ListManagerFragment extends android.app.DialogFragment implements A
                 setNoteButton.setTag(null);
                 setNoteButton.setOnClickListener(null);
                 setNoteButton.setImageResource(R.drawable.note_off);
+                noteText.setText("");
             }
 
 

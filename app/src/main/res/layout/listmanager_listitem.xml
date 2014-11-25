@@ -25,4 +25,14 @@
         android:src="@android:drawable/star_big_off"
         android:layout_alignParentEnd="true" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="Small Text"
+        android:id="@+id/textView4"
+        android:layout_alignBottom="@+id/setNoteIV"
+        android:layout_alignStart="@+id/starredListText"
+        android:textStyle="italic" />
+
 </RelativeLayout>

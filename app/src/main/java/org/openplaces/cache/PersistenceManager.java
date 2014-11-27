@@ -4,8 +4,15 @@ import android.os.Environment;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
 
 import org.openplaces.MapActivity;
+import org.openplaces.model.OPPlaceInterface;
+import org.openplaces.model.impl.OPPlaceImpl;
 
 import java.io.File;
 import java.io.FileReader;
@@ -19,6 +26,15 @@ import java.lang.reflect.Type;
  */
 public class PersistenceManager {
 
+    public static class OPPlaceInstanceDeserializer implements JsonDeserializer<OPPlaceInterface> {
+
+        @Override
+        public OPPlaceInterface deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+            return jsonDeserializationContext.deserialize(jsonElement, OPPlaceImpl.class);
+        }
+    }
+
+
     public static Object gsonDeSerializer(String filename, Type type){
         if(!isExternalStorageReadable()){
             Log.w(MapActivity.LOGTAG, "External Storage not available for reading. Impossible to load data");
@@ -30,10 +46,11 @@ public class PersistenceManager {
 
         try {
             File f = new File(dir, filename);
-            Gson gson = new Gson();
+            GsonBuilder gsonBuilder = new GsonBuilder();
+            gsonBuilder.registerTypeAdapter(OPPlaceInterface.class, new OPPlaceInstanceDeserializer());
             Reader fr = new FileReader(f);
 
-            Object obj = gson.fromJson(fr, type);
+            Object obj = gsonBuilder.create().fromJson(fr, type);
             fr.close();
 
 
@@ -60,8 +77,9 @@ public class PersistenceManager {
         }
         File f = new File(dir, filename);
 
-        Gson gson = new Gson();
-        String serialization = gson.toJson(obj);
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        //gsonBuilder.registerTypeAdapter(OPPlaceInterface.class, new OPPlaceInstanceDeserializer());
+        String serialization = gsonBuilder.create().toJson(obj);
 
         try {
             if(!f.exists()){

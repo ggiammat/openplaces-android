@@ -33,7 +33,7 @@ import java.util.List;
  */
 public class LocationsFragment extends Fragment {
 
-    private GeoPoint myLocation;
+    private Location myLocation;
     private ListView locationsList;
     private SearchLocationsAdapter locationsListAdapter;
     private OpenPlacesRemote opp;
@@ -51,8 +51,7 @@ public class LocationsFragment extends Fragment {
 
         LocationManager locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
         String locationProvider = LocationManager.NETWORK_PROVIDER;
-        Location location = locationManager.getLastKnownLocation(locationProvider);
-        this.myLocation = new GeoPoint(location.getLatitude(), location.getLongitude());
+        this.myLocation = locationManager.getLastKnownLocation(locationProvider);
         Log.d(MapActivity.LOGTAG, "Location retrieved is " + this.myLocation);
 
         this.startSearch();

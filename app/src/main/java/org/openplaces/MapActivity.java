@@ -34,6 +34,7 @@ import org.openplaces.model.OPPlaceInterface;
 import org.openplaces.model.Place;
 import org.openplaces.model.PlaceCategoriesManager;
 import org.openplaces.model.ResultSet;
+import org.openplaces.remote.OpenPlacesRemote;
 import org.openplaces.utils.HttpHelper;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.bonuspack.clustering.GridMarkerClusterer;
@@ -68,9 +69,9 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
     private TextView placeNameLabelTV;
     private TextView numPlacesTV;
     MyLocationNewOverlay oMapLocationOverlay;
-    private OpenPlacesProvider opp;
+    //private OpenPlacesProvider opp;
     private IconsManager icoMngr;
-
+    private OpenPlacesRemote opr;
     private ListPopupWindow selectListsToShowPopup;
     private List<String> selectListsToShowItems;
     private ListManagerFragment listsManagerFragment;
@@ -94,13 +95,7 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
 
         setContentView(R.layout.activity_map);
 
-        this.opp = new OpenPlacesProvider(
-                new HttpHelper(),
-                "gabriele.giammatteo@gmail.com",
-                OpenPlacesProvider.NOMINATIM_SERVER,
-                OpenPlacesProvider.OVERPASS_SERVER,
-                OpenPlacesProvider.REVIEW_SERVER_SERVER
-        );
+        this.opr = OpenPlacesRemote.getInstance(this.getApplicationContext());
 
         this.icoMngr = IconsManager.getInstance(this);
 
@@ -509,21 +504,21 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
 
     }
 
-    private class LoadStarredPlaces extends AsyncTask<String, Integer, List<OPPlaceInterface>> {
+    private class LoadStarredPlaces extends AsyncTask<String, Integer, ResultSet> {
 
-        protected List<OPPlaceInterface> doInBackground(String... query) {
+        protected ResultSet doInBackground(String... query) {
 
             String listName = query[0];
             Log.d(LOGTAG, "Getting places in starred list " + listName);
             if(listName == null){
-                return opp.getPlacesByTypesAndIds(slm.getAllStarredPlaces());
+                return opr.getPlacesByTypesAndIds(slm.getAllStarredPlaces());
             }
             else {
                 Set<String> places = new HashSet<String>();
                 for(PlaceListItem item: slm.getStarredListByName(listName).getPlacesInList()){
                     places.add(item.getOsmType()+":"+item.getOsmId());
                 }
-                return opp.getPlacesByTypesAndIds(places);
+                return opr.getPlacesByTypesAndIds(places);
             }
         }
 
@@ -534,13 +529,12 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
             setProgressBarIndeterminateVisibility(Boolean.TRUE);
         }
 
-        protected void onPostExecute(List<OPPlaceInterface> result) {
+        protected void onPostExecute(ResultSet result) {
 
             setProgressBarIndeterminateVisibility(Boolean.FALSE);
 
-            ResultSet rs = ResultSet.buildFromOPPlaces(result, PlaceCategoriesManager.getInstance(MapActivity.this));
-            Log.d(MapActivity.LOGTAG, rs.toString());
-            setNewResultSet(rs);
+            Log.d(MapActivity.LOGTAG, result.toString());
+            setNewResultSet(result);
         }
     }
 }

@@ -21,6 +21,7 @@ import org.openplaces.lists.PlaceListItem;
 import org.openplaces.model.Place;
 
 import java.util.List;
+import java.util.Map;
 
 
 public class PlaceDetailsActivity extends FragmentActivity {
@@ -30,8 +31,7 @@ public class PlaceDetailsActivity extends FragmentActivity {
 
     private TextView placeNameTV;
     private TextView placeAddressTV;
-    private TextView placeOsmIdTV;
-    private Button starPlace;
+    private TextView placeOsmTagsTV;
     private Button callButton;
     private Place place;
     private View.OnClickListener unStarPlaceListener;
@@ -48,8 +48,7 @@ public class PlaceDetailsActivity extends FragmentActivity {
 
         this.placeNameTV = (TextView) findViewById(R.id.place_name);
         this.placeAddressTV = (TextView) findViewById(R.id.place_address);
-        this.placeOsmIdTV = (TextView) findViewById(R.id.place_osmid);
-        this.starPlace = (Button) findViewById(R.id.starPlace);
+        this.placeOsmTagsTV = (TextView) findViewById(R.id.place_omstags);
         this.callButton = (Button) findViewById(R.id.callButton);
 
         Intent intent = getIntent();
@@ -69,7 +68,12 @@ public class PlaceDetailsActivity extends FragmentActivity {
 
         this.placeNameTV.setText(place.getName());
         this.placeAddressTV.setText(place.getAddressString());
-        this.placeOsmIdTV.setText(Long.toString(place.getId()));
+        String tagsText = "Tags:\n";
+        Map<String, String> tags = place.getOsmTags();
+        for(String k: tags.keySet()){
+            tagsText += k + ": " + tags.get(k) + "\n";
+        }
+        this.placeOsmTagsTV.setText(tagsText);
 
 
         this.slm = ListManager.getInstance(this);
@@ -77,42 +81,9 @@ public class PlaceDetailsActivity extends FragmentActivity {
         this.starredList = slm.getStarredListsFor(this.place);
         Log.d(MapActivity.LOGTAG, "Place starred in " + starredList);
 
-        this.unStarPlaceListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //slm.unstarPlace(starredList, place);
-                placeIsNowUnstarred();
-            }
-        };
-
-        this.starPlaceListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                DialogFragment f = new StarredListChooserFragment();
-//                Bundle b = new Bundle();
-//                b.putParcelable("PLACE", place);
-//                f.setArguments(b);
-//                f.show(getSupportFragmentManager(), "StarredListChooser");
-            }
-        };
-
-
-
-        if(this.starredList != null){
-            //this.placeIsNowStarred(this.starredList);
-        }
-        else {
-            this.placeIsNowUnstarred();
-        }
-
 
 
         this.slm.getAutoListByName(ListManager.AUTOLIST_VISITED).addPlaceToList(this.place);
-        PlaceListItem item = this.slm.getAutoListByName(ListManager.AUTOLIST_VISITED).getPlaceListItemByPlace(place);
-        if(item != null){
-
-            starPlace.setText("Last visited: " + item.getModifiedDate());
-        }
 
 
         FragmentManager fragmentManager = getFragmentManager();
@@ -124,20 +95,6 @@ public class PlaceDetailsActivity extends FragmentActivity {
         fragmentTransaction.add(R.id.listFragmentContainer, f);
         fragmentTransaction.commit();
 
-    }
-
-    /**
-     * called on star operation is ok
-     */
-    public void placeIsNowStarred(String listName){
-        starPlace.setText("Unstar (" + listName + ")");
-        starPlace.setOnClickListener(unStarPlaceListener);
-        //this.starredList = listName;
-    }
-
-    public void placeIsNowUnstarred(){
-        starPlace.setText("Star");
-        starPlace.setOnClickListener(starPlaceListener);
     }
 
 

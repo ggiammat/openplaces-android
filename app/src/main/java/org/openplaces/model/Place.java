@@ -290,4 +290,12 @@ public class Place implements OPPlaceInterface, Parcelable {
     public void setCategory(PlaceCategory category) {
         this.category = category;
     }
+
+    public OPPlaceInterface getmDelegate(){
+        return this.mDelegate;
+    }
+
+    public void setmDelegate(OPPlaceInterface mDelegate){
+        this.mDelegate = mDelegate;
+    }
 }

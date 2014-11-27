@@ -2,6 +2,7 @@ package org.openplaces.search.fragments;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -10,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Filter;
 import android.widget.Filterable;
@@ -25,6 +27,7 @@ import org.openplaces.model.OPPlaceInterface;
 import org.openplaces.model.Place;
 import org.openplaces.model.PlaceCategoriesManager;
 import org.openplaces.model.ResultSet;
+import org.openplaces.remote.OpenPlacesRemote;
 import org.openplaces.utils.HttpHelper;
 
 import java.util.ArrayList;
@@ -50,6 +53,21 @@ public class StarredFragment extends Fragment {
         ListView list = (ListView) view.findViewById(R.id.searchStarredList);
         list.setAdapter(this.adapter);
 
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                ResultSet rs = new ResultSet();
+                rs.addPlace(starredPlaces.get(i));
+
+                Intent intent=new Intent();
+                intent.putExtra("RESULTSET", rs);
+
+                getActivity().setResult(1,intent);
+
+                getActivity().finish();
+            }
+        });
+
         new LoadStarredPlacesTask().execute();
 
         return view;
@@ -73,15 +91,16 @@ public class StarredFragment extends Fragment {
     }
 
 
-    private class LoadStarredPlacesTask extends AsyncTask<String, Integer, List<OPPlaceInterface>> {
+    private class LoadStarredPlacesTask extends AsyncTask<String, Integer, ResultSet> {
 
-        protected List<OPPlaceInterface> doInBackground(String... query) {
+        protected ResultSet doInBackground(String... query) {
 
+            OpenPlacesRemote opr = OpenPlacesRemote.getInstance(getActivity().getApplicationContext());
+            return opr.getPlacesByTypesAndIds(lm.getAllStarredPlaces());
 
             //List<OPPlaceInterface> res = opp.getPlacesByTypesAndIds(lm.getAllStarredPlaces());
             //return res;
 
-            return null;
         }
 
         protected void onProgressUpdate(Integer... progress) {
@@ -93,20 +112,20 @@ public class StarredFragment extends Fragment {
             }
         }
 
-        protected void onPostExecute(List<OPPlaceInterface> result) {
+        protected void onPostExecute(ResultSet result) {
 
             if(isAdded()){
                 getActivity().setProgressBarIndeterminateVisibility(Boolean.FALSE);
 
-//
-//
-//                ResultSet rs = ResultSet.buildFromOPPlaces(result, PlaceCategoriesManager.getInstance(getActivity().getApplicationContext()));
-//                Log.d(MapActivity.LOGTAG, rs.toString());
-//                starredPlaces.clear();
-//                for(Place p: rs){
-//                    starredPlaces.add(p);
-//                }
-//                adapter.notifyDataSetChanged();
+
+
+                //ResultSet rs = ResultSet.buildFromOPPlaces(result, PlaceCategoriesManager.getInstance(getActivity().getApplicationContext()));
+                Log.d(MapActivity.LOGTAG, result.toString());
+                starredPlaces.clear();
+                for(Place p: result){
+                    starredPlaces.add(p);
+                }
+                adapter.notifyDataSetChanged();
 
             }
         }

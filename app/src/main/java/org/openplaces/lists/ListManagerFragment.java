@@ -158,12 +158,12 @@ public class ListManagerFragment extends android.app.DialogFragment implements A
                 setNoteButton.setOnClickListener(this.setNoteClickListener);
 
                 if(l.getPlaceListItemByPlace(this.place).getNote() != null){
-                    setNoteButton.setImageResource(R.drawable.note_on);
+                    setNoteButton.setImageResource(R.drawable.note);
 
                     noteText.setText(l.getPlaceListItemByPlace(this.place).getNote());
                 }
                 else {
-                    setNoteButton.setImageResource(R.drawable.note_off);
+                    setNoteButton.setImageResource(R.drawable.note);
                     noteText.setText("");
                 }
 
@@ -172,7 +172,7 @@ public class ListManagerFragment extends android.app.DialogFragment implements A
                 img.setImageResource(android.R.drawable.btn_star_big_off);
                 setNoteButton.setTag(null);
                 setNoteButton.setOnClickListener(null);
-                setNoteButton.setImageResource(R.drawable.note_off);
+                setNoteButton.setImageResource(R.drawable.note);
                 noteText.setText("");
             }
 

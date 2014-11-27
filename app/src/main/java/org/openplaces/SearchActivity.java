@@ -28,6 +28,7 @@ import org.openplaces.model.OPPlaceCategoryInterface;
 import org.openplaces.model.OPPlaceInterface;
 import org.openplaces.model.PlaceCategoriesManager;
 import org.openplaces.model.impl.OPLocationImpl;
+import org.openplaces.remote.OpenPlacesRemote;
 import org.openplaces.search.PlaceCategoriesAdapter;
 import org.openplaces.model.ResultSet;
 import org.openplaces.search.SearchLocationsAdapter;
@@ -307,9 +308,9 @@ public class SearchActivity extends FragmentActivity {
     }
 
 
-    private class SearchTask extends AsyncTask<String, Integer, List<OPPlaceInterface>> {
+    private class SearchTask extends AsyncTask<String, Integer, ResultSet> {
 
-        protected List<OPPlaceInterface> doInBackground(String... query) {
+        protected ResultSet doInBackground(String... query) {
 
             LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             String locationProvider = LocationManager.NETWORK_PROVIDER;
@@ -325,8 +326,8 @@ public class SearchActivity extends FragmentActivity {
                     (double) mapViewVisibleArea.getLatSouthE6()/1E6d,
                     (double) mapViewVisibleArea.getLonWestE6()/1E6d));
 
-           List<OPPlaceInterface> res = searchQueryBuilder.doSearch();
-           return res;
+           OpenPlacesRemote opr = OpenPlacesRemote.getInstance(SearchActivity.this.getApplicationContext());
+           return opr.search(searchQueryBuilder);
         }
 
         protected void onProgressUpdate(Integer... progress) {
@@ -339,7 +340,7 @@ public class SearchActivity extends FragmentActivity {
             searchButton.setEnabled(false);
         }
 
-        protected void onPostExecute(List<OPPlaceInterface> result) {
+        protected void onPostExecute(ResultSet result) {
 
             setProgressBarIndeterminateVisibility(Boolean.FALSE);
             searchEditText.setEnabled(true);
@@ -351,11 +352,11 @@ public class SearchActivity extends FragmentActivity {
                 return;
             }
 
-            ResultSet rs = ResultSet.buildFromOPPlaces(result, PlaceCategoriesManager.getInstance(SearchActivity.this));
-            Log.d(MapActivity.LOGTAG, rs.toString());
+            //ResultSet rs = ResultSet.buildFromOPPlaces(result, PlaceCategoriesManager.getInstance(SearchActivity.this));
+            Log.d(MapActivity.LOGTAG, result.toString());
 
             Intent intent=new Intent();
-            intent.putExtra("RESULTSET", rs);
+            intent.putExtra("RESULTSET", result);
 
             setResult(1,intent);
 

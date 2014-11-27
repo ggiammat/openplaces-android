@@ -7,6 +7,7 @@ import android.util.Log;
 import org.openplaces.MapActivity;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -36,10 +37,17 @@ public class ResultSet implements Parcelable, Iterable<Place> {
         return rs;
     }
 
+    public List<Place> getAllPlaces(){
+        return new ArrayList<Place>(this.places);
+    }
+
     public void addPlace(Place place){
         this.places.add(place);
     }
 
+    public void addPlaces(Collection<Place> places){
+        this.places.addAll(places);
+    }
 
     public int indexOf(Place place){
         return this.places.indexOf(place);

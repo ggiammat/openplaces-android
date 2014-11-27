@@ -1,20 +1,23 @@
 package org.openplaces.remote;
 
 import android.content.Context;
+import android.location.Location;
 import android.util.Log;
-
-import com.google.gson.reflect.TypeToken;
 
 import org.openplaces.MapActivity;
 import org.openplaces.OpenPlacesProvider;
-import org.openplaces.cache.PersistenceManager;
 import org.openplaces.model.OPGeoPoint;
 import org.openplaces.model.OPLocationInterface;
+import org.openplaces.model.OPPlaceInterface;
+import org.openplaces.model.Place;
+import org.openplaces.model.PlaceCategoriesManager;
+import org.openplaces.model.ResultSet;
+import org.openplaces.model.impl.OPLocationImpl;
+import org.openplaces.search.SearchQueryBuilder;
+import org.openplaces.utils.GeoFunctions;
 import org.openplaces.utils.HttpHelper;
-import org.osmdroid.util.GeoPoint;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,11 +28,6 @@ import java.util.Set;
 public class OpenPlacesRemote {
 
     public static final int AROUND_LOCATIONS_RADIUS = 10; //km
-    public static final int MAX_DISTANCE_FOR_SAME_AROUND_LOCATIONS = 1; //km
-
-    public static final String LOCATIONS_CACHE_FILE = "locations.json";
-    public static final String AROUND_POINTS_CACHE_FILE = "around-points.json";
-    public static final long LOCATIONS_CACHE_TTL = 24 * 60 * 60 * 1000;// 1 day in ms
 
     private static OpenPlacesRemote instance;
 
@@ -43,10 +41,9 @@ public class OpenPlacesRemote {
 
     private Context appContext;
     private OpenPlacesProvider opp;
+    private LocationsCacheManager lcm;
+    private PlacesCacheManager pcm;
 
-
-    private Set<CachedLocation> cachedLocations;
-    private Set<CachedOPGeoPoint> cachedAroundLocations;
 
     private OpenPlacesRemote(Context appContext){
         this.appContext = appContext;
@@ -60,89 +57,111 @@ public class OpenPlacesRemote {
                 OpenPlacesProvider.REVIEW_SERVER_SERVER
         );
 
-        this.loadCachedLocations();
-        this.loadCachedAroundLocations();
+        this.lcm = LocationsCacheManager.getInstance(appContext);
+        this.pcm = PlacesCacheManager.getInstance(appContext);
     }
 
 
-    private void loadCachedLocations(){
+    public ResultSet getPlacesByTypesAndIds(Set<String> placesTypesAndIds) {
 
-        this.cachedLocations = (Set<CachedLocation>) PersistenceManager.gsonDeSerializer(LOCATIONS_CACHE_FILE,
-                new TypeToken<Set<CachedLocation>>(){}.getType());
+        Log.d(MapActivity.LOGTAG,"getPlacesByTypeAndId -> getting places " + placesTypesAndIds.toString());
 
-        if(this.cachedLocations == null){
-            Log.d(MapActivity.LOGTAG, "No cached locations found. Initializing an empty cache");
-            this.cachedLocations = new HashSet<CachedLocation>();
+        List<Place> cachedPlaces = new ArrayList<Place>();
+
+        Set<String> getFromNetwork = new HashSet<String>(placesTypesAndIds);
+
+        //remove invalid keys and places that are in the cache
+        for(String k: placesTypesAndIds){
+            String[] tokens = k.split(":");
+            if(tokens.length != 2){
+                //invalid placeKey. Ignoring
+                getFromNetwork.remove(k);
+                continue;
+            }
+
+//            Place place = this.pcm.getCachedPlace(tokens[0], Long.valueOf(tokens[1]));
+//            if(place != null){
+//                //hit the cache
+//                Log.d(MapActivity.LOGTAG, "Placed was cached. Using it");
+//                cachedPlaces.add(place);
+//                getFromNetwork.remove(k);
+//            }
         }
-        else {
-            Log.d(MapActivity.LOGTAG, this.cachedLocations.size() + " cached locations loaded");
-        }
 
-        //remove locations older than ttl
-        long now = new Date().getTime();
-        for(CachedLocation loc: new HashSet<CachedLocation>(this.cachedLocations)){
-            if(loc.getCacheInsertTime() + LOCATIONS_CACHE_TTL < now){
-                this.cachedLocations.remove(loc);
-                Log.d(MapActivity.LOGTAG, "Cached location " + loc + " removed because ttl expired");
+        //get remaining places from net
+        List<OPPlaceInterface> newPlacesFromNet = this.opp.getPlacesByTypesAndIds(getFromNetwork);
+        ResultSet rs = ResultSet.buildFromOPPlaces(newPlacesFromNet, PlaceCategoriesManager.getInstance(appContext));
+
+        //update cache for new places
+//        if(rs.size() > 0){
+//            this.pcm.updatePlacesCache(rs.getAllPlaces());
+//        }
+
+        //add cached places to rs
+        rs.addPlaces(cachedPlaces);
+
+        Log.d(MapActivity.LOGTAG,"getPlacesByTypeAndId -> Tot places: " + rs.size() +
+                ", from cache: " + cachedPlaces.size() +
+                ", from net: " + newPlacesFromNet.size());
+
+        return rs;
+    }
+
+    public ResultSet search(SearchQueryBuilder searchQuery){
+        List<OPPlaceInterface> res = this.doSearch(searchQuery);
+        ResultSet rs = ResultSet.buildFromOPPlaces(res, PlaceCategoriesManager.getInstance(this.appContext));
+
+        //FIXME: should we cache also these places? Maybe we should cache only places in placelists
+        //this.pcm.updatePlacesCache(rs.getAllPlaces());
+
+        return rs;
+    }
+
+    private List<OPPlaceInterface> doSearch(SearchQueryBuilder query){
+        List<OPPlaceInterface> res = new ArrayList<OPPlaceInterface>();
+
+        //no categories and locations set. Pure free text search via Nominatim
+        if(query.getSearchLocations().isEmpty() && query.getSearchPlaceCategories().isEmpty() && !query.getFreeTextQuery().isEmpty()){
+            res = this.opp.getPlacesByFreeQuery(query.getFreeTextQuery());
+        }
+        //only place categories (and free text selected). Search in the current bounding box
+        else if(query.getSearchLocations().isEmpty() && !query.isNearMeNow() && !query.getSearchPlaceCategories().isEmpty()){
+            OPLocationImpl fakeLocationVisibleMap = new OPLocationImpl();
+            fakeLocationVisibleMap.setBoundingBox(query.getVisibleMapBB());
+            query.addSearchLocation(fakeLocationVisibleMap);
+
+            if(query.getFreeTextQuery() != null && !query.getFreeTextQuery().trim().isEmpty()){
+                res = this.opp.getPlaces(query.getSearchPlaceCategories(), query.getSearchLocations(), query.getFreeTextQuery());
+            }
+            else{
+                res = this.opp.getPlaces(query.getSearchPlaceCategories(), query.getSearchLocations());
             }
         }
-    }
-
-    private void loadCachedAroundLocations(){
-        this.cachedAroundLocations = (Set<CachedOPGeoPoint>) PersistenceManager.gsonDeSerializer(AROUND_POINTS_CACHE_FILE,
-                new TypeToken<Set<CachedOPGeoPoint>>(){}.getType());
-        if(this.cachedAroundLocations == null){
-            Log.d(MapActivity.LOGTAG, "No cached around points found. Initializing an empty cache");
-            this.cachedAroundLocations = new HashSet<CachedOPGeoPoint>();
-        }
         else {
-            Log.d(MapActivity.LOGTAG, this.cachedAroundLocations.size() + " cached around points loaded");
-        }
 
-        //remove points older than ttl
-        long now = new Date().getTime();
-        for(CachedOPGeoPoint p: new HashSet<CachedOPGeoPoint>(this.cachedAroundLocations)){
-            if(p.getCacheInsertTime() + LOCATIONS_CACHE_TTL < now){
-                this.cachedAroundLocations.remove(p);
-                Log.d(MapActivity.LOGTAG, "Cached around point " + p + " removed because ttl expired");
+            //if near me now, create a fake bounding box to search
+            if (query.isNearMeNow()) {
+                OPLocationImpl fakeLocation = new OPLocationImpl();
+                fakeLocation.setBoundingBox(GeoFunctions.generateBoundingBox(query.getCurrentLocation(), 50));
+                query.addSearchLocation(fakeLocation);
             }
-        }
-    }
 
-    public void storeCachedLocations(){
-        boolean res = PersistenceManager.gsonSerializer(LOCATIONS_CACHE_FILE, this.cachedLocations);
-        if(res){
-            Log.d(MapActivity.LOGTAG, "Cached locations stored");
-        }
-        else {
-            Log.d(MapActivity.LOGTAG, "Impossible to store cached locations");
-        }
-    }
+            if(query.isVisibleArea()){
+                OPLocationImpl fakeLocationVisibleMap = new OPLocationImpl();
+                fakeLocationVisibleMap.setBoundingBox(query.getVisibleMapBB());
+                query.addSearchLocation(fakeLocationVisibleMap);
+            }
 
-    public void storeCachedAroundLocations(){
-        boolean res = PersistenceManager.gsonSerializer(AROUND_POINTS_CACHE_FILE, this.cachedAroundLocations);
-        if(res){
-            Log.d(MapActivity.LOGTAG, "Cached around points stored");
-        }
-        else {
-            Log.d(MapActivity.LOGTAG, "Impossible to store cached around points");
-        }
-    }
+            if(query.getFreeTextQuery() != null && !query.getFreeTextQuery().trim().isEmpty()){
+                res = this.opp.getPlaces(query.getSearchPlaceCategories(), query.getSearchLocations(), query.getFreeTextQuery());
+            }
+            else{
+                res = this.opp.getPlaces(query.getSearchPlaceCategories(), query.getSearchLocations());
+            }
 
-    private void updateCachedLocations(List<OPLocationInterface> locs){
-        for(OPLocationInterface l: locs){
-            CachedLocation cl = new CachedLocation(l, new Date().getTime());
-            this.cachedLocations.remove(cl);
-            this.cachedLocations.add(cl);
         }
-        this.storeCachedLocations();
-    }
 
-    private void updateCachedAroundLocations(OPGeoPoint point){
-        CachedOPGeoPoint cp = new CachedOPGeoPoint(point, new Date().getTime());
-        this.cachedAroundLocations.remove(cp);
-        this.cachedAroundLocations.add(cp);
-        this.storeCachedAroundLocations();
+        return res;
     }
 
     public List<OPLocationInterface> getLocationsByName(String name){
@@ -150,49 +169,29 @@ public class OpenPlacesRemote {
         List<OPLocationInterface> res = this.opp.getLocationsByName(name);
 
         //updates the cache
-        this.updateCachedLocations(res);
+        this.lcm.updateLocationsCache(null, res);
         return res;
+    }
+
+    public List<OPPlaceInterface> getKnownPlaces(){
+        return this.pcm.getCachedPlaces();
     }
 
     public List<OPLocationInterface> getKnownLocations(){
-        List<OPLocationInterface> res = new ArrayList<OPLocationInterface>();
-        res.addAll(this.cachedLocations);
-        return res;
+        return this.lcm.getCachedLocations();
     }
 
-    public void updateKnownLocationsAround(GeoPoint location){
-        OPGeoPoint opLocation = new OPGeoPoint(location.getLatitude(), location.getLongitude());
+    public void updateKnownLocationsAround(Location point){
 
-        for(OPGeoPoint p: this.getCachedAroundLocations()){
-            if(opLocation.distanceFrom(p) <= MAX_DISTANCE_FOR_SAME_AROUND_LOCATIONS){
-                Log.d(MapActivity.LOGTAG, "Around location not updated because already in cache");
-                return; //do nothing we assume the locations are already in the cache
-            }
+        if(this.lcm.containsLocationAround(point)){
+            return;
         }
 
-        List<OPLocationInterface> res = opp.getLocationsAround(opLocation, AROUND_LOCATIONS_RADIUS);
+        List<OPLocationInterface> res = opp.getLocationsAround(new OPGeoPoint(point.getLatitude(), point.getLongitude()), AROUND_LOCATIONS_RADIUS);
         Log.d(MapActivity.LOGTAG, res.size() + " locations fetched from network");
 
         //updates the cache
-        this.updateCachedAroundLocations(opLocation);
-        this.updateCachedLocations(res);
+        this.lcm.updateLocationsCache(point, res);
     }
 
-
-
-    private Set<CachedLocation> getCachedLocations() {
-        return cachedLocations;
-    }
-
-    private void setCachedLocations(Set<CachedLocation> cachedLocations) {
-        this.cachedLocations = cachedLocations;
-    }
-
-    private Set<CachedOPGeoPoint> getCachedAroundLocations() {
-        return cachedAroundLocations;
-    }
-
-    private void setCachedAroundLocations(Set<CachedOPGeoPoint> cachedAroundLocations) {
-        this.cachedAroundLocations = cachedAroundLocations;
-    }
 }

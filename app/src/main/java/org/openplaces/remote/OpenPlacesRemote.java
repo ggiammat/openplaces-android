@@ -29,7 +29,7 @@ public class OpenPlacesRemote {
 
     public static final String LOCATIONS_CACHE_FILE = "locations.json";
     public static final String AROUND_POINTS_CACHE_FILE = "around-points.json";
-    public static final long LOCATIONS_CACHE_TTL = 5 * 60 * 1000;// 5' in ms
+    public static final long LOCATIONS_CACHE_TTL = 24 * 60 * 60 * 1000;// 1 day in ms
 
     private static OpenPlacesRemote instance;
 

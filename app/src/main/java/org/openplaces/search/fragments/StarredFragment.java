@@ -78,8 +78,10 @@ public class StarredFragment extends Fragment {
         protected List<OPPlaceInterface> doInBackground(String... query) {
 
 
-            List<OPPlaceInterface> res = opp.getPlacesByTypesAndIds(lm.getAllStarredPlaces());
-            return res;
+            //List<OPPlaceInterface> res = opp.getPlacesByTypesAndIds(lm.getAllStarredPlaces());
+            //return res;
+
+            return null;
         }
 
         protected void onProgressUpdate(Integer... progress) {
@@ -96,13 +98,15 @@ public class StarredFragment extends Fragment {
             if(isAdded()){
                 getActivity().setProgressBarIndeterminateVisibility(Boolean.FALSE);
 
-                ResultSet rs = ResultSet.buildFromOPPlaces(result, PlaceCategoriesManager.getInstance(getActivity().getApplicationContext()));
-                Log.d(MapActivity.LOGTAG, rs.toString());
-                starredPlaces.clear();
-                for(Place p: rs){
-                    starredPlaces.add(p);
-                }
-                adapter.notifyDataSetChanged();
+//
+//
+//                ResultSet rs = ResultSet.buildFromOPPlaces(result, PlaceCategoriesManager.getInstance(getActivity().getApplicationContext()));
+//                Log.d(MapActivity.LOGTAG, rs.toString());
+//                starredPlaces.clear();
+//                for(Place p: rs){
+//                    starredPlaces.add(p);
+//                }
+//                adapter.notifyDataSetChanged();
 
             }
         }

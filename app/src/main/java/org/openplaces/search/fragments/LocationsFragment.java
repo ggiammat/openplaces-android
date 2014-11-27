@@ -19,9 +19,11 @@ import org.openplaces.R;
 import org.openplaces.SearchActivity;
 import org.openplaces.model.OPGeoPoint;
 import org.openplaces.model.OPLocationInterface;
+import org.openplaces.remote.OpenPlacesRemote;
 import org.openplaces.search.SearchLocationsAdapter;
 import org.openplaces.utils.GeoFunctions;
 import org.openplaces.utils.HttpHelper;
+import org.osmdroid.util.GeoPoint;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,10 +33,10 @@ import java.util.List;
  */
 public class LocationsFragment extends Fragment {
 
-    private OPGeoPoint myLocation;
+    private GeoPoint myLocation;
     private ListView locationsList;
     private SearchLocationsAdapter locationsListAdapter;
-    private OpenPlacesProvider opp;
+    private OpenPlacesRemote opp;
 
 
     // Store instance variables based on arguments passed
@@ -44,19 +46,13 @@ public class LocationsFragment extends Fragment {
 
 
 
-        this.opp = new OpenPlacesProvider(
-                new HttpHelper(),
-                "gabriele.giammatteo@gmail.com",
-                OpenPlacesProvider.NOMINATIM_SERVER,
-                OpenPlacesProvider.OVERPASS_SERVER,
-                OpenPlacesProvider.REVIEW_SERVER_SERVER
-        );
+        this.opp = OpenPlacesRemote.getInstance(getActivity().getApplicationContext());
 
 
         LocationManager locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
         String locationProvider = LocationManager.NETWORK_PROVIDER;
         Location location = locationManager.getLastKnownLocation(locationProvider);
-        this.myLocation = new OPGeoPoint(location.getLatitude(), location.getLongitude());
+        this.myLocation = new GeoPoint(location.getLatitude(), location.getLongitude());
         Log.d(MapActivity.LOGTAG, "Location retrieved is " + this.myLocation);
 
         this.startSearch();
@@ -69,7 +65,7 @@ public class LocationsFragment extends Fragment {
 
 
         this.locationsList = (ListView) view.findViewById(R.id.locationsList);
-        this.locationsListAdapter = new SearchLocationsAdapter(view.getContext(), this.myLocation);
+        this.locationsListAdapter = new SearchLocationsAdapter(view.getContext(), new OPGeoPoint(this.myLocation.getLatitude(), this.myLocation.getLongitude()));
         this.locationsList.setAdapter(this.locationsListAdapter);
 
         this.setUpListeners();
@@ -140,7 +136,8 @@ public class LocationsFragment extends Fragment {
         protected List<OPLocationInterface> doInBackground(String... query) {
 
             try {
-                List<OPLocationInterface> res = opp.getLocationsAround(myLocation, SearchActivity.SEARCH_LOCATION_AROUND_RADIUS);
+                opp.updateKnownLocationsAround(myLocation);
+                List<OPLocationInterface> res = opp.getKnownLocations();
                 return res;
             }
             catch (Exception ex){
@@ -160,7 +157,7 @@ public class LocationsFragment extends Fragment {
 
         protected void onPostExecute(List<OPLocationInterface> result) {
 
-            GeoFunctions.sortByDistanceFromPoint(result, myLocation);
+            GeoFunctions.sortByDistanceFromPoint(result, new OPGeoPoint(myLocation.getLatitude(), myLocation.getLongitude()));
             locationsListAdapter.setLocations(result);
 
             if(isAdded()){
@@ -193,7 +190,7 @@ public class LocationsFragment extends Fragment {
 
         protected void onPostExecute(List<OPLocationInterface> result) {
 
-            GeoFunctions.sortByDistanceFromPoint(result, myLocation);
+            GeoFunctions.sortByDistanceFromPoint(result, new OPGeoPoint(myLocation.getLatitude(), myLocation.getLongitude()));
             locationsListAdapter.setLocations(result);
 
             if(isAdded()){

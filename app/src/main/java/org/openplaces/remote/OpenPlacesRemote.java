@@ -79,13 +79,13 @@ public class OpenPlacesRemote {
                 continue;
             }
 
-//            Place place = this.pcm.getCachedPlace(tokens[0], Long.valueOf(tokens[1]));
-//            if(place != null){
-//                //hit the cache
-//                Log.d(MapActivity.LOGTAG, "Placed was cached. Using it");
-//                cachedPlaces.add(place);
-//                getFromNetwork.remove(k);
-//            }
+            Place place = this.pcm.getCachedPlace(tokens[0], Long.valueOf(tokens[1]));
+            if(place != null){
+                //hit the cache
+                Log.d(MapActivity.LOGTAG, "Placed was cached. Using it");
+                cachedPlaces.add(place);
+                getFromNetwork.remove(k);
+            }
         }
 
         //get remaining places from net
@@ -93,12 +93,12 @@ public class OpenPlacesRemote {
         ResultSet rs = ResultSet.buildFromOPPlaces(newPlacesFromNet, PlaceCategoriesManager.getInstance(appContext));
 
         //update cache for new places
-//        if(rs.size() > 0){
-//            this.pcm.updatePlacesCache(rs.getAllPlaces());
-//        }
+        if(rs.size() > 0){
+            this.pcm.updatePlacesCache(rs.getAllPlaces());
+        }
 
         //add cached places to rs
-        rs.addPlaces(cachedPlaces);
+        rs.addPlaces(cachedPlaces, PlaceCategoriesManager.getInstance(appContext));
 
         Log.d(MapActivity.LOGTAG,"getPlacesByTypeAndId -> Tot places: " + rs.size() +
                 ", from cache: " + cachedPlaces.size() +
@@ -112,7 +112,7 @@ public class OpenPlacesRemote {
         ResultSet rs = ResultSet.buildFromOPPlaces(res, PlaceCategoriesManager.getInstance(this.appContext));
 
         //FIXME: should we cache also these places? Maybe we should cache only places in placelists
-        //this.pcm.updatePlacesCache(rs.getAllPlaces());
+        this.pcm.updatePlacesCache(rs.getAllPlaces());
 
         return rs;
     }

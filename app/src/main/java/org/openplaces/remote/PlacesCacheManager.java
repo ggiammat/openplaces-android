@@ -84,7 +84,13 @@ public class PlacesCacheManager {
         //update locations
         for(Place l: places){
             Log.d(MapActivity.LOGTAG, "Updating cache for " + l);
-            CachedPlace cl = new CachedPlace(l, new Date().getTime());
+            CachedPlace cl = null;
+            if(l instanceof CachedPlace){
+                cl = (CachedPlace) l;
+            }
+            else {
+                cl = new CachedPlace(l, new Date().getTime());
+            }
             this.placesCache.remove(cl);
             this.placesCache.put(cl.getCacheKey(), cl);
         }

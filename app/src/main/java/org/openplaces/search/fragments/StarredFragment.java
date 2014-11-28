@@ -57,7 +57,7 @@ public class StarredFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 ResultSet rs = new ResultSet();
-                rs.addPlace(starredPlaces.get(i));
+                rs.addPlace(starredPlaces.get(i), PlaceCategoriesManager.getInstance(getActivity().getApplicationContext()));
 
                 Intent intent=new Intent();
                 intent.putExtra("RESULTSET", rs);

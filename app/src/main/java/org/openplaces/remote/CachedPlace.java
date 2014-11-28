@@ -11,6 +11,7 @@ public class CachedPlace extends Place {
 
     private long cacheInsertTime;
 
+
     public CachedPlace(Place place, long cacheInsertTime){
         super(place.getmDelegate());
         this.cacheInsertTime = cacheInsertTime;

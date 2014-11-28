@@ -16,10 +16,11 @@ import java.util.Map;
 public class Place implements OPPlaceInterface, Parcelable {
 
     private OPPlaceInterface mDelegate;
-    private Object relatedObject;
+
+    transient private Object relatedObject;
 
     //TODO add to parcel
-    private PlaceCategory category;
+    transient private PlaceCategory category;
 
     public Place(OPPlaceInterface place){
         Log.d(MapActivity.LOGTAG, "Creating place from " + place);

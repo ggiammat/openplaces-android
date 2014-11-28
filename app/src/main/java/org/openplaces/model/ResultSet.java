@@ -30,9 +30,7 @@ public class ResultSet implements Parcelable, Iterable<Place> {
 
         for (OPPlaceInterface opp : opPlaces) {
             Place p = new Place(opp);
-            p.setCategory(catMan.getPlaceCategory(p));
-            Log.d(MapActivity.LOGTAG, "Place matched category " + p.getCategory());
-            rs.addPlace(p);
+            rs.addPlace(p, catMan);
         }
         return rs;
     }
@@ -41,12 +39,16 @@ public class ResultSet implements Parcelable, Iterable<Place> {
         return new ArrayList<Place>(this.places);
     }
 
-    public void addPlace(Place place){
+    public void addPlace(Place place, PlaceCategoriesManager catMan){
+        place.setCategory(catMan.getPlaceCategory(place));
+        Log.d(MapActivity.LOGTAG, "Place matched category " + place.getCategory());
         this.places.add(place);
     }
 
-    public void addPlaces(Collection<Place> places){
-        this.places.addAll(places);
+    public void addPlaces(Collection<Place> places, PlaceCategoriesManager catMan){
+        for (Place p : places) {
+            this.addPlace(p, catMan);
+        }
     }
 
     public int indexOf(Place place){

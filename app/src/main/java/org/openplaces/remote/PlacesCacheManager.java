@@ -25,7 +25,7 @@ import java.util.Set;
 public class PlacesCacheManager {
 
     public static final String PLACES_CACHE_FILE = "places.json";
-    public static final long PLACES_CACHE_TTL = 60 * 60 * 1000;// 1 hour in ms
+    public static final long PLACES_CACHE_TTL = 24 * 60 * 60 * 1000;// 1 day in ms
 
 
     private static PlacesCacheManager instance;

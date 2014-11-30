@@ -103,6 +103,8 @@ public class OpenPlacesRemote {
         Log.d(MapActivity.LOGTAG,"getPlacesByTypeAndId -> Tot places: " + rs.size() +
                 ", from cache: " + cachedPlaces.size() +
                 ", from net: " + newPlacesFromNet.size());
+        rs.setStat("net", Integer.toString(newPlacesFromNet.size()));
+        rs.setStat("cache", Integer.toString(cachedPlaces.size()));
 
         return rs;
     }
@@ -114,6 +116,8 @@ public class OpenPlacesRemote {
         //FIXME: should we cache also these places? Maybe we should cache only places in placelists
         this.pcm.updatePlacesCache(rs.getAllPlaces());
 
+        rs.setStat("net", Integer.toString(rs.size()));
+        rs.setStat("cache", "0");
         return rs;
     }
 

@@ -8,8 +8,10 @@ import org.openplaces.MapActivity;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by gabriele on 11/10/14.
@@ -17,11 +19,13 @@ import java.util.List;
 public class ResultSet implements Parcelable, Iterable<Place> {
 
     private List<Place> places;
+    private Map<String, String> stats;
 
     private int selectedIndex;
 
     public ResultSet(){
         this.places = new ArrayList<Place>();
+        this.stats = new HashMap<String, String>();
         this.selectedIndex = -1;
     }
 
@@ -33,6 +37,14 @@ public class ResultSet implements Parcelable, Iterable<Place> {
             rs.addPlace(p, catMan);
         }
         return rs;
+    }
+
+    public void setStat(String name, String value){
+        this.stats.put(name, value);
+    }
+
+    public String getStat(String name){
+        return this.stats.get(name);
     }
 
     public List<Place> getAllPlaces(){
@@ -109,6 +121,21 @@ public class ResultSet implements Parcelable, Iterable<Place> {
         List<Place> places = new ArrayList<Place>();
         in.readList(places, Place.class.getClassLoader());
         this.places = places;
+
+        //statistics
+        if(in.readByte() == 0x00){
+            this.stats = null;
+        }
+        else {
+            int size = in.readInt();
+            Map<String, String> stats = new HashMap<String, String>();
+            for (int i = 0; i < size; i++) {
+                String key = in.readString();
+                String value = in.readString();
+                stats.put(key, value);
+            }
+            this.stats = stats;
+        }
     }
 
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
@@ -129,6 +156,19 @@ public class ResultSet implements Parcelable, Iterable<Place> {
     @Override
     public void writeToParcel(Parcel dest, int i) {
         dest.writeList(this.places);
+
+        //statistics
+        if(this.stats == null) {
+            dest.writeByte((byte) (0x00));
+        }
+        else {
+            dest.writeByte((byte) (0x01));
+            dest.writeInt(this.stats.size());
+            for(String key : this.stats.keySet()){
+                dest.writeString(key);
+                dest.writeString(this.stats.get(key));
+            }
+        }
     }
 
 

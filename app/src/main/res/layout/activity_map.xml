@@ -95,8 +95,16 @@
             android:layout_height="wrap_content"
             android:text="Showing 0 Places"
             android:background="@color/mapoverlaypanelsbackground"
-            android:id="@+id/numPlaces"
+            android:id="@+id/rsStats"
             android:layout_gravity="center_horizontal|top" />
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Edit"
+            android:id="@+id/editButton"
+            android:layout_gravity="right|center_vertical" />
 
     </FrameLayout>
 

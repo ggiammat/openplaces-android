@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -30,12 +31,9 @@ import org.openplaces.lists.ListManagerFragment;
 import org.openplaces.lists.PlaceList;
 import org.openplaces.lists.PlaceListItem;
 import org.openplaces.model.IconsManager;
-import org.openplaces.model.OPPlaceInterface;
 import org.openplaces.model.Place;
-import org.openplaces.model.PlaceCategoriesManager;
 import org.openplaces.model.ResultSet;
 import org.openplaces.remote.OpenPlacesRemote;
-import org.openplaces.utils.HttpHelper;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.bonuspack.clustering.GridMarkerClusterer;
 import org.osmdroid.bonuspack.overlays.MapEventsOverlay;
@@ -61,13 +59,14 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
     ListManager slm;
     Button searchButton;
     Button showStarredButton;
+    Button editButton;
     ImageButton starButton;
     MapView mapView;
     private ResultSet resultSet;
     private GridMarkerClusterer resultSetMarkersOverlay;
     private Marker.OnMarkerClickListener markersClickListener;
     private TextView placeNameLabelTV;
-    private TextView numPlacesTV;
+    private TextView rsStatsTV;
     MyLocationNewOverlay oMapLocationOverlay;
     //private OpenPlacesProvider opp;
     private IconsManager icoMngr;
@@ -110,7 +109,8 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
         selectListsToShowPopup.setAnchorView(showStarredButton);
         selectListsToShowPopup.setWidth(500);
         selectListsToShowPopup.setHeight(700);
-        this.numPlacesTV = (TextView) findViewById(R.id.numPlaces);
+        this.rsStatsTV = (TextView) findViewById(R.id.rsStats);
+        this.editButton = (Button) findViewById(R.id.editButton);
 
 
         FragmentManager fragmentManager = getFragmentManager();
@@ -145,7 +145,7 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
         this.mapView.setTileSource(TileSourceFactory.MAPNIK);
         //this.mapView.setBuiltInZoomControls(true);
         this.mapView.setMinZoomLevel(null);
-        this.mapView.setMaxZoomLevel(null);
+        this.mapView.setMaxZoomLevel(26);
 
         //set initial position and zoom
         GeoPoint startPoint = new GeoPoint(41.666667, 12.783333); //Velletri, home sweet home :)
@@ -262,6 +262,26 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
 
 
     private void setUpListeners(){
+
+        this.editButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                BoundingBoxE6 bbox = mapView.getBoundingBox();
+                String editUri = "http://127.0.0.1:8111/load_and_zoom?" +
+                        "bottom="+bbox.getLatSouthE6()/1e6d+
+                        "&top="+bbox.getLatNorthE6()/1e6d+
+                        "&left="+bbox.getLonWestE6()/1e6d+
+                        "&right="+bbox.getLonEastE6()/1e6d;
+                //String editUri = "geo:41.6843531011,12.7788774503";
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(editUri));
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(intent);
+                }
+                else {
+                    Log.d(MapActivity.LOGTAG, "Was not possible to resolve activity for uri: " + editUri);
+                }
+            }
+        });
 
         this.selectListsToShowPopup.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -428,7 +448,7 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
         }
 
 
-        this.numPlacesTV.setText("Showing " + rs.size() + " Places");
+        this.rsStatsTV.setText("T/N/C: "+rs.size()+"/"+rs.getStat("net")+"/"+rs.getStat("cache"));
 
         resultSetMarkersOverlay.invalidate();
         mapView.invalidate();

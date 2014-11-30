@@ -19,6 +19,7 @@ import org.openplaces.lists.ListManagerFragment;
 import org.openplaces.lists.PlaceList;
 import org.openplaces.lists.PlaceListItem;
 import org.openplaces.model.Place;
+import org.osmdroid.util.BoundingBoxE6;
 
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,7 @@ public class PlaceDetailsActivity extends FragmentActivity {
     private TextView placeAddressTV;
     private TextView placeOsmTagsTV;
     private Button callButton;
+    private Button editButton;
     private Place place;
     private View.OnClickListener unStarPlaceListener;
     private View.OnClickListener starPlaceListener;
@@ -50,6 +52,21 @@ public class PlaceDetailsActivity extends FragmentActivity {
         this.placeAddressTV = (TextView) findViewById(R.id.place_address);
         this.placeOsmTagsTV = (TextView) findViewById(R.id.place_omstags);
         this.callButton = (Button) findViewById(R.id.callButton);
+        this.editButton = (Button) findViewById(R.id.editButton);
+
+        this.editButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String editUri = "geo:"+place.getPosition().getLat()+","+place.getPosition().getLon();
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(editUri));
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(intent);
+                }
+                else {
+                    Log.d(MapActivity.LOGTAG, "Was not possible to resolve activity for uri: " + editUri);
+                }
+            }
+        });
 
         Intent intent = getIntent();
         this.place = intent.getParcelableExtra("PLACE");

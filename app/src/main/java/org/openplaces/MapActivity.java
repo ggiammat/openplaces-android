@@ -3,6 +3,7 @@ package org.openplaces;
 import android.app.ActionBar;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -13,6 +14,7 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -34,6 +36,7 @@ import org.openplaces.model.IconsManager;
 import org.openplaces.model.Place;
 import org.openplaces.model.ResultSet;
 import org.openplaces.remote.OpenPlacesRemote;
+import org.openplaces.widgets.OPChipsEditText;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.bonuspack.clustering.GridMarkerClusterer;
 import org.osmdroid.bonuspack.overlays.MapEventsOverlay;
@@ -74,6 +77,7 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
     private ListPopupWindow selectListsToShowPopup;
     private List<String> selectListsToShowItems;
     private ListManagerFragment listsManagerFragment;
+    private OPChipsEditText globalSearchQuery;
 
 
 //    private View.OnClickListener unStarPlaceListener;
@@ -89,8 +93,7 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        ActionBar actionBar = getActionBar();
-        actionBar.hide();
+
 
         setContentView(R.layout.activity_map);
 
@@ -131,12 +134,26 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
 //                getResources().getDrawable(R.drawable.marker_bg_starred_selected),
 //                getResources().getDrawable(R.drawable.pic_unknown_3224)});
 
+        this.setupActionBar();
         this.initMapView();
         this.setUpListeners();
 
 
     }
 
+    private void setupActionBar(){
+        ActionBar actionBar = getActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setDisplayShowCustomEnabled(true);
+        actionBar.setDisplayShowTitleEnabled(false);
+        //actionBar.setIcon(android.R.drawable.ic_menu_search);
+
+        LayoutInflater inflator = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View v = inflator.inflate(R.layout.map_activity_actionbar, null);
+        actionBar.setCustomView(v);
+        this.globalSearchQuery = (OPChipsEditText) v.findViewById(R.id.globalSearchQuery);
+        this.globalSearchQuery.setHint("Search the map!");
+    }
 
     private void initMapView(){
         this.mapView = (MapView) findViewById(R.id.mapView);
@@ -456,7 +473,11 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
         if(zoomTo != null){
             this.oMapLocationOverlay.disableFollowLocation();
             //mapView.getController().animateTo(zoomTo.getCenter());
+            //reset maxzoom and set again because zoomToBoundingBox does not work with zoom > max
+            // tile zoom
+            this.mapView.setMaxZoomLevel(null);
             mapView.zoomToBoundingBox(zoomTo);
+            this.mapView.setMaxZoomLevel(26);
         }
     }
 

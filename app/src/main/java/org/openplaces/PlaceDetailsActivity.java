@@ -17,9 +17,7 @@ import android.widget.TextView;
 import org.openplaces.lists.ListManager;
 import org.openplaces.lists.ListManagerFragment;
 import org.openplaces.lists.PlaceList;
-import org.openplaces.lists.PlaceListItem;
-import org.openplaces.model.Place;
-import org.osmdroid.util.BoundingBoxE6;
+import org.openplaces.places.Place;
 
 import java.util.List;
 import java.util.Map;

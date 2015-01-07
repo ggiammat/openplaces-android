@@ -3,7 +3,7 @@ package org.openplaces.lists;
 import android.util.Log;
 
 import org.openplaces.MapActivity;
-import org.openplaces.model.Place;
+import org.openplaces.places.Place;
 
 import java.util.ArrayList;
 import java.util.Date;

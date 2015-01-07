@@ -11,19 +11,16 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.ImageButton;
-import android.widget.ListPopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,10 +29,15 @@ import org.openplaces.lists.ListManagerEventListener;
 import org.openplaces.lists.ListManagerFragment;
 import org.openplaces.lists.PlaceList;
 import org.openplaces.lists.PlaceListItem;
-import org.openplaces.model.IconsManager;
-import org.openplaces.model.Place;
-import org.openplaces.model.ResultSet;
 import org.openplaces.remote.OpenPlacesRemote;
+import org.openplaces.util.IconsManager;
+import org.openplaces.model.OPLocationInterface;
+import org.openplaces.model.OPPlaceInterface;
+import org.openplaces.places.Place;
+import org.openplaces.search.ResultSet;
+import org.openplaces.search.SearchController;
+import org.openplaces.search.SearchQuery;
+import org.openplaces.search.SearchSuggestionsPopup;
 import org.openplaces.widgets.OPChipsEditText;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.bonuspack.clustering.GridMarkerClusterer;
@@ -49,7 +51,6 @@ import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.compass.CompassOverlay;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -57,15 +58,16 @@ import java.util.Set;
 
 public class MapActivity extends FragmentActivity implements ListManagerEventListener {
 
-    public static final String LOGTAG = "OpenPlaceSearch";
+    public static final String LOGTAG = "OpenPlaces";
 
     ListManager slm;
-    Button searchButton;
-    Button showStarredButton;
+
     Button editButton;
     ImageButton starButton;
     MapView mapView;
+
     private ResultSet resultSet;
+
     private GridMarkerClusterer resultSetMarkersOverlay;
     private Marker.OnMarkerClickListener markersClickListener;
     private TextView placeNameLabelTV;
@@ -74,11 +76,13 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
     //private OpenPlacesProvider opp;
     private IconsManager icoMngr;
     private OpenPlacesRemote opr;
-    private ListPopupWindow selectListsToShowPopup;
-    private List<String> selectListsToShowItems;
     private ListManagerFragment listsManagerFragment;
-    private OPChipsEditText globalSearchQuery;
+    private SearchController searchController;
+    private ImageButton searchButtonAB;
 
+    //search
+    private OPChipsEditText searchET;
+    private SearchSuggestionsPopup searchSuggestionsPopup;
 
 //    private View.OnClickListener unStarPlaceListener;
 //    private View.OnClickListener starPlaceListener;
@@ -93,7 +97,7 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
+        getWindow().requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 
         setContentView(R.layout.activity_map);
 
@@ -103,17 +107,10 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
 
         this.slm = ListManager.getInstance(this);
         this.slm.addListsEventListener(this);
-        this.showStarredButton = (Button) findViewById(R.id.showStarred);
-        this.searchButton = (Button) findViewById(R.id.searchButton);
         this.starButton = (ImageButton) findViewById(R.id.starButtonMapView);
         this.placeNameLabelTV = (TextView) findViewById(R.id.textView1);
-        this.selectListsToShowPopup = new ListPopupWindow(this);
-        this.selectListsToShowPopup.setModal(true);
-        selectListsToShowPopup.setAnchorView(showStarredButton);
-        selectListsToShowPopup.setWidth(500);
-        selectListsToShowPopup.setHeight(700);
-        this.rsStatsTV = (TextView) findViewById(R.id.rsStats);
-        this.editButton = (Button) findViewById(R.id.editButton);
+        this.rsStatsTV = (TextView) findViewById(R.id.resultSetMessages);
+        this.editButton = (Button) findViewById(R.id.editMap);
 
 
         FragmentManager fragmentManager = getFragmentManager();
@@ -137,6 +134,12 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
         this.setupActionBar();
         this.initMapView();
         this.setUpListeners();
+        this.setupSearch();
+
+    }
+
+    private void setupSearch(){
+        this.searchET.setHint("Search the map!");
 
 
     }
@@ -149,10 +152,15 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
         //actionBar.setIcon(android.R.drawable.ic_menu_search);
 
         LayoutInflater inflator = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View v = inflator.inflate(R.layout.map_activity_actionbar, null);
+        View v = inflator.inflate(R.layout.actionbar_map_activity, null);
+        this.searchET = (OPChipsEditText) v.findViewById(R.id.searchET);
+
+        this.searchController = new SearchController(this.searchET, this);
+        this.searchButtonAB = (ImageButton) v.findViewById(R.id.searchButtonAB);
+
+        this.searchSuggestionsPopup = new SearchSuggestionsPopup(this, this.searchController);
         actionBar.setCustomView(v);
-        this.globalSearchQuery = (OPChipsEditText) v.findViewById(R.id.globalSearchQuery);
-        this.globalSearchQuery.setHint("Search the map!");
+
     }
 
     private void initMapView(){
@@ -278,7 +286,47 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
     }
 
 
+    public BoundingBoxE6 getMapVisibleArea(){
+        return this.mapView.getBoundingBox();
+    }
+
     private void setUpListeners(){
+
+        this.searchController.addListener(new SearchController.SearchQueryListener() {
+            @Override
+            public void freeTextQueryChanged(String freeTextQuery) {
+
+            }
+
+            @Override
+            public void searchStarted(SearchQuery sq) {
+                setProgressBarIndeterminate(Boolean.TRUE);
+            }
+
+            @Override
+            public void searchEnded(SearchQuery sq, ResultSet rs) {
+                setProgressBarIndeterminate(Boolean.FALSE);
+                setNewResultSet(rs);
+            }
+
+            @Override
+            public void newLocationsAvailable(List<OPLocationInterface> locs) {
+
+            }
+
+            @Override
+            public void newPlacesAvailable(List<Place> places) {
+
+            }
+        });
+
+        this.searchButtonAB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.d(LOGTAG, "Search Button Searched!");
+                searchController.doSearch();
+            }
+        });
 
         this.editButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -300,17 +348,7 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
             }
         });
 
-        this.selectListsToShowPopup.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                String clickedListName = null;
-                if(i > 0){
-                    clickedListName = selectListsToShowItems.get(i).replaceAll("\\(.*\\)$", "").trim();
-                }
-                selectListsToShowPopup.dismiss();
-                new LoadStarredPlaces().execute(clickedListName);
-            }
-        });
+
 
         this.starButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -347,28 +385,6 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
 //            }
 //        };
 
-        this.showStarredButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                selectListsToShowItems = new ArrayList<String>();
-                for(PlaceList l: slm.getStarredLists()){
-                    selectListsToShowItems.add(l.getName() + " (" + l.size() + ")");
-                }
-                selectListsToShowItems.add(0, "ALL");
-
-                selectListsToShowPopup.setAdapter(new ArrayAdapter<String>(MapActivity.this, R.layout.select_starredliststoshow_item, selectListsToShowItems));
-                selectListsToShowPopup.show();
-            }
-        });
-
-        this.searchButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                Intent searchIntent = new Intent(MapActivity.this, SearchActivity.class);
-                searchIntent.putExtra("VISIBLEAREA", (Parcelable) mapView.getBoundingBox());
-                startActivityForResult(searchIntent, 1);
-            }
-        });
 
         this.markersClickListener = new Marker.OnMarkerClickListener() {
             @Override
@@ -422,7 +438,7 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
         });
     }
 
-    private void setNewResultSet(ResultSet rs){
+    public void setNewResultSet(ResultSet rs){
         System.out.println(rs);
         resultSet = rs;
 
@@ -465,7 +481,13 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
         }
 
 
-        this.rsStatsTV.setText("T/N/C: "+rs.size()+"/"+rs.getStat("net")+"/"+rs.getStat("cache"));
+        if("0".equals(rs.getStat("errorCode"))) {
+            this.rsStatsTV.setText("T/N/C: " + rs.size() + "/" + rs.getStat("net") + "/" + rs.getStat("cache"));
+        }
+        else {
+            this.rsStatsTV.setText("ERROR!! " + rs.getStat("errorMessage"));
+
+        }
 
         resultSetMarkersOverlay.invalidate();
         mapView.invalidate();

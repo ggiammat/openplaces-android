@@ -3,5 +3,6 @@
 
     <color name="black_overlay">#66000000</color>
     <color name="mapoverlaypanelsbackground">#aaffffff</color>
+    <color name="transparent">#00ffffff</color>
 
 </resources>

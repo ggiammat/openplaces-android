@@ -1,8 +1,6 @@
 package org.openplaces.lists;
 
-import org.openplaces.model.Place;
-
-import java.util.List;
+import org.openplaces.places.Place;
 
 /**
  * Created by ggiammat on 11/19/14.

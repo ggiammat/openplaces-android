@@ -100,14 +100,14 @@ public class OPChipsEditText extends EditText {
 
         this.disableTextChangedListeners();
 
-        String textToReplace = this.getUnChipedText();
+        String textToReplace = this.getLastUnchipedToken();
 
 
         Log.d(MapActivity.LOGTAG, "Adding chip with text " + text + " replacing " + textToReplace);
         Log.d(MapActivity.LOGTAG, "lastChipEnd is  " + this.lastChipEnd);
 
 
-        int start = this.lastChipEnd + CHIPS_SEPARATOR.length();
+        int start = this.getLastTokenStart();
         int end = start + text.length();
         Log.d(MapActivity.LOGTAG, "start is "  + start);
         Log.d(MapActivity.LOGTAG, "End is " + end);
@@ -164,27 +164,42 @@ public class OPChipsEditText extends EditText {
         this.notifyChipAdded(span, relatedObject);
     }
 
-
-    public String getUnChipedText(){
-
-        if(this.getText().length() < 1 || this.getText().length() <  this.lastChipEnd+1){
+    public String getLastUnchipedToken(){
+        String all = this.getText().toString();
+        int l = all.lastIndexOf(CHIPS_SEPARATOR);
+        if(all.length() <= l+1){
             return "";
         }
+        else {
+            return all.substring(all.lastIndexOf(CHIPS_SEPARATOR) + 1);
+        }
+    }
 
-        Log.d(MapActivity.LOGTAG, "Returning unchiped text with start, end: " + (this.lastChipEnd+1) + "," + (this.getText().length()));
-        Log.d(MapActivity.LOGTAG, this.getText().subSequence(this.lastChipEnd+1, this.getText().length()).toString());
+    public int getLastTokenStart(){
+        return this.getText().toString().lastIndexOf(CHIPS_SEPARATOR) + CHIPS_SEPARATOR.length();
+    }
 
-        return this.getText().subSequence(this.lastChipEnd+1, this.getText().length() ).toString();
 
-//        Editable text = getText();
-//        ReplacementSpan[] spans = text.getSpans(0, text.length() - 1, ReplacementSpan.class);
-//        String unspannedText = text.toString();
-//        for(ReplacementSpan sp: spans){
-//            CharSequence spanText = text.subSequence(text.getSpanStart(sp), text.getSpanEnd(sp));
-//            unspannedText = unspannedText.replace(spanText, "");
+    public String getUnChipedText(){
+//
+//        if(this.getText().length() < 1 || this.getText().length() <  this.lastChipEnd+1){
+//            return "";
 //        }
 //
-//        return unspannedText.replaceAll(CHIPS_SEPARATOR, "").trim();
+//        Log.d(MapActivity.LOGTAG, "Returning unchiped text with start, end: " + (this.lastChipEnd+1) + "," + (this.getText().length()));
+//        Log.d(MapActivity.LOGTAG, this.getText().subSequence(this.lastChipEnd+1, this.getText().length()).toString());
+//
+//        return this.getText().subSequence(this.lastChipEnd+1, this.getText().length() ).toString();
+
+        Editable text = getText();
+        ReplacementSpan[] spans = text.getSpans(0, text.length() - 1, ImageSpan.class);
+        String unspannedText = text.toString();
+        for(ReplacementSpan sp: spans){
+            CharSequence spanText = text.subSequence(text.getSpanStart(sp), text.getSpanEnd(sp));
+            unspannedText = unspannedText.replace(spanText, "");
+        }
+
+        return unspannedText.replaceAll(CHIPS_SEPARATOR, " ").trim();
     }
 
 //
@@ -291,5 +306,4 @@ public class OPChipsEditText extends EditText {
         public void onChipAdded(ReplacementSpan chip, Object relatedObj);
         public void onChipRemoved(ReplacementSpan chip, Object relatedObj);
     }
-
 }

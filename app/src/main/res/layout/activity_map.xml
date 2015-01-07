@@ -1,6 +1,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" tools:context=".MapActivity">
+    android:layout_height="match_parent" tools:context=".MapActivity"
+    android:descendantFocusability="beforeDescendants"
+    android:focusableInTouchMode="true">
 
     <FrameLayout
         android:layout_width="fill_parent"
@@ -12,22 +14,6 @@
             android:id="@+id/mapView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
-
-        <Button
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Search"
-            android:id="@+id/searchButton"
-            android:layout_gravity="right|top" />
-
-        <Button
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Starred"
-            android:id="@+id/showStarred"
-            android:layout_gravity="left|top" />
 
         <GridLayout
             android:id="@+id/detailsPanel"
@@ -95,7 +81,7 @@
             android:layout_height="wrap_content"
             android:text="Showing 0 Places"
             android:background="@color/mapoverlaypanelsbackground"
-            android:id="@+id/rsStats"
+            android:id="@+id/resultSetMessages"
             android:layout_gravity="center_horizontal|top" />
 
         <Button
@@ -103,7 +89,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Edit"
-            android:id="@+id/editButton"
+            android:id="@+id/editMap"
             android:layout_gravity="right|center_vertical" />
 
     </FrameLayout>

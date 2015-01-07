@@ -8,7 +8,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.widget.EditText;
 
-import org.openplaces.model.Place;
+import org.openplaces.places.Place;
 
 /**
  * Created by gabriele on 11/24/14.

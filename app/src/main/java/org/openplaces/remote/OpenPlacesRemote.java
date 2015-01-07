@@ -6,21 +6,24 @@ import android.util.Log;
 
 import org.openplaces.MapActivity;
 import org.openplaces.OpenPlacesProvider;
+import org.openplaces.locations.LocationsCacheManager;
 import org.openplaces.model.OPGeoPoint;
 import org.openplaces.model.OPLocationInterface;
 import org.openplaces.model.OPPlaceInterface;
-import org.openplaces.model.Place;
-import org.openplaces.model.PlaceCategoriesManager;
-import org.openplaces.model.ResultSet;
+import org.openplaces.places.Place;
+import org.openplaces.categories.PlaceCategoriesManager;
+import org.openplaces.places.PlacesCacheManager;
+import org.openplaces.search.ResultSet;
 import org.openplaces.model.impl.OPLocationImpl;
-import org.openplaces.search.SearchQueryBuilder;
-import org.openplaces.utils.GeoFunctions;
+import org.openplaces.search.SearchQuery;
 import org.openplaces.utils.HttpHelper;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import javax.xml.transform.Result;
 
 /**
  * Created by gabriele on 11/26/14.
@@ -89,9 +92,11 @@ public class OpenPlacesRemote {
         }
 
         //get remaining places from net
-        List<OPPlaceInterface> newPlacesFromNet = this.opp.getPlacesByTypesAndIds(getFromNetwork);
+        OpenPlacesProvider.ResultObject res = this.opp.getPlacesByTypesAndIds(getFromNetwork);
+        List<OPPlaceInterface> newPlacesFromNet = res.places;
         ResultSet rs = ResultSet.buildFromOPPlaces(newPlacesFromNet, PlaceCategoriesManager.getInstance(appContext));
-
+        rs.setStat("errorCode", Integer.toString(res.errorCode));
+        rs.setStat("errorMessage", res.errorMessage);
         //update cache for new places
         if(rs.size() > 0){
             this.pcm.updatePlacesCache(rs.getAllPlaces());
@@ -109,9 +114,8 @@ public class OpenPlacesRemote {
         return rs;
     }
 
-    public ResultSet search(SearchQueryBuilder searchQuery){
-        List<OPPlaceInterface> res = this.doSearch(searchQuery);
-        ResultSet rs = ResultSet.buildFromOPPlaces(res, PlaceCategoriesManager.getInstance(this.appContext));
+    public ResultSet search(SearchQuery searchQuery){
+        ResultSet rs = this.doSearch(searchQuery);
 
         //FIXME: should we cache also these places? Maybe we should cache only places in placelists
         this.pcm.updatePlacesCache(rs.getAllPlaces());
@@ -121,8 +125,9 @@ public class OpenPlacesRemote {
         return rs;
     }
 
-    private List<OPPlaceInterface> doSearch(SearchQueryBuilder query){
-        List<OPPlaceInterface> res = new ArrayList<OPPlaceInterface>();
+    private ResultSet doSearch(SearchQuery query){
+        OpenPlacesProvider.ResultObject res = null;
+        ResultSet rs;
 
         //no categories and locations set. Pure free text search via Nominatim
         if(query.getSearchLocations().isEmpty() && query.getSearchPlaceCategories().isEmpty() && !query.getFreeTextQuery().isEmpty()){
@@ -141,14 +146,23 @@ public class OpenPlacesRemote {
                 res = this.opp.getPlaces(query.getSearchPlaceCategories(), query.getSearchLocations());
             }
         }
+
+        //only locations. Goto locations
+        else if(query.getSearchPlaceCategories().isEmpty() && query.getFreeTextQuery().isEmpty() && !query.getSearchLocations().isEmpty()){
+            List<OPPlaceInterface> ps = new ArrayList<OPPlaceInterface>();
+            for(OPLocationInterface l: query.getSearchLocations()){
+                ps.add(l.getAsPlace());
+            }
+            res.places = ps;
+        }
         else {
 
-            //if near me now, create a fake bounding box to search
-            if (query.isNearMeNow()) {
-                OPLocationImpl fakeLocation = new OPLocationImpl();
-                fakeLocation.setBoundingBox(GeoFunctions.generateBoundingBox(query.getCurrentLocation(), 50));
-                query.addSearchLocation(fakeLocation);
-            }
+//            //if near me now, create a fake bounding box to search
+//            if (query.isNearMeNow()) {
+//                OPLocationImpl fakeLocation = new OPLocationImpl();
+//                fakeLocation.setBoundingBox(GeoFunctions.generateBoundingBox(query.getCurrentLocation(), 50));
+//                query.addSearchLocation(fakeLocation);
+//            }
 
             if(query.isVisibleArea()){
                 OPLocationImpl fakeLocationVisibleMap = new OPLocationImpl();
@@ -165,20 +179,24 @@ public class OpenPlacesRemote {
 
         }
 
-        return res;
+        rs = ResultSet.buildFromOPPlaces(res.places, PlaceCategoriesManager.getInstance(appContext));
+        rs.setStat("errorCode", Integer.toString(res.errorCode));
+        rs.setStat("errorMessage", res.errorMessage);
+
+        return rs;
     }
 
     public List<OPLocationInterface> getLocationsByName(String name){
         //always trigger a newtork call
-        List<OPLocationInterface> res = this.opp.getLocationsByName(name);
+        OpenPlacesProvider.ResultObject res = this.opp.getLocationsByName(name);
 
         //updates the cache
-        this.lcm.updateLocationsCache(null, res);
-        return res;
+        this.lcm.updateLocationsCache(null, res.locations);
+        return res.locations;
     }
 
-    public List<OPPlaceInterface> getKnownPlaces(){
-        return this.pcm.getCachedPlaces();
+    public ResultSet getKnownPlaces(){
+        return ResultSet.buildFromOPPlaces(this.pcm.getCachedPlaces(), PlaceCategoriesManager.getInstance(this.appContext));
     }
 
     public List<OPLocationInterface> getKnownLocations(){
@@ -191,11 +209,11 @@ public class OpenPlacesRemote {
             return;
         }
 
-        List<OPLocationInterface> res = opp.getLocationsAround(new OPGeoPoint(point.getLatitude(), point.getLongitude()), AROUND_LOCATIONS_RADIUS);
-        Log.d(MapActivity.LOGTAG, res.size() + " locations fetched from network");
+        OpenPlacesProvider.ResultObject res = opp.getLocationsAround(new OPGeoPoint(point.getLatitude(), point.getLongitude()), AROUND_LOCATIONS_RADIUS);
+        Log.d(MapActivity.LOGTAG, res.locations.size() + " locations fetched from network");
 
         //updates the cache
-        this.lcm.updateLocationsCache(point, res);
+        this.lcm.updateLocationsCache(point, res.locations);
     }
 
 }

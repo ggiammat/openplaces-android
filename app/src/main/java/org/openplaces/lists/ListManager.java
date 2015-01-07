@@ -8,7 +8,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import org.openplaces.MapActivity;
-import org.openplaces.model.Place;
+import org.openplaces.places.Place;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -160,6 +160,9 @@ public class ListManager implements PlaceList.ListChangedListener {
     //TODO: should be returned always in the same order
     public List<PlaceList> getStarredLists(){
         return new ArrayList<PlaceList>(this.starredLists.values());
+    }
+    public List<PlaceList> getAutoLists(){
+        return new ArrayList<PlaceList>(this.autoLists.values());
     }
 
     private void createPerPlaceStarredTable(){
@@ -403,87 +406,5 @@ public class ListManager implements PlaceList.ListChangedListener {
         this.flagDirty();
 
     }
-
-//    public Set<String> getAllStarredPlaces(){
-//        Set<String> res = new HashSet<String>();
-//        for(String listName: this.starredLists.keySet()){
-//            res.addAll(this.starredLists.get(listName));
-//        }
-//        return res;
-//    }
-//
-//    public Set<String> getStarredLists(){
-//        return this.starredLists.keySet();
-//    }
-//
-//    public void starPlace(String listName, Place place){
-//        String key = this.encodePlace(place);
-//        if(this.starredLists.containsKey(listName)){
-//            if(!this.starredLists.get(listName).contains(key)){
-//                this.starredLists.get(listName).add(key);
-//                Log.d(MapActivity.LOGTAG, "Place " + place + " added to " + listName);
-//                this.flagDirty();
-//            }
-//            else {
-//                Log.d(MapActivity.LOGTAG, "Place " + place + " already starred in " + listName + ". No actions.");
-//            }
-//        }
-//        else {
-//            Log.d(MapActivity.LOGTAG, "Starred list " + listName + " does not exits. Cannot star place " + place);
-//        }
-//    }
-//
-//    public void unstarPlace(String listName, Place place){
-//        String key = this.encodePlace(place);
-//        if(this.starredLists.containsKey(listName)){
-//            if(this.starredLists.get(listName).contains(key)){
-//                this.starredLists.get(listName).remove(key);
-//                Log.d(MapActivity.LOGTAG, "Place " + place + " removed from " + listName);
-//                this.flagDirty();
-//            }
-//            else {
-//                Log.d(MapActivity.LOGTAG, "Place " + place + " not starred in " + listName + ". No actions.");
-//            }
-//        }
-//        else {
-//            Log.d(MapActivity.LOGTAG, "Starred list " + listName + " does not exits. Cannot unstar place " + place);
-//        }    }
-//
-//    public void addStarredList(String listName){
-//        if(this.starredLists.containsKey(listName)){
-//            Log.d(MapActivity.LOGTAG, "Starred list " + listName + " already exists. Do not create again");
-//        }
-//        this.starredLists.put(listName, new HashSet<String>());
-//        Log.d(MapActivity.LOGTAG, "Starred list " + listName + " created");
-//        this.flagDirty();
-//    }
-//
-//
-//    /**
-//     *
-//     * @return the name of the list where the place is starred in, or null if the place is not starred
-//     */
-//    public String getStarredList(Place place){
-//        String key = this.encodePlace(place);
-//        for(String listName: this.starredLists.keySet()){
-//            if(this.starredLists.get(listName).contains(key)){
-//                return listName;
-//            }
-//        }
-//        return null;
-//    }
-//
-//    private String encodePlace(Place place){
-//        return place.getOsmType() + ":" + place.getId();
-//    }
-//
-//
-//    private void flagDirty(){
-//        Log.d(MapActivity.LOGTAG, "Starred list manager is changed. Storing new content");
-//        this.storeStarredLists();
-//    }
-//
-//
-//
 
 }

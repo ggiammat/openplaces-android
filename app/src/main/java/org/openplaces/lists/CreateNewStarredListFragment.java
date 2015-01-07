@@ -9,7 +9,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.widget.EditText;
 
-import org.openplaces.model.Place;
+import org.openplaces.places.Place;
 
 /**
  * Created by ggiammat on 11/17/14.

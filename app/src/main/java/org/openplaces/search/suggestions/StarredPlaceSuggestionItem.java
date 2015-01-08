@@ -43,7 +43,7 @@ public class StarredPlaceSuggestionItem extends SuggestionItem {
 
     @Override
     public int getButtonImageResource() {
-        return R.drawable.goto_32;
+        return R.drawable.ic_search_goto;
     }
 
     @Override

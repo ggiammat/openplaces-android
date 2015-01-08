@@ -49,17 +49,22 @@ public class LocationSuggestionItem extends SuggestionItem {
 
     @Override
     public void onItemButtonClicked() {
-        this.searchController.addLocation(this);
+        this.searchController.addSearchQueryLocation(this);
     }
 
     @Override
     public int getButtonImageResource() {
-        return R.drawable.ic_commit_search_api_holo_light;
+        return R.drawable.ic_search_add;
     }
 
     @Override
     public int getImageResource() {
-        return R.drawable.location_32;
+        if("city".equals(this.location.getType())){
+            return R.drawable.ic_city;
+        }
+        else{
+            return R.drawable.ic_village;
+        }
     }
 
 }

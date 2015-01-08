@@ -51,7 +51,6 @@ public class IconsManager {
             symbol = UNKNOWN_CATEGORY_MARKER_SYMBOL;
         }
         String resourceName = "pic_" + symbol + "_"  + size;
-        Log.d(MapActivity.LOGTAG, "drawable id: " + resourceName);
         return this.context.getResources().getIdentifier(resourceName, "drawable", this.context.getApplicationContext().getPackageName());
     }
 

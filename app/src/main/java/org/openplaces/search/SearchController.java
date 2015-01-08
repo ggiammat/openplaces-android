@@ -20,9 +20,12 @@ import org.openplaces.model.OPPlaceCategoryInterface;
 import org.openplaces.model.OPPlaceInterface;
 import org.openplaces.places.Place;
 import org.openplaces.categories.PlaceCategoriesManager;
-import org.openplaces.remote.OpenPlacesRemote;
 import org.openplaces.search.suggestions.LocationSuggestionItem;
 import org.openplaces.search.suggestions.PlaceCategorySuggestionItem;
+import org.openplaces.tasks.LoadListTask;
+import org.openplaces.tasks.LoadStarredPlaces;
+import org.openplaces.tasks.OpenPlacesAsyncTask;
+import org.openplaces.tasks.SearchTask;
 import org.openplaces.widgets.OPChipsEditText;
 import org.osmdroid.util.BoundingBoxE6;
 
@@ -36,40 +39,144 @@ import java.util.Set;
  */
 public class SearchController {
 
-    public OPChipsEditText getQueryET() {
-        return queryET;
+    public interface SearchQueryListener {
+        public void searchStarted(SearchQuery sq);
+        public void searchEnded(SearchQuery sq, ResultSet rs);
+        public void searchQueryChanged(List<OPPlaceCategoryInterface> searchQueryCategories,
+                                       List<OPLocationInterface> searchQueryLocations,
+                                       String searchQueryFreeText, String searchQueryCurrentTokenFreeText);
     }
 
-    public void setQueryET(OPChipsEditText queryET) {
-        this.queryET = queryET;
-    }
+    private OPChipsEditText searchBox;
 
-    private OPChipsEditText queryET;
-
-    public List<OPPlaceCategoryInterface> getCategories() {
-        return categories;
-    }
-
-    public List<OPLocationInterface> getLocations() {
-        return locations;
-    }
-
-    private List<OPPlaceCategoryInterface> categories;
-    private List<OPLocationInterface> locations;
+    private List<OPPlaceCategoryInterface> searchQueryCategories;
+    private List<OPLocationInterface> searchQueryLocations;
 
     private List<SearchQueryListener> listeners;
     private MapActivity mapActivity;
-    private OpenPlacesRemote opr;
+    private Context appContext;
+
+
+    public SearchController(final OPChipsEditText searchBox, final MapActivity mapActivity){
+        this.searchBox = searchBox;
+        this.appContext = mapActivity.getApplicationContext();
+        this.mapActivity = mapActivity;
+        this.listeners = new ArrayList<SearchQueryListener>();
+
+        //TODO: init locations and categories
+        this.searchQueryCategories = new ArrayList<OPPlaceCategoryInterface>();
+        this.searchQueryLocations = new ArrayList<OPLocationInterface>();
+
+        this.searchBox.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {}
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {}
+            @Override
+            public void afterTextChanged(Editable editable) {
+                notifySearchQueryChanged();
+            }
+        });
+
+        this.searchBox.addChipsWatcherListener(new OPChipsEditText.ChipsWatcher() {
+            @Override
+            public void onChipAdded(ReplacementSpan chip, Object relatedObj) {
+                //do nothing.
+            }
+
+            @Override
+            public void onChipRemoved(ReplacementSpan chip, Object relatedObj) {
+                if (relatedObj instanceof PlaceCategorySuggestionItem) {
+                    searchQueryCategories.remove(((PlaceCategorySuggestionItem) relatedObj).getCategory());
+                } else if (relatedObj instanceof LocationSuggestionItem) {
+                    searchQueryLocations.remove(((LocationSuggestionItem) relatedObj).getLocation());
+                } else {
+                    Log.w(MapActivity.LOGTAG, "Unknown chip type deleted");
+                }
+            }
+        });
+    }
+
+
+    public void notifySearchStarted(SearchQuery sq){
+        mapActivity.setProgressBarIndeterminateVisibility(Boolean.TRUE);
+        getSearchBox().setEnabled(false);
+        getSearchBox().clearFocus();
+
+        for(SearchQueryListener l: this.listeners){
+            l.searchStarted(sq);
+        }
+    }
+
+    public void notifySearchFinshed(SearchQuery sq, ResultSet resultSet){
+        mapActivity.setProgressBarIndeterminateVisibility(Boolean.FALSE);
+        getSearchBox().setEnabled(true);
+        for(SearchQueryListener l: this.listeners){
+            l.searchEnded(sq, resultSet);
+        }
+    }
+
+    public void notifySearchQueryChanged(){
+        String freeText = this.searchBox.getUnChipedText();
+        String lastToken = this.searchBox.getLastUnchipedToken();
+        for(SearchQueryListener l: this.listeners){
+            l.searchQueryChanged(this.searchQueryCategories, this.searchQueryLocations, freeText, lastToken);
+        }
+    }
+
+    private SearchQuery buildSearchQuery(){
+        SearchQuery sq = new SearchQuery();
+        for(OPPlaceCategoryInterface c: this.getSearchQueryCategories()){
+            sq.addSearchPlaceCateogry(c);
+        }
+        for(OPLocationInterface l: this.getSearchQueryLocations()){
+            sq.addSearchLocation(l);
+        }
+
+        Location location = this.getSearchPosition();
+        sq.setCurrentLocation(
+                new OPGeoPoint(location.getLatitude(), location.getLongitude()));
+
+        sq.setFreeTextQuery(this.getSearchQueryFreeText());
+
+        BoundingBoxE6 bbox = this.getSearchBoundingBox();
+        sq.setVisibleMapBB(new OPBoundingBox(
+                (double) bbox.getLatNorthE6()/1E6d,
+                (double) bbox.getLonEastE6()/1E6d,
+                (double) bbox.getLatSouthE6()/1E6d,
+                (double) bbox.getLonWestE6()/1E6d));
+
+        return  sq;
+    }
 
     public Context getAppContext() {
         return appContext;
     }
 
-    private Context appContext;
-
-    public void doSearch() {
-        new SearchTask(buildSearchQuery()).execute();
+    public MapActivity getMapActivity() {
+        return mapActivity;
     }
+
+    public OPChipsEditText getSearchBox() {
+        return searchBox;
+    }
+
+    public List<OPPlaceCategoryInterface> getSearchQueryCategories() {
+        return searchQueryCategories;
+    }
+
+    public List<OPLocationInterface> getSearchQueryLocations() {
+        return searchQueryLocations;
+    }
+
+    public String getSearchQueryFreeText() {
+        return searchBox.getUnChipedText();
+    }
+
+    public String getSearchQueryCurrentTokenFreeText() {
+        return searchBox.getLastUnchipedToken();
+    }
+
 
 
     public Location getSearchPosition(){
@@ -82,175 +189,43 @@ public class SearchController {
         return myLocation;
     }
 
-    private SearchQuery buildSearchQuery(){
-        SearchQuery sq = new SearchQuery();
-        for(OPPlaceCategoryInterface c: this.categories){
-            sq.addSearchPlaceCateogry(c);
-        }
-        for(OPLocationInterface l: this.locations){
-            sq.addSearchLocation(l);
-        }
-
-        LocationManager locationManager = (LocationManager) this.mapActivity.getSystemService(Context.LOCATION_SERVICE);
-        String locationProvider = LocationManager.NETWORK_PROVIDER;
-        Location location = locationManager.getLastKnownLocation(locationProvider);
-        sq.setCurrentLocation(
-                new OPGeoPoint(location.getLatitude(), location.getLongitude()));
-
-        sq.setFreeTextQuery(this.queryET.getUnChipedText().trim());
-
-        BoundingBoxE6 bbox = this.mapActivity.getMapVisibleArea();
-        sq.setVisibleMapBB(new OPBoundingBox(
-                (double) bbox.getLatNorthE6()/1E6d,
-                (double) bbox.getLonEastE6()/1E6d,
-                (double) bbox.getLatSouthE6()/1E6d,
-                (double) bbox.getLonWestE6()/1E6d));
-
-        return  sq;
-    }
-
-    private class SearchTask extends AsyncTask<Void, Integer, ResultSet> {
-
-        private SearchQuery sq;
-
-        public SearchTask(SearchQuery sq){
-            this.sq = sq;
-        }
-
-
-        protected ResultSet doInBackground(Void... v) {
-
-            return opr.search(this.sq);
-        }
-
-        protected void onProgressUpdate(Integer... progress) {
-        }
-
-        protected void onPreExecute() {
-            mapActivity.setProgressBarIndeterminateVisibility(Boolean.TRUE);
-            notifySearchStarted(this.sq);
-            queryET.setEnabled(false);
-            queryET.clearFocus();
-//            searchEditText.setEnabled(false);
-//            locationEditText.setEnabled(false);
-//            searchButton.setEnabled(false);
-        }
-
-        protected void onPostExecute(ResultSet result) {
-
-//            searchEditText.setEnabled(true);
-//            locationEditText.setEnabled(true);
-//            searchButton.setEnabled(true);
-
-            mapActivity.setProgressBarIndeterminateVisibility(Boolean.FALSE);
-            queryET.setEnabled(true);
-
-
-            if(result == null){
-                Log.d(MapActivity.LOGTAG, "result is null");
-                return;
-            }
-
-            //ResultSet rs = ResultSet.buildFromOPPlaces(result, PlaceCategoriesManager.getInstance(SearchActivity.this));
-            Log.d(MapActivity.LOGTAG, result.toString());
-
-            notifySearchEnded(this.sq, result);
-
-        }
-    }
-
-    public interface SearchQueryListener {
-        public void freeTextQueryChanged(String freeTextQuery);
-        public void searchStarted(SearchQuery sq);
-        public void searchEnded(SearchQuery sq, ResultSet rs);
-        public void newLocationsAvailable(List<OPLocationInterface> locs);
-        public void newPlacesAvailable(List<Place> places);
+    public BoundingBoxE6 getSearchBoundingBox(){
+        return this.mapActivity.getMapVisibleArea();
     }
 
 
-    public SearchController(final OPChipsEditText queryET, final MapActivity mapActivity){
-        this.queryET = queryET;
-        this.appContext = mapActivity.getApplicationContext();
-        this.opr = OpenPlacesRemote.getInstance(mapActivity.getApplicationContext());
-        this.mapActivity = mapActivity;
-        this.listeners = new ArrayList<SearchQueryListener>();
-        this.categories = new ArrayList<OPPlaceCategoryInterface>();
-        this.locations = new ArrayList<OPLocationInterface>();
-
-        this.queryET.addTextChangedListener(new TextWatcher() {
+    public void doSearch() {
+        final SearchQuery sq = buildSearchQuery();
+        new SearchTask(sq, this.appContext, new OpenPlacesAsyncTask.OpenPlacesAsyncTaskListener() {
             @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {}
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {}
-            @Override
-            public void afterTextChanged(Editable editable) {
-                notifyFreeTextChanged();
-            }
-        });
-
-        this.queryET.addChipsWatcherListener(new OPChipsEditText.ChipsWatcher() {
-            @Override
-            public void onChipAdded(ReplacementSpan chip, Object relatedObj) {
-                //do nothing
+            public void taskStarted() {
+                notifySearchStarted(sq);
             }
 
             @Override
-            public void onChipRemoved(ReplacementSpan chip, Object relatedObj) {
-                if(relatedObj instanceof PlaceCategorySuggestionItem){
-                    categories.remove(((PlaceCategorySuggestionItem)relatedObj).getCategory());
-                }
-                else if(relatedObj instanceof  LocationSuggestionItem){
-                    locations.remove(((LocationSuggestionItem)relatedObj).getLocation());
-                }
-                else {
-                    Log.w(MapActivity.LOGTAG, "Unknown chip type deleted");
-                }
+            public void taskFinished(Object result, int status) {
+                notifySearchFinshed(null, (ResultSet) result);
+                mapActivity.setNewResultSet((ResultSet) result);
             }
-        });
+        }).execute();
     }
 
-    public void addPlaceCategory(PlaceCategorySuggestionItem item){
-        this.categories.add(item.getCategory());
-        this.queryET.appendChip(item.getTitle(), item);
+
+
+    public void addSearchQueryCategory(PlaceCategorySuggestionItem item){
+        this.searchQueryCategories.add(item.getCategory());
+        this.searchBox.appendChip(item.getTitle(), item);
+        this.notifySearchQueryChanged();
     }
 
-    public void addLocation(LocationSuggestionItem item){
-        this.locations.add(item.getLocation());
-        this.queryET.appendChip(item.getTitle(), item);
+    public void addSearchQueryLocation(LocationSuggestionItem item){
+        this.searchQueryLocations.add(item.getLocation());
+        this.searchBox.appendChip(item.getTitle(), item);
+        this.notifySearchQueryChanged();
     }
 
     public void addListener(SearchQueryListener listener){
         this.listeners.add(listener);
-    }
-
-    public void notifySearchStarted(SearchQuery sq){
-        for(SearchQueryListener l: this.listeners){
-            l.searchStarted(sq);
-        }
-    }
-
-
-    public void notifyNewLocations(List<OPLocationInterface> locs){
-        for(SearchQueryListener l: this.listeners){
-            l.newLocationsAvailable(locs);
-        }
-    }
-
-    public void notifySearchEnded(SearchQuery sq, ResultSet rs){
-        for(SearchQueryListener l: this.listeners){
-            l.searchEnded(sq, rs);
-        }
-    }
-
-    public String getFreeText(){
-        return this.queryET.getUnChipedText();
-    }
-
-    public void notifyFreeTextChanged(){
-        String unchipedText = this.queryET.getLastUnchipedToken();
-        for(SearchQueryListener l: this.listeners){
-            l.freeTextQueryChanged(unchipedText);
-        }
     }
 
     public void gotoPlace(OPPlaceInterface place){
@@ -261,149 +236,120 @@ public class SearchController {
         rs.addPlace(new Place(place),
                 PlaceCategoriesManager.getInstance(mapActivity.getApplicationContext()));
 
-        notifySearchEnded(null, rs);
+        notifySearchFinshed(null, rs);
+        mapActivity.setNewResultSet(rs);
     }
 
 
     public void showList(PlaceList list){
 
-        new LoadPlaceList().execute(list);
+        new LoadListTask(list, this.getAppContext(), new OpenPlacesAsyncTask.OpenPlacesAsyncTaskListener() {
+            @Override
+            public void taskStarted() {
+                mapActivity.setProgressBarIndeterminateVisibility(Boolean.TRUE);
+                notifySearchStarted(null);
+            }
+
+            @Override
+            public void taskFinished(Object result, int status) {
+                mapActivity.setProgressBarIndeterminateVisibility(Boolean.FALSE);
+                notifySearchFinshed(null, (ResultSet) result);
+                mapActivity.setNewResultSet((ResultSet) result);
+            }
+
+        }).execute();
 
     }
 
     public void searchLocationByName(String name){
-        new SearchLocationByName().execute(name);
+
+        //new SearchLocationByName().execute(name);
     }
 
     public void updateAroundLocations(){
-        new UpdateAroundLocations().execute();
+        //new UpdateAroundLocations().execute();
     }
 
-    private class UpdateAroundLocations extends AsyncTask<String, Integer, List<OPLocationInterface>> {
-
-        protected List<OPLocationInterface> doInBackground(String... query) {
-
-            LocationManager locationManager = (LocationManager) mapActivity.getSystemService(Context.LOCATION_SERVICE);
-            String locationProvider = LocationManager.NETWORK_PROVIDER;
-            Location myLocation = locationManager.getLastKnownLocation(locationProvider);
-            opr.updateKnownLocationsAround(myLocation);
-            List<OPLocationInterface> res = opr.getKnownLocations();
-            return res;
-        }
-
-        protected void onProgressUpdate(Integer... progress) {
-        }
-
-        protected void onPreExecute() {
-            mapActivity.setProgressBarIndeterminateVisibility(Boolean.TRUE);
-
-        }
-
-        protected void onPostExecute(List<OPLocationInterface> result) {
-            mapActivity.setProgressBarIndeterminateVisibility(Boolean.FALSE);
-
-            notifyNewLocations(result);
-
-        }
-    }
-
-    private class SearchLocationByName extends AsyncTask<String, Integer, List<OPLocationInterface>> {
-
-        protected List<OPLocationInterface> doInBackground(String... query) {
-
-            Log.d(MapActivity.LOGTAG, "Searching for locations by name: " + query[0]);
-
-            List<OPLocationInterface> res = opr.getLocationsByName(query[0]);
-
-            return res;
-        }
-
-        protected void onProgressUpdate(Integer... progress) {
-        }
-
-        protected void onPreExecute() {
-            mapActivity.setProgressBarIndeterminateVisibility(Boolean.TRUE);
-        }
-
-        protected void onPostExecute(List<OPLocationInterface> result) {
-
-            mapActivity.setProgressBarIndeterminateVisibility(Boolean.FALSE);
-
-            notifyNewLocations(result);
-        }
-    }
-
-
-    public void updateStarredPlaces(){
-        new LoadStarredPlacesTask().execute();
-    }
-
-    public void notifyNewPlaces(List<Place> places){
-        for(SearchQueryListener l: this.listeners){
-            l.newPlacesAvailable(places);
-        }
-    }
+//    private class UpdateAroundLocations extends AsyncTask<String, Integer, List<OPLocationInterface>> {
+//
+//        protected List<OPLocationInterface> doInBackground(String... query) {
+//
+//            LocationManager locationManager = (LocationManager) mapActivity.getSystemService(Context.LOCATION_SERVICE);
+//            String locationProvider = LocationManager.NETWORK_PROVIDER;
+//            Location myLocation = locationManager.getLastKnownLocation(locationProvider);
+//            opr.updateKnownLocationsAround(myLocation);
+//            List<OPLocationInterface> res = opr.getKnownLocations();
+//            return res;
+//        }
+//
+//        protected void onProgressUpdate(Integer... progress) {
+//        }
+//
+//        protected void onPreExecute() {
+//            mapActivity.setProgressBarIndeterminateVisibility(Boolean.TRUE);
+//
+//        }
+//
+//        protected void onPostExecute(List<OPLocationInterface> result) {
+//            mapActivity.setProgressBarIndeterminateVisibility(Boolean.FALSE);
+//
+//            notifyNewLocations(result);
+//
+//        }
+//    }
+//
+//    private class SearchLocationByName extends AsyncTask<String, Integer, List<OPLocationInterface>> {
+//
+//        protected List<OPLocationInterface> doInBackground(String... query) {
+//
+//            Log.d(MapActivity.LOGTAG, "Searching for locations by name: " + query[0]);
+//
+//            List<OPLocationInterface> res = opr.getLocationsByName(query[0]);
+//
+//            return res;
+//        }
+//
+//        protected void onProgressUpdate(Integer... progress) {
+//        }
+//
+//        protected void onPreExecute() {
+//            mapActivity.setProgressBarIndeterminateVisibility(Boolean.TRUE);
+//        }
+//
+//        protected void onPostExecute(List<OPLocationInterface> result) {
+//
+//            mapActivity.setProgressBarIndeterminateVisibility(Boolean.FALSE);
+//
+//            notifyNewLocations(result);
+//        }
+//    }
 
 
-    private class LoadStarredPlacesTask extends AsyncTask<String, Integer, ResultSet> {
+//
+//    private class LoadStarredPlacesTask extends AsyncTask<String, Integer, ResultSet> {
+//
+//        protected ResultSet doInBackground(String... query) {
+//
+//            ListManager lm = ListManager.getInstance(mapActivity.getApplicationContext());
+//            return opr.getPlacesByTypesAndIds(lm.getAllStarredPlaces());
+//
+//
+//        }
+//
+//        protected void onProgressUpdate(Integer... progress) {
+//        }
+//
+//        protected void onPreExecute() {
+//            mapActivity.setProgressBarIndeterminateVisibility(Boolean.TRUE);
+//
+//        }
+//
+//        protected void onPostExecute(ResultSet result) {
+//
+//            mapActivity.setProgressBarIndeterminateVisibility(Boolean.FALSE);
+//
+//            notifyNewPlaces(result.getAllPlaces());
+//        }
+//    }
 
-        protected ResultSet doInBackground(String... query) {
-
-            ListManager lm = ListManager.getInstance(mapActivity.getApplicationContext());
-            return opr.getPlacesByTypesAndIds(lm.getAllStarredPlaces());
-
-
-        }
-
-        protected void onProgressUpdate(Integer... progress) {
-        }
-
-        protected void onPreExecute() {
-            mapActivity.setProgressBarIndeterminateVisibility(Boolean.TRUE);
-
-        }
-
-        protected void onPostExecute(ResultSet result) {
-
-            mapActivity.setProgressBarIndeterminateVisibility(Boolean.FALSE);
-
-            notifyNewPlaces(result.getAllPlaces());
-        }
-    }
-
-    private class LoadPlaceList extends AsyncTask<PlaceList, Integer, ResultSet> {
-
-        protected ResultSet doInBackground(PlaceList... query) {
-
-            ListManager lm = ListManager.getInstance(mapActivity.getApplicationContext());
-            PlaceList list = query[0];
-            if(list == null){
-                return opr.getPlacesByTypesAndIds(lm.getAllStarredPlaces());
-            }
-            else {
-
-                Set<String> places = new HashSet<String>();
-                for(PlaceListItem item: list.getPlacesInList()){
-                    places.add(item.getOsmType()+":"+item.getOsmId());
-                }
-                return opr.getPlacesByTypesAndIds(places);
-            }
-        }
-
-        protected void onProgressUpdate(Integer... progress) {
-        }
-
-        protected void onPreExecute() {
-
-            mapActivity.setProgressBarIndeterminateVisibility(Boolean.TRUE);
-            notifySearchStarted(null);
-        }
-
-        protected void onPostExecute(ResultSet result) {
-
-            mapActivity.setProgressBarIndeterminateVisibility(Boolean.FALSE);
-
-            notifySearchEnded(null, result);
-        }
-    }
 }

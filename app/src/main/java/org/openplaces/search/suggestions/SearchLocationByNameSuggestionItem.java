@@ -2,19 +2,22 @@ package org.openplaces.search.suggestions;
 
 import org.openplaces.R;
 import org.openplaces.search.SearchController;
+import org.openplaces.search.SearchSuggestionsAdapter;
 
 /**
  * Created by ggiammat on 12/30/14.
  */
 public class SearchLocationByNameSuggestionItem extends SuggestionItem {
 
-    public SearchLocationByNameSuggestionItem(SearchController searchController){
+    private SearchSuggestionsAdapter adapter;
+    public SearchLocationByNameSuggestionItem(SearchController searchController, SearchSuggestionsAdapter adapter){
         super(searchController);
+        this.adapter = adapter;
     }
 
     @Override
     public String getTitle() {
-        return "Search locations named \""+searchController.getQueryET().getLastUnchipedToken() +"\"...";
+        return "Search locations named \""+searchController.getSearchQueryCurrentTokenFreeText() +"\"...";
     }
 
     @Override
@@ -29,7 +32,7 @@ public class SearchLocationByNameSuggestionItem extends SuggestionItem {
 
     @Override
     public void onItemClicked() {
-        this.searchController.searchLocationByName(this.searchController.getQueryET().getLastUnchipedToken());
+        this.adapter.addLocationsByName(this.searchController.getSearchQueryCurrentTokenFreeText());
     }
 
     @Override
@@ -39,11 +42,11 @@ public class SearchLocationByNameSuggestionItem extends SuggestionItem {
 
     @Override
     public int getButtonImageResource() {
-        return R.drawable.search_locations_32;
+        return R.drawable.ic_search_locations;
     }
 
     @Override
     public int getImageResource() {
-        return R.drawable.location_32;
+        return R.drawable.ic_search_locations;
     }
 }

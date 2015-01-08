@@ -13,9 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by gabriele on 11/13/14.
- */
+
 public class PlaceCategoriesManager {
 
     public static final String STANDARD_LIBRARY = "standard";

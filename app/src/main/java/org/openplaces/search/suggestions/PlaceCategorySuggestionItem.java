@@ -40,12 +40,12 @@ public class PlaceCategorySuggestionItem extends SuggestionItem {
 
     @Override
     public void onItemButtonClicked() {
-        this.searchController.addPlaceCategory(this);
+        this.searchController.addSearchQueryCategory(this);
     }
 
     @Override
     public int getButtonImageResource() {
-        return R.drawable.ic_commit_search_api_holo_light;
+        return R.drawable.ic_search_add;
     }
 
     @Override

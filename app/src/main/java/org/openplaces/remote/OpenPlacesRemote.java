@@ -153,6 +153,7 @@ public class OpenPlacesRemote {
             for(OPLocationInterface l: query.getSearchLocations()){
                 ps.add(l.getAsPlace());
             }
+            res =  this.opp.new ResultObject();
             res.places = ps;
         }
         else {

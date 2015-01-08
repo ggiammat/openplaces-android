@@ -18,8 +18,11 @@ public abstract class SuggestionItem {
     public abstract String getSubTitle();
 
     public boolean matches(String text){
-        return this.getTitle().toLowerCase().contains(text) ||
-                this.getSubTitle().toLowerCase().contains(text);
+//        return this.getTitle().toLowerCase().contains(text) ||
+//                this.getSubTitle().toLowerCase().contains(text);
+
+        //by default only matches on title
+        return this.getTitle().toLowerCase().contains(text);
     }
 
     public abstract void onItemClicked();

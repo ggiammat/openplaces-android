@@ -38,12 +38,12 @@ public class ListSuggestionItem extends SuggestionItem {
 
     @Override
     public int getButtonImageResource() {
-        return R.drawable.goto_32;
+        return R.drawable.ic_search_goto;
     }
 
     @Override
     public int getImageResource() {
-        return R.drawable.star_icon;
+        return R.drawable.ic_starred_list;
     }
 
 

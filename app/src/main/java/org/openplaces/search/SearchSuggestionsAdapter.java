@@ -1,5 +1,6 @@
 package org.openplaces.search;
 
+import android.app.Activity;
 import android.content.Context;
 import android.text.Html;
 import android.util.Log;
@@ -15,11 +16,12 @@ import android.widget.TextView;
 
 import org.openplaces.MapActivity;
 import org.openplaces.R;
+import org.openplaces.categories.PlaceCategory;
 import org.openplaces.lists.ListManager;
+import org.openplaces.categories.PlaceCategoriesManager;
 import org.openplaces.lists.PlaceList;
 import org.openplaces.model.OPLocationInterface;
-import org.openplaces.categories.PlaceCategoriesManager;
-import org.openplaces.categories.PlaceCategory;
+import org.openplaces.model.OPPlaceCategoryInterface;
 import org.openplaces.places.Place;
 import org.openplaces.remote.OpenPlacesRemote;
 import org.openplaces.search.suggestions.ListSuggestionItem;
@@ -29,6 +31,10 @@ import org.openplaces.search.suggestions.SearchLocationByNameSuggestionItem;
 import org.openplaces.search.suggestions.StarredPlaceSuggestionItem;
 import org.openplaces.search.suggestions.SuggestionItem;
 import org.openplaces.search.suggestions.SuggestionItemComparator;
+import org.openplaces.tasks.LoadLocationsAround;
+import org.openplaces.tasks.LoadStarredPlaces;
+import org.openplaces.tasks.OpenPlacesAsyncTask;
+import org.openplaces.tasks.SearchLocationsByName;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,7 +48,7 @@ import java.util.regex.Pattern;
 public class SearchSuggestionsAdapter extends BaseAdapter implements Filterable {
 
 
-    private Context context;
+    private Activity hostingActivity;
     private SuggestionItemComparator comparator;
     private Context appContext;
     private PlaceCategoriesManager pcm;
@@ -51,6 +57,7 @@ public class SearchSuggestionsAdapter extends BaseAdapter implements Filterable 
     private LayoutInflater inflater;
     private SearchController searchController;
     private List<SuggestionItem> allItems;
+    private String currentFilterText;
 
     private View.OnClickListener onItemButtonClickedListener =  new View.OnClickListener() {
         @Override
@@ -58,32 +65,17 @@ public class SearchSuggestionsAdapter extends BaseAdapter implements Filterable 
             SuggestionItem item = (SuggestionItem) view.getTag();
             item.onItemButtonClicked();
             //add new chips could change the sorting, so filter again
-            filter.filter(searchController.getQueryET().getLastUnchipedToken());
+            filter.filter(searchController.getSearchQueryCurrentTokenFreeText());
         }
     };
 
 
     private List<SuggestionItem> items;
 
-    public SearchSuggestionsAdapter(Context context, final SearchController searchController){
-
-        this.items = new ArrayList<SuggestionItem>();
+    public SearchSuggestionsAdapter(Activity hostingActivity, final SearchController searchController){
+        this.hostingActivity = hostingActivity;
         this.searchController = searchController;
-        this.comparator = new SuggestionItemComparator(this.searchController, this.searchController.getSearchPosition());
-        this.appContext = context.getApplicationContext();
-        this.context = context;
-        this.inflater = (LayoutInflater) this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        this.pcm = PlaceCategoriesManager.getInstance(this.appContext);
-        this.opr = OpenPlacesRemote.getInstance(this.appContext);
-        this.lm = ListManager.getInstance(this.appContext);
-
-
         this.searchController.addListener(new SearchController.SearchQueryListener() {
-            @Override
-            public void freeTextQueryChanged(String freeTextQuery) {
-                filter.filter(freeTextQuery);
-            }
-
             @Override
             public void searchStarted(SearchQuery sq) {
 
@@ -95,25 +87,24 @@ public class SearchSuggestionsAdapter extends BaseAdapter implements Filterable 
             }
 
             @Override
-            public void newLocationsAvailable(List<OPLocationInterface> locs) {
-                for(OPLocationInterface l: locs){
-                    allItems.add(new LocationSuggestionItem(l, searchController));
+            public void searchQueryChanged(List<OPPlaceCategoryInterface> searchQueryCategories, List<OPLocationInterface> searchQueryLocations, String searchQueryFreeText, String searchQueryCurrentTokenFreeText) {
+                if(!searchQueryCurrentTokenFreeText.equals(currentFilterText)){
+                    getFilter().filter(searchQueryCurrentTokenFreeText);
                 }
-                filter.filter(searchController.getQueryET().getLastUnchipedToken());
-            }
-
-            @Override
-            public void newPlacesAvailable(List<Place> places) {
-                for(Place l: places){
-                    allItems.add(new StarredPlaceSuggestionItem(l, searchController));
-                }
-                filter.filter(searchController.getQueryET().getLastUnchipedToken());
             }
         });
 
-        this.reloadAllItems();
-        this.setItems(this.allItems);
 
+        this.items = new ArrayList<SuggestionItem>();
+        this.comparator = new SuggestionItemComparator(this.searchController, this.searchController.getSearchPosition());
+        this.appContext = this.hostingActivity.getApplicationContext();
+        this.inflater = (LayoutInflater) this.hostingActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        this.pcm = PlaceCategoriesManager.getInstance(this.appContext);
+        this.opr = OpenPlacesRemote.getInstance(this.appContext);
+        this.lm = ListManager.getInstance(this.appContext);
+
+
+        this.initItems();
     }
 
     @Override
@@ -150,7 +141,7 @@ public class SearchSuggestionsAdapter extends BaseAdapter implements Filterable 
 
         String title = ((SuggestionItem) this.getItem(position)).getTitle();
 
-        Pattern p = Pattern.compile(searchController.getFreeText(), Pattern.CASE_INSENSITIVE);
+        Pattern p = Pattern.compile(searchController.getSearchQueryCurrentTokenFreeText(), Pattern.CASE_INSENSITIVE);
         Matcher titleMatcher = p.matcher(title);
 
         //FIXME: this replace only the first match
@@ -165,29 +156,25 @@ public class SearchSuggestionsAdapter extends BaseAdapter implements Filterable 
         return view;
     }
 
-    public void setItems(List<SuggestionItem> items){
+    public void setFilteredItems(List<SuggestionItem> items){
+        if(items == null){
+            return;
+        }
         this.items = items;
-         Collections.sort(this.items, this.comparator);
+        Collections.sort(this.items, this.comparator);
         notifyDataSetChanged();
     }
 
-    public void reloadAllItems(){
+    public void initItems(){
 
         allItems = new ArrayList<SuggestionItem>();
-
-        for(OPLocationInterface l: opr.getKnownLocations()){
-            allItems.add(new LocationSuggestionItem(l, this.searchController));
-        }
-
-        allItems.add(new SearchLocationByNameSuggestionItem(this.searchController));
 
         for(PlaceCategory c: pcm.getAllCategories()){
             allItems.add(new PlaceCategorySuggestionItem(c, this.searchController));
         }
 
-        for(Place p: opr.getKnownPlaces()){
-            allItems.add(new StarredPlaceSuggestionItem(p, this.searchController));
-        }
+        allItems.add(new SearchLocationByNameSuggestionItem(this.searchController, this));
+
 
         for(PlaceList list: this.lm.getStarredLists()){
             allItems.add(new ListSuggestionItem(list, this.searchController));
@@ -197,18 +184,55 @@ public class SearchSuggestionsAdapter extends BaseAdapter implements Filterable 
             allItems.add(new ListSuggestionItem(list, this.searchController));
         }
 
+        getFilter().filter(searchController.getSearchQueryCurrentTokenFreeText());
+
+
+        //start asynch updates
+        this.loadStarredPlaces();
+        this.loadAroundLocations();
+//
+//        for(OPLocationInterface l: opr.getKnownLocations()){
+//            allItems.add(new LocationSuggestionItem(l, this.searchController));
+//        }
+//
+//        Log.d(MapActivity.LOGTAG, "Added " + opr.getKnownLocations().size() + " locations");
+//
+//        allItems.add(new SearchLocationByNameSuggestionItem(this.searchController));
+//
+//        for(PlaceCategory c: pcm.getAllCategories()){
+//            allItems.add(new PlaceCategorySuggestionItem(c, this.searchController));
+//        }
+//
+//        Log.d(MapActivity.LOGTAG, "Added " + pcm.getAllCategories().size() + " categories");
+//
+//        for(Place p: opr.getKnownPlaces()){
+//            allItems.add(new StarredPlaceSuggestionItem(p, this.searchController));
+//        }
+//
+//        Log.d(MapActivity.LOGTAG, "Added " + opr.getKnownPlaces().size() + " places");
+//
+//
+//        for(PlaceList list: this.lm.getStarredLists()){
+//            allItems.add(new ListSuggestionItem(list, this.searchController));
+//        }
+//
+//        for(PlaceList list: this.lm.getAutoLists()){
+//            allItems.add(new ListSuggestionItem(list, this.searchController));
+//        }
+
     }
 
     private Filter filter = new Filter(){
         @Override
         protected void publishResults(CharSequence constraint, FilterResults results) {
 
-            setItems((List<SuggestionItem>) results.values);
+            setFilteredItems((List<SuggestionItem>) results.values);
+
         }
 
         @Override
         protected FilterResults performFiltering(CharSequence constraint) {
-            Log.d(MapActivity.LOGTAG, "Filtering with: "+constraint);
+            Log.d(MapActivity.LOGTAG, "Filtering suggestion items with: "+constraint);
             FilterResults results = new FilterResults();
 
             List<SuggestionItem> filteredItems = new ArrayList<SuggestionItem>();
@@ -222,6 +246,7 @@ public class SearchSuggestionsAdapter extends BaseAdapter implements Filterable 
 
             results.count = filteredItems.size();
             results.values = filteredItems;
+            currentFilterText = filterText;
             return results;
         }
     };
@@ -230,5 +255,67 @@ public class SearchSuggestionsAdapter extends BaseAdapter implements Filterable 
     @Override
     public Filter getFilter() {
         return this.filter;
+    }
+
+
+    public void addLocationsByName(String name){
+        new SearchLocationsByName(name, this.appContext, new OpenPlacesAsyncTask.OpenPlacesAsyncTaskListener() {
+            @Override
+            public void taskStarted() {
+                hostingActivity.setProgressBarIndeterminateVisibility(Boolean.TRUE);
+            }
+
+            @Override
+            public void taskFinished(Object result, int status) {
+                hostingActivity.setProgressBarIndeterminateVisibility(Boolean.FALSE);
+
+                for(OPLocationInterface l: (List<OPLocationInterface>) result){
+                    allItems.add(new LocationSuggestionItem(l, searchController));
+                }
+                getFilter().filter(searchController.getSearchQueryCurrentTokenFreeText());
+            }
+        }).execute();
+    }
+
+
+    public void loadStarredPlaces(){
+
+        new LoadStarredPlaces(this.appContext, new OpenPlacesAsyncTask.OpenPlacesAsyncTaskListener() {
+            @Override
+            public void taskStarted() {
+                hostingActivity.setProgressBarIndeterminateVisibility(Boolean.TRUE);
+            }
+
+            @Override
+            public void taskFinished(Object result, int status) {
+                hostingActivity.setProgressBarIndeterminateVisibility(Boolean.FALSE);
+                List<SuggestionItem> items = new ArrayList<SuggestionItem>();
+                for(Place p: (ResultSet) result){
+                    items.add(new StarredPlaceSuggestionItem(p, searchController));
+                }
+                allItems.addAll(items);
+                getFilter().filter(searchController.getSearchQueryCurrentTokenFreeText());
+            }
+        }).execute();
+
+    }
+
+    public void loadAroundLocations(){
+        new LoadLocationsAround(this.searchController.getSearchPosition(), this.appContext, new OpenPlacesAsyncTask.OpenPlacesAsyncTaskListener() {
+            @Override
+            public void taskStarted() {
+                hostingActivity.setProgressBarIndeterminateVisibility(Boolean.TRUE);
+            }
+
+            @Override
+            public void taskFinished(Object result, int status) {
+                hostingActivity.setProgressBarIndeterminateVisibility(Boolean.FALSE);
+
+                for(OPLocationInterface l: (List<OPLocationInterface>) result){
+                    allItems.add(new LocationSuggestionItem(l, searchController));
+                }
+                getFilter().filter(searchController.getSearchQueryCurrentTokenFreeText());
+            }
+        }).execute();
     }
 }

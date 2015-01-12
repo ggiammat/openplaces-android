@@ -1,6 +1,7 @@
 package org.openplaces.search;
 
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.AsyncTask;
@@ -10,6 +11,7 @@ import android.text.style.ReplacementSpan;
 import android.util.Log;
 
 import org.openplaces.MapActivity;
+import org.openplaces.PlaceDetailsActivity;
 import org.openplaces.lists.ListManager;
 import org.openplaces.lists.PlaceList;
 import org.openplaces.lists.PlaceListItem;
@@ -232,12 +234,13 @@ public class SearchController {
 
         notifySearchStarted(null);
 
-        ResultSet rs = new ResultSet();
-        rs.addPlace(new Place(place),
-                PlaceCategoriesManager.getInstance(mapActivity.getApplicationContext()));
+        Place p = new Place(place);
 
-        notifySearchFinshed(null, rs);
-        mapActivity.setNewResultSet(rs);
+        notifySearchFinshed(null, null);
+
+        Intent intent = new Intent(mapActivity, PlaceDetailsActivity.class);
+        intent.putExtra("PLACE", p);
+        mapActivity.startActivity(intent);
     }
 
 

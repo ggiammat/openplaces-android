@@ -238,6 +238,7 @@ public class SearchController {
 
         notifySearchFinshed(null, null);
 
+        //directly open a PlaceDetail activity
         Intent intent = new Intent(mapActivity, PlaceDetailsActivity.class);
         intent.putExtra("PLACE", p);
         mapActivity.startActivity(intent);

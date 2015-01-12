@@ -89,7 +89,7 @@ public class PlaceDetailsActivity extends FragmentActivity {
                 String shareBody = place.getName() + ", " + place.getCategory().getName() + "\n";
                 shareBody += place.getAddressString() != null ? place.getAddressString() + "\n" : "";
                 shareBody += place.getOsmTags().get("phone") != null ? place.getOsmTags().get("phone") + "\n" : "";
-                shareBody += "http://www.openstreetmap.org/node/" + place.getId();
+                shareBody += "http://www.openstreetmap.org/#map=19/" + place.getPosition().getLat() + "/" + place.getPosition().getLon();
                 Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
                 sharingIntent.setType("text/plain");
                 sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "OpenPlaces");

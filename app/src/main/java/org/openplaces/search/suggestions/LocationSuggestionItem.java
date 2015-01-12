@@ -62,8 +62,18 @@ public class LocationSuggestionItem extends SuggestionItem {
         if("city".equals(this.location.getType())){
             return R.drawable.ic_city;
         }
-        else{
+        if("suburb".equals(this.location.getType()) ||
+            "town".equals(this.location.getType()) ||
+            "neighbourhood".equals(this.location.getType())){
+            return R.drawable.ic_town;
+        }
+        if("village".equals(this.location.getType()) ||
+            "hamlet".equals(this.location.getType()) ||
+            "isolated_dwelling".equals(this.location.getType())){
             return R.drawable.ic_village;
+        }
+        else{
+            return R.drawable.ic_locality;
         }
     }
 

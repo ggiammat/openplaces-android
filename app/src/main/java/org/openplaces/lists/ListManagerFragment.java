@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import org.openplaces.MapActivity;
 import org.openplaces.R;
 import org.openplaces.places.Place;
 
@@ -32,8 +34,18 @@ public class ListManagerFragment extends android.app.DialogFragment implements A
         this.place = (Place) args.getParcelable("PLACE");
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelable("PLACE", this.place);
+        super.onSaveInstanceState(outState);
+    }
+
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        if(savedInstanceState != null){
+            this.place = (Place) savedInstanceState.getParcelable("PLACE");
+        }
 
         View v = inflater.inflate(R.layout.listmanager_fragment, container, false);
 

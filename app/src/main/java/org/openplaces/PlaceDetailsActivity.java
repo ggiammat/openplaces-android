@@ -6,12 +6,14 @@ import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import org.openplaces.lists.ListManager;
@@ -33,6 +35,7 @@ public class PlaceDetailsActivity extends FragmentActivity {
     private TextView placeOsmTagsTV;
     private Button callButton;
     private Button editButton;
+    private ImageButton shareButton;
     private Place place;
     private View.OnClickListener unStarPlaceListener;
     private View.OnClickListener starPlaceListener;
@@ -42,8 +45,35 @@ public class PlaceDetailsActivity extends FragmentActivity {
     private String placeCallNumber;
 
     @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+
+        savedInstanceState.putParcelable("PLACE", this.place);
+        Log.d(MapActivity.LOGTAG, "Place stored");
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (savedInstanceState != null) {
+            Log.d(MapActivity.LOGTAG, "Place re-stored");
+            this.place = (Place) savedInstanceState.getParcelable("PLACE");
+        } else {
+            Intent intent = getIntent();
+            this.place = intent.getParcelableExtra("PLACE");
+
+            FragmentManager fragmentManager = getFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            Fragment f = new ListManagerFragment();
+            Bundle b = new Bundle();
+            b.putParcelable("PLACE", this.place);
+            f.setArguments(b);
+            fragmentTransaction.add(R.id.listFragmentContainer, f);
+            fragmentTransaction.commit();
+        }
+
+
         setContentView(R.layout.activity_place_details);
 
         this.placeNameTV = (TextView) findViewById(R.id.place_name);
@@ -51,6 +81,22 @@ public class PlaceDetailsActivity extends FragmentActivity {
         this.placeOsmTagsTV = (TextView) findViewById(R.id.place_omstags);
         this.callButton = (Button) findViewById(R.id.callButton);
         this.editButton = (Button) findViewById(R.id.editButton);
+
+        this.shareButton = (ImageButton) findViewById(R.id.shareButton);
+        this.shareButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String shareBody = place.getName() + ", " + place.getCategory().getName() + "\n";
+                shareBody += place.getAddressString() != null ? place.getAddressString() + "\n" : "";
+                shareBody += place.getOsmTags().get("phone") != null ? place.getOsmTags().get("phone") + "\n" : "";
+                shareBody += "http://www.openstreetmap.org/node/" + place.getId();
+                Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+                sharingIntent.setType("text/plain");
+                sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "OpenPlaces");
+                sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareBody);
+                startActivity(Intent.createChooser(sharingIntent, "Share using..."));
+            }
+        });
 
         this.editButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -66,8 +112,7 @@ public class PlaceDetailsActivity extends FragmentActivity {
             }
         });
 
-        Intent intent = getIntent();
-        this.place = intent.getParcelableExtra("PLACE");
+
 
         if(place.getOsmTags().get("phone") != null){
             this.callButton.setText("Call: " + place.getOsmTags().get("phone"));
@@ -101,14 +146,7 @@ public class PlaceDetailsActivity extends FragmentActivity {
         this.slm.getAutoListByName(ListManager.AUTOLIST_VISITED).addPlaceToList(this.place);
 
 
-        FragmentManager fragmentManager = getFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        Fragment f = new ListManagerFragment();
-        Bundle b = new Bundle();
-        b.putParcelable("PLACE", this.place);
-        f.setArguments(b);
-        fragmentTransaction.add(R.id.listFragmentContainer, f);
-        fragmentTransaction.commit();
+
 
     }
 

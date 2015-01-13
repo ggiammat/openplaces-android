@@ -6,21 +6,21 @@
         android:id="@+id/action_edit"
         android:orderInCategory="100"
         android:showAsAction="always"
-        android:icon="@android:drawable/ic_menu_edit"
+        android:icon="@drawable/ic_action_edit"
         android:title="Edit"/>
 
     <item
         android:id="@+id/action_call"
         android:orderInCategory="100"
         android:showAsAction="always"
-        android:icon="@android:drawable/ic_menu_call"
+        android:icon="@drawable/ic_action_call"
         android:title="Call"/>
 
     <item
         android:id="@+id/action_share"
         android:orderInCategory="100"
         android:showAsAction="always"
-        android:icon="@android:drawable/ic_menu_share"
+        android:icon="@drawable/ic_action_share"
         android:title="Share"/>
 
 

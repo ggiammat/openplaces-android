@@ -18,6 +18,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.openplaces.lists.ListManager;
 import org.openplaces.lists.ListManagerFragment;
@@ -40,7 +41,7 @@ public class PlaceDetailsActivity extends FragmentActivity {
 
     private TextView placeNameTV;
     private TextView placeAddressTV;
-    private TextView placeOsmTagsTV;
+    private ImageButton showTagsBtn;
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -79,17 +80,24 @@ public class PlaceDetailsActivity extends FragmentActivity {
 
         this.placeNameTV = (TextView) findViewById(R.id.place_name);
         this.placeAddressTV = (TextView) findViewById(R.id.place_address);
-        this.placeOsmTagsTV = (TextView) findViewById(R.id.place_omstags);
+        this.showTagsBtn = (ImageButton) findViewById(R.id.showTagsBtn);
 
 
         this.placeNameTV.setText(place.getName());
         this.placeAddressTV.setText(place.getAddressString());
-        String tagsText = "Tags:\n";
-        Map<String, String> tags = place.getOsmTags();
-        for(String k: tags.keySet()){
-            tagsText += k + ": " + tags.get(k) + "\n";
-        }
-        this.placeOsmTagsTV.setText(tagsText);
+
+
+        this.showTagsBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String tagsText = "===== All Tags =====\n";
+                Map<String, String> tags = place.getOsmTags();
+                for(String k: tags.keySet()){
+                    tagsText += k + ": " + tags.get(k) + "\n";
+                }
+                Toast.makeText(getApplicationContext(), tagsText, Toast.LENGTH_LONG).show();
+            }
+        });
 
 
 
@@ -156,6 +164,7 @@ public class PlaceDetailsActivity extends FragmentActivity {
         shareBody += place.getAddressString() != null ? place.getAddressString() + "\n" : "";
         shareBody += place.getOsmTags().get("phone") != null ? place.getOsmTags().get("phone") + "\n" : "";
         shareBody += "http://www.openstreetmap.org/#map=19/" + place.getPosition().getLat() + "/" + place.getPosition().getLon();
+        shareBody += "\n--\nOpen Places";
         Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
         sharingIntent.setType("text/plain");
         sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "OpenPlaces");

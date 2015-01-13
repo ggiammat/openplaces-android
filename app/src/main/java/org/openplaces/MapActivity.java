@@ -28,6 +28,8 @@ import org.openplaces.lists.ListManagerEventListener;
 import org.openplaces.lists.ListManagerFragment;
 import org.openplaces.lists.PlaceList;
 import org.openplaces.lists.PlaceListItem;
+import org.openplaces.tasks.LoadStarredPlaces;
+import org.openplaces.tasks.OpenPlacesAsyncTask;
 import org.openplaces.util.IconsManager;
 import org.openplaces.places.Place;
 import org.openplaces.search.ResultSet;
@@ -56,7 +58,6 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
 
 
     MapView mapView;
-    Button editButton;
     private TextView rsStatsTV;
 
     private OPChipsEditText searchET;
@@ -94,7 +95,6 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
         this.starButton = (ImageButton) findViewById(R.id.starButtonMapView);
         this.placeNameLabelTV = (TextView) findViewById(R.id.textView1);
         this.rsStatsTV = (TextView) findViewById(R.id.resultSetMessages);
-        this.editButton = (Button) findViewById(R.id.editMap);
 
 
         FragmentManager fragmentManager = getFragmentManager();
@@ -256,27 +256,6 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
             }
         });
 
-        this.editButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                BoundingBoxE6 bbox = mapView.getBoundingBox();
-                String editUri = "http://127.0.0.1:8111/load_and_zoom?" +
-                        "bottom="+bbox.getLatSouthE6()/1e6d+
-                        "&top="+bbox.getLatNorthE6()/1e6d+
-                        "&left="+bbox.getLonWestE6()/1e6d+
-                        "&right="+bbox.getLonEastE6()/1e6d;
-                //String editUri = "geo:41.6843531011,12.7788774503";
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(editUri));
-                if (intent.resolveActivity(getPackageManager()) != null) {
-                    startActivity(intent);
-                }
-                else {
-                    Log.d(MapActivity.LOGTAG, "Was not possible to resolve activity for uri: " + editUri);
-                }
-            }
-        });
-
-
 
         this.starButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -307,7 +286,7 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
 
             @Override
             public boolean longPressHelper(GeoPoint geoPoint) {
-                Toast.makeText(MapActivity.this, "Tap on (" + geoPoint.getLatitude() + "," + geoPoint.getLongitude() + ")", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MapActivity.this, "Tap on (" + geoPoint.getLatitude() + "," + geoPoint.getLongitude() + ")", Toast.LENGTH_LONG).show();
                 return true;
             }
         });
@@ -388,9 +367,11 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
         if("0".equals(rs.getStat("errorCode"))) {
             this.rsStatsTV.setText("T/N/C: " + rs.size() + "/" + rs.getStat("net") + "/" + rs.getStat("cache"));
         }
+        else if("1".equals(rs.getStat("errorCode"))) {
+            Toast.makeText(getApplicationContext(), "Search area is too big. Try to zoom in!", Toast.LENGTH_LONG).show();
+        }
         else {
             this.rsStatsTV.setText("ERROR!! " + rs.getStat("errorMessage"));
-
         }
 
         resultSetMarkersOverlay.invalidate();
@@ -417,17 +398,50 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        switch (item.getItemId()) {
+            case R.id.action_showstarred:
+                new LoadStarredPlaces(this.getApplicationContext(), new OpenPlacesAsyncTask.OpenPlacesAsyncTaskListener() {
+                    @Override
+                    public void taskStarted() {
+                        setProgressBarIndeterminate(Boolean.TRUE);
+                    }
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+                    @Override
+                    public void taskFinished(Object result, int status) {
+                        setProgressBarIndeterminate(Boolean.FALSE);
+                        setNewResultSet((ResultSet) result);
+                    }
+                }).execute();
+                break;
+            case R.id.action_editmap:
+                this.editAction();
+                break;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void editAction(){
+        BoundingBoxE6 bbox = mapView.getBoundingBox();
+        if(bbox.getDiagonalLengthInMeters() > 1000){
+            Toast.makeText(getApplicationContext(), "Area to edit is too big. Try to zoom in!", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        return super.onOptionsItemSelected(item);
+        String editUri = "http://127.0.0.1:8111/load_and_zoom?" +
+                "bottom="+bbox.getLatSouthE6()/1e6d+
+                "&top="+bbox.getLatNorthE6()/1e6d+
+                "&left="+bbox.getLonWestE6()/1e6d+
+                "&right="+bbox.getLonEastE6()/1e6d;
+        //String editUri = "geo:41.6843531011,12.7788774503";
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(editUri));
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
+        }
+        else {
+            Log.d(MapActivity.LOGTAG, "Was not possible to resolve activity for uri: " + editUri);
+        }
     }
 
     @Override

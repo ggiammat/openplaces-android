@@ -1,30 +1,26 @@
 package org.openplaces.search;
 
 import android.content.Context;
-import android.content.Intent;
 import android.location.Location;
 import android.location.LocationManager;
-import android.os.AsyncTask;
+
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.style.ReplacementSpan;
 import android.util.Log;
 
 import org.openplaces.MapActivity;
-import org.openplaces.lists.ListManager;
+
 import org.openplaces.lists.PlaceList;
-import org.openplaces.lists.PlaceListItem;
 import org.openplaces.model.OPBoundingBox;
 import org.openplaces.model.OPGeoPoint;
 import org.openplaces.model.OPLocationInterface;
 import org.openplaces.model.OPPlaceCategoryInterface;
 import org.openplaces.model.OPPlaceInterface;
-import org.openplaces.places.Place;
 import org.openplaces.categories.PlaceCategoriesManager;
 import org.openplaces.search.suggestions.LocationSuggestionItem;
 import org.openplaces.search.suggestions.PlaceCategorySuggestionItem;
 import org.openplaces.tasks.LoadListTask;
-import org.openplaces.tasks.LoadStarredPlaces;
 import org.openplaces.tasks.OpenPlacesAsyncTask;
 import org.openplaces.tasks.SearchTask;
 import org.openplaces.widgets.OPChipsEditText;

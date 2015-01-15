@@ -2,11 +2,14 @@ package org.openplaces;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.gesture.Gesture;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -25,6 +28,7 @@ public class PlaceDetailFragment extends Fragment {
 
     private ResultSet resultSet;
     TextView placeNameTV;
+    private GestureDetector gestureDetector;
 
     private ResultSet.ResultSetEventsListener rsListener = new ResultSet.ResultSetEventsListener() {
         @Override
@@ -69,21 +73,6 @@ public class PlaceDetailFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_place_detail, container, false);
         this.placeNameTV = (TextView) v.findViewById(R.id.placeDetailName);
 
-        Button prevPlace = (Button) v.findViewById(R.id.button2);
-        prevPlace.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                if(resultSet != null)
-                    resultSet.selectPrevious();
-            }
-        });
-
-        Button nextPlace = (Button) v.findViewById(R.id.button1);
-        nextPlace.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                if(resultSet != null)
-                    resultSet.selectNext();
-            }
-        });
 
         ImageButton starButton = (ImageButton) v.findViewById(R.id.starButtonMapView);
         starButton.setOnClickListener(new View.OnClickListener() {
@@ -143,7 +132,7 @@ public class PlaceDetailFragment extends Fragment {
         callButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(resultSet == null || resultSet.getSelected() == null || !resultSet.getSelected().getOsmTags().containsKey("phone")){
+                if (resultSet == null || resultSet.getSelected() == null || !resultSet.getSelected().getOsmTags().containsKey("phone")) {
                     return;
                 }
                 Intent callIntent = new Intent(Intent.ACTION_CALL);
@@ -151,6 +140,13 @@ public class PlaceDetailFragment extends Fragment {
                 startActivity(callIntent);
             }
         });
+
+        v.setOnTouchListener(
+                new View.OnTouchListener() {
+                    public boolean onTouch(View v, MotionEvent event) {
+                        return gestureDetector != null? gestureDetector.onTouchEvent(event): true;
+                    }
+                });
         return v;
     }
 
@@ -158,6 +154,8 @@ public class PlaceDetailFragment extends Fragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
+
+        this.gestureDetector = new GestureDetector(getActivity(), new MyGestureDetector());
 
     }
 
@@ -188,5 +186,34 @@ public class PlaceDetailFragment extends Fragment {
         sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "OpenPlaces");
         sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareBody);
         startActivity(Intent.createChooser(sharingIntent, "Share using..."));
+    }
+
+    private static final int SWIPE_MIN_DISTANCE = 120;
+    private static final int SWIPE_MAX_OFF_PATH = 250;
+    private static final int SWIPE_THRESHOLD_VELOCITY = 200;
+
+
+    class MyGestureDetector extends GestureDetector.SimpleOnGestureListener {
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            try {
+                if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)
+                    return false;
+                // right to left swipe
+                if(e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+                    resultSet.selectPrevious();
+                }  else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+                    resultSet.selectNext();
+                }
+            } catch (Exception e) {
+                // nothing
+            }
+            return false;
+        }
+
+        @Override
+        public boolean onDown(MotionEvent e) {
+            return true;
+        }
     }
 }

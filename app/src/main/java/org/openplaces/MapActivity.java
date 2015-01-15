@@ -135,6 +135,10 @@ public class MapActivity extends Activity implements ListManagerEventListener {
         this.oldMapViewHeight = totalHeight;
     }
 
+    public void expandSlidingPanel(){
+        this.slidingLayout.expandPanel();
+    }
+
     private void setupActionBar(){
         ActionBar actionBar = getActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
@@ -357,6 +361,12 @@ public class MapActivity extends Activity implements ListManagerEventListener {
             this.mapView.setMaxZoomLevel(null);
             mapView.zoomToBoundingBox(zoomTo);
             this.mapView.setMaxZoomLevel(26);
+        }
+
+
+        //select the first place
+        if(this.currentResultSet.size()>0){
+            this.currentResultSet.setSelected(0);
         }
 
     }

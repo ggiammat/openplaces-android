@@ -11,7 +11,6 @@ import android.text.style.ReplacementSpan;
 import android.util.Log;
 
 import org.openplaces.MapActivity;
-import org.openplaces.PlaceDetailsActivity;
 import org.openplaces.lists.ListManager;
 import org.openplaces.lists.PlaceList;
 import org.openplaces.lists.PlaceListItem;
@@ -234,14 +233,16 @@ public class SearchController {
 
         notifySearchStarted(null);
 
-        Place p = new Place(place);
+
+        List<OPPlaceInterface> places = new ArrayList<OPPlaceInterface>();
+        places.add(place);
+        ResultSet rs = ResultSet.buildFromOPPlaces(places, PlaceCategoriesManager.getInstance(getAppContext()));
 
         notifySearchFinshed(null, null);
 
-        //directly open a PlaceDetail activity
-        Intent intent = new Intent(mapActivity, PlaceDetailsActivity.class);
-        intent.putExtra("PLACE", p);
-        mapActivity.startActivity(intent);
+        mapActivity.setNewResultSet(rs);
+        mapActivity.expandSlidingPanel();
+
     }
 
 

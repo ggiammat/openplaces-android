@@ -22,10 +22,12 @@
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true">
 
-        <org.osmdroid.views.MapView
-            android:id="@+id/mapView"
+        <fragment
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent"
+            android:id="@+id/mapFragment"
+            android:name="org.openplaces.MapFragment"
+            />
 
         <TextView
             android:layout_width="wrap_content"
@@ -40,16 +42,10 @@
 
     <fragment
         android:layout_width="match_parent"
-        android:layout_height="231dp"
+        android:layout_height="@dimen/slidingpanel_height"
         android:id="@+id/placeDetailsFragment"
         android:name="org.openplaces.PlaceDetailFragment"
     />
 
-    <!--TextView
-        android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:gravity="center|top"
-        android:text="The Awesome Sliding Up Panel"
-        android:textSize="16sp" /-->
 
 </com.sothree.slidinguppanel.SlidingUpPanelLayout>

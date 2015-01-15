@@ -17,18 +17,24 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.openplaces.lists.ListManager;
+import org.openplaces.lists.ListManagerEventListener;
 import org.openplaces.lists.ListManagerFragment;
+import org.openplaces.lists.PlaceList;
 import org.openplaces.places.Place;
 import org.openplaces.search.ResultSet;
 
+import java.util.List;
 import java.util.Map;
 
 
 public class PlaceDetailFragment extends Fragment {
 
     private ResultSet resultSet;
-    TextView placeNameTV;
+    private TextView placeNameTV;
+    private ImageButton starButton;
     private GestureDetector gestureDetector;
+    private ListManager lm;
 
     private ResultSet.ResultSetEventsListener rsListener = new ResultSet.ResultSetEventsListener() {
         @Override
@@ -50,6 +56,12 @@ public class PlaceDetailFragment extends Fragment {
         Place p = this.resultSet.getSelected();
         if(p != null){
             this.placeNameTV.setText(p.getName());
+            if(resultSet != null && lm.isStarred(resultSet.getSelected())){
+                starButton.setImageResource(R.drawable.ic_action_star_on);
+            }
+            else {
+                starButton.setImageResource(R.drawable.ic_action_star_off);
+            }
         }
         else {
             this.placeNameTV.setText("??");
@@ -73,8 +85,8 @@ public class PlaceDetailFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_place_detail, container, false);
         this.placeNameTV = (TextView) v.findViewById(R.id.placeDetailName);
 
+        this.starButton = (ImageButton) v.findViewById(R.id.starButtonMapView);
 
-        ImageButton starButton = (ImageButton) v.findViewById(R.id.starButtonMapView);
         starButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -89,6 +101,40 @@ public class PlaceDetailFragment extends Fragment {
                 listsManagerFragment.show(getFragmentManager(), "listsManagerFragmentInMapActivity");
             }
         });
+
+        this.lm.addListsEventListener(new ListManagerEventListener() {
+            @Override
+            public void placeAddedToStarredList(Place place, PlaceList list) {
+                if(place.equals(resultSet.getSelected())){
+                    starButton.setImageResource(R.drawable.ic_action_star_on);
+                }
+            }
+
+            @Override
+            public void placeAddedToAutoList(Place place, PlaceList list) {
+
+            }
+
+            @Override
+            public void placeRemovedFromStarredList(Place place, PlaceList list) {
+                if(place.equals(resultSet.getSelected()) && !lm.isStarred(resultSet.getSelected())){
+                    starButton.setImageResource(R.drawable.ic_action_star_off);
+                }
+            }
+
+            @Override
+            public void placeRemovedFromAutoList(Place place, PlaceList list) {
+
+            }
+
+            @Override
+            public void starredListAdded(PlaceList list) {
+
+            }
+        });
+
+
+
 
         ImageButton shareButton = (ImageButton) v.findViewById(R.id.placeDetailShare);
         shareButton.setOnClickListener(new View.OnClickListener() {
@@ -157,6 +203,7 @@ public class PlaceDetailFragment extends Fragment {
 
         this.gestureDetector = new GestureDetector(getActivity(), new MyGestureDetector());
 
+        this.lm = ListManager.getInstance(getActivity().getApplicationContext());
     }
 
     @Override

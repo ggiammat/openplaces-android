@@ -164,7 +164,7 @@ public class ListManagerFragment extends android.app.DialogFragment implements A
             PlaceList l = (PlaceList) getItem(position);
             text.setText(l.getName() + " (" + l.size() + ")");
             if(this.lm.isStarredIn(this.place, l)){
-                img.setImageResource(android.R.drawable.btn_star_big_on);
+                img.setImageResource(R.drawable.ic_action_star_on);
                 setNoteButton.setTag(l);
                 setNoteButton.setOnClickListener(this.setNoteClickListener);
 
@@ -180,7 +180,7 @@ public class ListManagerFragment extends android.app.DialogFragment implements A
 
             }
             else {
-                img.setImageResource(android.R.drawable.btn_star_big_off);
+                img.setImageResource(R.drawable.ic_action_star_off);
                 setNoteButton.setTag(null);
                 setNoteButton.setOnClickListener(null);
                 setNoteButton.setImageResource(R.drawable.note_off);

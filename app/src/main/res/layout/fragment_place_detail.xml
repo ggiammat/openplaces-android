@@ -1,0 +1,100 @@
+<RelativeLayout
+xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:tools="http://schemas.android.com/tools"
+tools:context="org.openplaces.PlaceDetailFragment"
+android:id="@+id/detailsPanel"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:background="@android:color/white"
+android:clickable="true">
+
+<Button
+    android:id="@+id/button1"
+    style="?android:attr/buttonStyleSmall"
+    android:layout_height="@dimen/slidingpanel_height"
+    android:text="&gt;"
+    android:layout_width="wrap_content"
+    android:layout_alignParentTop="true"
+    android:layout_alignParentEnd="true"/>
+
+<Button
+    android:id="@+id/button2"
+    style="?android:attr/buttonStyleSmall"
+    android:layout_height="@dimen/slidingpanel_height"
+    android:text="&lt;"
+    android:layout_width="wrap_content"
+    android:layout_alignParentTop="true"
+    android:layout_alignParentStart="true"/>
+
+<TextView
+    android:id="@+id/placeDetailName"
+    android:layout_width="wrap_content"
+    android:maxLines="1"
+    android:text="Medium Text"
+    android:textAppearance="?android:attr/textAppearanceMedium"
+    android:layout_height="wrap_content"
+    android:layout_toEndOf="@id/button2"/>
+
+<TextView
+    android:id="@+id/textView2"
+    android:text="TextView"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_toEndOf="@id/button2"
+    android:layout_below="@id/placeDetailName"/>
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Button"
+        android:id="@+id/starButtonMapView"
+        android:src="@drawable/ic_action_star_off"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@id/button1"
+        android:background="@color/transparent" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Button"
+        android:id="@+id/placeDetailShare"
+        android:src="@drawable/ic_action_share"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@id/starButtonMapView"
+        android:background="@color/transparent"
+        android:layout_marginEnd="10dp"/>
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Button"
+        android:id="@+id/placeDetailTags"
+        android:src="@drawable/ic_action_labels"
+        android:layout_below="@id/button1"
+        android:layout_alignParentEnd="true"
+        android:background="@color/transparent"
+        android:layout_margin="10dp"/>
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Button"
+        android:id="@+id/placeDetailEdit"
+        android:src="@drawable/ic_action_edit"
+        android:layout_toLeftOf="@id/placeDetailTags"
+        android:layout_below="@id/button1"
+        android:background="@color/transparent"
+        android:layout_margin="10dp"/>
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Button"
+        android:id="@+id/placeDetailCall"
+        android:src="@drawable/ic_action_call"
+        android:layout_toLeftOf="@id/placeDetailEdit"
+        android:layout_below="@id/button1"
+        android:background="@color/transparent"
+        android:layout_margin="10dp"/>
+
+</RelativeLayout>

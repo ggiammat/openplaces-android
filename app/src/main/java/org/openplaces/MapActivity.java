@@ -1,6 +1,7 @@
 package org.openplaces;
 
 import android.app.ActionBar;
+import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
@@ -10,7 +11,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -18,10 +18,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.GridLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import org.openplaces.lists.ListManager;
 import org.openplaces.lists.ListManagerEventListener;
@@ -49,9 +52,11 @@ import org.osmdroid.views.overlay.compass.CompassOverlay;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
 
-public class MapActivity extends FragmentActivity implements ListManagerEventListener {
+public class MapActivity extends Activity implements ListManagerEventListener {
 
     public static final String LOGTAG = "OpenPlaces";
+
+    private SlidingUpPanelLayout slidingLayout;
 
     private ListManager slm;
     private IconsManager icoMngr;
@@ -63,8 +68,8 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
     private OPChipsEditText searchET;
     private ImageButton searchButtonAB;
 
-    ImageButton starButton;
-    private TextView placeNameLabelTV;
+//    ImageButton starButton;
+//    private TextView placeNameLabelTV;
 
     private ResultSet currentResultSet;
     private SearchController searchController;
@@ -74,11 +79,10 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
     private Marker.OnMarkerClickListener markersClickListener;
     MyLocationNewOverlay oMapLocationOverlay;
 
-    private ListManagerFragment listsManagerFragment;
+    private PlaceDetailFragment placeDetailsFragment;
 
-
-    //search
-
+    private int oldMapViewHeight = -1;
+    private static final float SLIDING_PANEL_HEIGHT_PERCENT = 0.6f;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,31 +92,47 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
 
         setContentView(R.layout.activity_map);
 
+
+        this.slidingLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+
         this.icoMngr = IconsManager.getInstance(this);
 
         this.slm = ListManager.getInstance(this);
         this.slm.addListsEventListener(this);
-        this.starButton = (ImageButton) findViewById(R.id.starButtonMapView);
-        this.placeNameLabelTV = (TextView) findViewById(R.id.textView1);
+
         this.rsStatsTV = (TextView) findViewById(R.id.resultSetMessages);
 
-
-        FragmentManager fragmentManager = getFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        this.listsManagerFragment = new ListManagerFragment();
-
+        this.placeDetailsFragment = (PlaceDetailFragment) getFragmentManager().findFragmentById(R.id.placeDetailsFragment);
 
         this.setupActionBar();
         this.initMapView();
         this.setUpListeners();
-        this.setupSearch();
 
     }
 
-    private void setupSearch(){
-        this.searchET.setHint("Search the map!");
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
 
+        if(this.mapView.getHeight() != this.oldMapViewHeight){
+            this.setSlidingPanel();
+        }
+    }
 
+    private void setSlidingPanel(){
+        Log.d(LOGTAG, "Setting up sliding panel...");
+
+        int totalHeight = this.slidingLayout.getHeight();
+
+        SlidingUpPanelLayout.LayoutParams params = (SlidingUpPanelLayout.LayoutParams) this.placeDetailsFragment.getView().getLayoutParams();
+
+        params.height = Math.round(totalHeight * SLIDING_PANEL_HEIGHT_PERCENT);
+        this.placeDetailsFragment.getView().setLayoutParams(params);
+        int parallaxOffset = Math.round(totalHeight/2 - (totalHeight * (1-SLIDING_PANEL_HEIGHT_PERCENT))/2);
+
+        this.slidingLayout.setParalaxOffset(parallaxOffset);
+
+        this.oldMapViewHeight = totalHeight;
     }
 
     private void setupActionBar(){
@@ -176,69 +196,41 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
 
         if(currentResultSet != null && currentResultSet.getSelected() != null){
 
-            this.setSelectedPlace(-1);
+            this.currentResultSet.clearSelected();
             mapView.invalidate();
 
             if(hidePanel){
-                GridLayout tv = (GridLayout) findViewById(R.id.detailsPanel);
-                tv.setVisibility(View.INVISIBLE);
+                this.slidingLayout.hidePanel();
+                Log.d(LOGTAG, "AAA map height hide panel: " + this.mapView.getHeight());
             }
         }
     }
 
 
-    public void setSelectedPlace(int index){
+    public void setSelectedPlace(Place oldSelected, Place newSelected){
 
         //"unselect" old selected place
-        Place oldSelected = currentResultSet.getSelected();
         if(oldSelected != null){
             ((Marker) oldSelected.getRelatedObject()).setIcon(
                     slm.isStarred(oldSelected) ? this.icoMngr.getStrredMarker(oldSelected) : this.icoMngr.getMarker(oldSelected));
         }
 
-        this.currentResultSet.setSelected(index);
-        Place newSelectedPlace = currentResultSet.getSelected();
+        Log.d(LOGTAG, "Selected place is " + newSelected);
 
-        Log.d(LOGTAG, "Selected place is " + newSelectedPlace);
 
-        if(newSelectedPlace == null){
-            return;
+        if(newSelected != null){
+
+            this.slidingLayout.showPanel();
+
+            ((Marker) newSelected.getRelatedObject()).setIcon(
+                    slm.isStarred(newSelected) ? this.icoMngr.getSelectedStarredMarker(newSelected) : this.icoMngr.getSelectedMarker(newSelected));
+
+            mapView.invalidate();
+            mapView.getController().animateTo(new GeoPoint(newSelected.getPosition().getLat(), newSelected.getPosition().getLon()));
         }
 
 
 
-        ((Marker) newSelectedPlace.getRelatedObject()).setIcon(
-                slm.isStarred(newSelectedPlace) ? this.icoMngr.getSelectedStarredMarker(newSelectedPlace) : this.icoMngr.getSelectedMarker(newSelectedPlace));
-
-        mapView.invalidate();
-        mapView.getController().animateTo(new GeoPoint(newSelectedPlace.getPosition().getLat(), newSelectedPlace.getPosition().getLon()));
-
-        TextView t1 = (TextView) findViewById(R.id.textView1);
-        t1.setText(newSelectedPlace.getName());
-
-        TextView t2 = (TextView) findViewById(R.id.textView2);
-        PlaceListItem item = this.slm.getAutoListByName(ListManager.AUTOLIST_VISITED).getPlaceListItemByPlace(newSelectedPlace);
-        if(item != null){
-
-            t2.setText("Last visited on " + item.getModifiedDate() + "|" + item.getNote());
-        }
-        else {
-            t2.setText("Never visited");
-            //new UpdatePlaceTask().execute();
-        }
-
-        this.starButton.setImageResource(slm.isStarred(newSelectedPlace) ? android.R.drawable.btn_star_big_on : android.R.drawable.btn_star_big_off);
-//
-//        String starredList = slm.getStarredListsFor(newSelectedPlace);
-//        if(starredList != null){
-//            this.placeIsNowStarred(starredList);
-//        }
-//        else {
-//            this.placeIsNowUnstarred();
-//        }
-
-        GridLayout panel = (GridLayout) findViewById(R.id.detailsPanel);
-        panel.setVisibility(View.VISIBLE);
     }
 
     public BoundingBoxE6 getMapVisibleArea(){
@@ -246,6 +238,7 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
     }
 
     private void setUpListeners(){
+
 
 
         this.searchButtonAB.setOnClickListener(new View.OnClickListener() {
@@ -257,22 +250,22 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
         });
 
 
-        this.starButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Bundle b = new Bundle();
-                b.putParcelable("PLACE", currentResultSet.getSelected());
-                listsManagerFragment.setArguments(b);
-                listsManagerFragment.show(getFragmentManager(), "listsManagerFragmentInMapActivity");
-            }
-        });
+//        this.starButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Bundle b = new Bundle();
+//                b.putParcelable("PLACE", currentResultSet.getSelected());
+//                listsManagerFragment.setArguments(b);
+//                listsManagerFragment.show(getFragmentManager(), "listsManagerFragmentInMapActivity");
+//            }
+//        });
 
 
 
         this.markersClickListener = new Marker.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker, MapView mapView) {
-                setSelectedPlace((Integer) marker.getRelatedObject());
+                currentResultSet.setSelected((Integer) marker.getRelatedObject());
                 return true;
             }
         };
@@ -292,33 +285,6 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
         });
 
         this.mapView.getOverlays().add(0, mapEventsOverlay);
-
-        Button prevPlace = (Button) findViewById(R.id.button2);
-        prevPlace.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                if(currentResultSet != null)
-                    setSelectedPlace(currentResultSet.getPreviousIndex());
-            }
-        });
-
-        Button nextPlace = (Button) findViewById(R.id.button1);
-        nextPlace.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                if(currentResultSet != null)
-                    setSelectedPlace(currentResultSet.getNextIndex());
-            }
-        });
-
-        this.placeNameLabelTV.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(currentResultSet != null && currentResultSet.getSelected() != null){
-                    Intent intent = new Intent(MapActivity.this, PlaceDetailsActivity.class);
-                    intent.putExtra("PLACE", currentResultSet.getSelected());
-                    startActivity(intent);
-                }
-            }
-        });
     }
 
 
@@ -327,8 +293,14 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
         this.currentResultSet = rs;
         resultSetMarkersOverlay.getItems().clear();
 
-        GridLayout tv = (GridLayout) findViewById(R.id.detailsPanel);
-        tv.setVisibility(View.INVISIBLE);
+        this.currentResultSet.addListener(new ResultSet.ResultSetEventsListener() {
+            @Override
+            public void onNewPlaceSelected(Place oldSelected, Place newSelected) {
+                setSelectedPlace(oldSelected, newSelected);
+            }
+        });
+
+        this.placeDetailsFragment.setResultSet(this.currentResultSet);
 
         BoundingBoxE6 zoomTo = null;
 
@@ -386,6 +358,7 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
             mapView.zoomToBoundingBox(zoomTo);
             this.mapView.setMaxZoomLevel(26);
         }
+
     }
 
 
@@ -448,7 +421,7 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
     public void placeAddedToStarredList(Place place, PlaceList list) {
         ((Marker) this.currentResultSet.getSelected().getRelatedObject()).setIcon(
                 slm.isStarred(this.currentResultSet.getSelected()) ? this.icoMngr.getSelectedStarredMarker(this.currentResultSet.getSelected()) : this.icoMngr.getSelectedMarker(this.currentResultSet.getSelected()));
-        this.starButton.setImageResource(slm.isStarred(this.currentResultSet.getSelected()) ? android.R.drawable.star_big_on : android.R.drawable.star_big_off);
+        //this.starButton.setImageResource(slm.isStarred(this.currentResultSet.getSelected()) ? android.R.drawable.star_big_on : android.R.drawable.star_big_off);
 
     }
 
@@ -461,7 +434,7 @@ public class MapActivity extends FragmentActivity implements ListManagerEventLis
     public void placeRemovedFromStarredList(Place place, PlaceList list) {
         ((Marker) this.currentResultSet.getSelected().getRelatedObject()).setIcon(
                 slm.isStarred(this.currentResultSet.getSelected()) ? this.icoMngr.getSelectedStarredMarker(this.currentResultSet.getSelected()) : this.icoMngr.getSelectedMarker(this.currentResultSet.getSelected()));
-        this.starButton.setImageResource(slm.isStarred(this.currentResultSet.getSelected()) ? android.R.drawable.star_big_on : android.R.drawable.star_big_off);
+        //this.starButton.setImageResource(slm.isStarred(this.currentResultSet.getSelected()) ? android.R.drawable.star_big_on : android.R.drawable.star_big_off);
 
     }
 

@@ -88,6 +88,8 @@
     <orderEntry type="library" exported="" name="openplaces-library-0.0.1-SNAPSHOT" level="project" />
     <orderEntry type="library" exported="" name="support-v4-21.0.2" level="project" />
     <orderEntry type="library" exported="" name="osmbonuspack_v4.9" level="project" />
+    <orderEntry type="library" exported="" name="library-2.4.0" level="project" />
+    <orderEntry type="library" exported="" name="library-2.0.4" level="project" />
     <orderEntry type="library" exported="" name="gson-2.3" level="project" />
     <orderEntry type="library" exported="" name="slf4j-android-1.7.7" level="project" />
     <orderEntry type="library" exported="" name="osmdroid-android-4.3" level="project" />

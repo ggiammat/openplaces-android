@@ -21,6 +21,26 @@ import java.util.Map;
  */
 public class ResultSet implements Parcelable, Iterable<Place> {
 
+    public interface ResultSetEventsListener {
+        public void onNewPlaceSelected(Place oldSelected, Place newSelected);
+    }
+
+    private List<ResultSetEventsListener> mListeners = new ArrayList<ResultSetEventsListener>();
+
+    public void addListener(ResultSetEventsListener listener){
+        this.mListeners.add(listener);
+    }
+
+    public void removeListener(ResultSetEventsListener listener){
+        this.mListeners.remove(listener);
+    }
+
+    private void notifyNewPlaceSelected(Place oldPlace, Place newPlace){
+        for(ResultSetEventsListener l: this.mListeners){
+            l.onNewPlaceSelected(oldPlace, newPlace);
+        }
+    }
+
     private List<Place> places;
     private Map<String, String> stats;
 
@@ -103,20 +123,32 @@ public class ResultSet implements Parcelable, Iterable<Place> {
         return i;
     }
 
+    public boolean selectNext(){
+        return this.setSelected(this.getNextIndex());
+    }
+
+    public boolean selectPrevious(){
+        return this.setSelected(this.getPreviousIndex());
+    }
+
     public boolean setSelected(int index) {
         if(index == -1 ){
             this.clearSelected();
             return true;
         }
         if (index >= 0 && index < this.places.size()) {
+            int c = this.selectedIndex;
             this.selectedIndex = index;
+            notifyNewPlaceSelected(c == -1 ? null : this.places.get(c), this.places.get(this.selectedIndex));
             return true;
         }
         return false;
     }
 
     public void clearSelected(){
+        int c = this.selectedIndex;
         this.selectedIndex = -1;
+        notifyNewPlaceSelected(c == -1 ? null : this.places.get(c), null);
     }
 
     public ResultSet(Parcel in){

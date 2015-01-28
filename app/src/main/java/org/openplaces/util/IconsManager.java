@@ -46,7 +46,7 @@ public class IconsManager {
 
 
     public int getCategoryIconId(PlaceCategory cat, int size){
-        String symbol = cat != null ? cat.getSymbol() : null;
+        String symbol = cat != null ? cat.getId() : null;
         if(symbol == null){
             symbol = UNKNOWN_CATEGORY_MARKER_SYMBOL;
         }
@@ -55,7 +55,7 @@ public class IconsManager {
     }
 
     public Drawable getCategoryIcon(PlaceCategory cat, int size){
-        String symbol = cat.getSymbol();
+        String symbol = cat.getId();
         if(symbol == null){
             symbol = UNKNOWN_CATEGORY_MARKER_SYMBOL;
         }
@@ -76,22 +76,22 @@ public class IconsManager {
 
     public Drawable getMarker(Place place){
         return this.getMarker(false, false,
-                place.getCategory() != null ? place.getCategory().getSymbol() : null);
+                place.getCategory() != null ? place.getCategory().getId() : null);
     }
 
     public Drawable getSelectedMarker(Place place){
         return this.getMarker(true, false,
-                place.getCategory() != null ? place.getCategory().getSymbol() : null);
+                place.getCategory() != null ? place.getCategory().getId() : null);
     }
 
     public Drawable getStrredMarker(Place place){
         return this.getMarker(false, true,
-                place.getCategory() != null ? place.getCategory().getSymbol() : null);
+                place.getCategory() != null ? place.getCategory().getId() : null);
     }
 
     public Drawable getSelectedStarredMarker(Place place){
         return this.getMarker(true, true,
-                place.getCategory() != null ? place.getCategory().getSymbol() : null);
+                place.getCategory() != null ? place.getCategory().getId() : null);
     }
 
 
@@ -108,7 +108,6 @@ public class IconsManager {
         }
 
         String resourceName = "pic_" + symbol + "_3224";
-        Log.d(MapActivity.LOGTAG, "Getting drawable resource by name " + resourceName);
 
         int bgId = -1;
         if(selected && starred){
@@ -124,12 +123,19 @@ public class IconsManager {
             bgId = R.drawable.marker_bg;
         }
 
-        Drawable icon = new LayerDrawable(new Drawable[]{
-                this.context.getResources().getDrawable(bgId),
-                this.context.getResources().getDrawable(this.context.getResources().getIdentifier(resourceName, "drawable", this.context.getApplicationContext().getPackageName()))});
+        try {
+            Drawable icon = new LayerDrawable(new Drawable[]{
+                    this.context.getResources().getDrawable(bgId),
+                    this.context.getResources().getDrawable(this.context.getResources().getIdentifier(resourceName, "drawable", this.context.getApplicationContext().getPackageName()))});
 
-        this.markersCache.put(cacheKey, icon);
+            this.markersCache.put(cacheKey, icon);
+            return icon;
+        }
+        catch (Exception ex) {
+            Log.w(MapActivity.LOGTAG, "ERROR getting drawable resource by name " + resourceName);
+            return this.getMarker(selected, starred, UNKNOWN_CATEGORY_MARKER_SYMBOL);
+        }
 
-        return icon;
+
     }
 }

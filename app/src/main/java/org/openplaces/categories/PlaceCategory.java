@@ -24,31 +24,20 @@ public class PlaceCategory implements OPPlaceCategoryInterface, Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int i) {
         //TODO add localized names and OSMTagFilters to parcel
-        if(this.getName() == null){
+        if(this.getId() == null){
             dest.writeByte((byte) (0x00));
         } else {
             dest.writeByte((byte) (0x01));
-            dest.writeString(this.getName());
+            dest.writeString(this.getId());
         }
-        if(this.getType() == null){
-            dest.writeByte((byte) (0x00));
-        } else {
-            dest.writeByte((byte) (0x01));
-            dest.writeString(this.getType());
-        }
-        if(this.getSymbol() == null){
-            dest.writeByte((byte) (0x00));
-        } else {
-            dest.writeByte((byte) (0x01));
-            dest.writeString(this.getSymbol());
-        }
+
+        dest.writeInt(this.getPriority());
     }
 
     public PlaceCategory(Parcel in){
         this.mDelegate = new OPPlaceCategoryImpl();
-        this.setName(in.readByte() == 0x00 ? null : in.readString());
-        this.setType(in.readByte() == 0x00 ? null : in.readString());
-        this.setSymbol(in.readByte() == 0x00 ? null : in.readString());
+        this.setId(in.readByte() == 0x00 ? null : in.readString());
+        this.setPriority(in.readInt());
     }
 
 
@@ -68,29 +57,20 @@ public class PlaceCategory implements OPPlaceCategoryInterface, Parcelable {
         this.mDelegate = cat;
     }
 
-    @Override
-    public String getType() {
-        return this.mDelegate.getType();
-    }
-
-    @Override
-    public void setType(String category) {
-        this.mDelegate.setType(category);
-    }
-
-    @Override
-    public String getName() {
-        return this.mDelegate.getName();
-    }
-
-    @Override
-    public void setName(String name) {
-        this.mDelegate.setName(name);
-    }
 
     @Override
     public void setOsmTagFilterGroups(List<OSMTagFilterGroup> osmTagFilterGroups) {
         this.mDelegate.setOsmTagFilterGroups(osmTagFilterGroups);
+    }
+
+    @Override
+    public String getId() {
+        return this.mDelegate.getId();
+    }
+
+    @Override
+    public void setId(String s) {
+        this.mDelegate.setId(s);
     }
 
     @Override
@@ -99,30 +79,39 @@ public class PlaceCategory implements OPPlaceCategoryInterface, Parcelable {
     }
 
     @Override
-    public Map<String, String> getLocalizedNames() {
-        return this.mDelegate.getLocalizedNames();
+    public Map<String, String> getNames() {
+        return null;
     }
 
     @Override
-    public void setLocalization(Map<String, String> localization) {
-        this.mDelegate.setLocalization(localization);
+    public void setNames(Map<String, String> stringStringMap) {
+
     }
+
 
     @Override
     public String getFirstNameMatch(String text) {
         return this.mDelegate.getFirstNameMatch(text);
     }
 
-    public String getSymbol(){
-        return this.mDelegate.getSymbol();
-    }
-
-    public void setSymbol(String symbol){
-        this.mDelegate.setSymbol(symbol);
+    @Override
+    public boolean placeMatchesCategory(OPPlaceInterface place) {
+        return this.mDelegate.placeMatchesCategory(place);
     }
 
     @Override
-    public int placeMatchesCategory(OPPlaceInterface place) {
-        return this.mDelegate.placeMatchesCategory(place);
+    public void setPriority(int i) {
+        this.mDelegate.setPriority(i);
+    }
+
+    @Override
+    public int getPriority() {
+        return this.mDelegate.getPriority();
+    }
+
+
+    @Override
+    public String toString() {
+        return this.mDelegate.toString();
     }
 }

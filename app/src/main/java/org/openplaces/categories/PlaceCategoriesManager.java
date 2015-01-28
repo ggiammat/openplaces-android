@@ -1,12 +1,15 @@
 package org.openplaces.categories;
 
 import android.content.Context;
+import android.util.Log;
 
+import org.openplaces.MapActivity;
 import org.openplaces.R;
 import org.openplaces.model.OPPlaceCategoriesLibrary;
 import org.openplaces.model.OPPlaceCategoryInterface;
 import org.openplaces.places.Place;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,7 +19,7 @@ import java.util.Map;
 
 public class PlaceCategoriesManager {
 
-    public static final String STANDARD_LIBRARY = "standard";
+    public static final int[] STANDARD_LIBS = new int[]{R.raw.food_standard_library, R.raw.general_standard_library};
 
     private static PlaceCategoriesManager instance = null;
     private Context ctx;
@@ -36,7 +39,18 @@ public class PlaceCategoriesManager {
         this.libraries = new HashMap<String, List<PlaceCategory>>();
 
         //load standard categories library
-        InputStream is = this.ctx.getResources().openRawResource(R.raw.default_categories_library);
+        for(int id: STANDARD_LIBS){
+            InputStream is = this.ctx.getResources().openRawResource(id);
+            this.loadFromInputStream(is);
+            try {
+                is.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void loadFromInputStream(InputStream is){
         OPPlaceCategoriesLibrary lib = OPPlaceCategoriesLibrary.loadFromResource(is);
 
         //replace objects with PlaceCategory objects that are Parcelable
@@ -45,7 +59,7 @@ public class PlaceCategoriesManager {
             newObjs.add(new PlaceCategory(o));
         }
 
-         this.libraries.put(lib.getLibraryName(), newObjs);
+        this.libraries.put(lib.getLibraryName(), newObjs);
     }
 
     public List<PlaceCategory> getLibraryCategories(String libraryName){
@@ -61,15 +75,18 @@ public class PlaceCategoriesManager {
     }
 
     //TODO: highly inefficent. Scan all categories for each place
+    //TODO: take priority into consideration
     public PlaceCategory getPlaceCategory(Place place){
-        int maxMatchIndex = -1;
         PlaceCategory matchingCat = null;
+        int lastPriority = Integer.MAX_VALUE;
 
         for(PlaceCategory c: this.getAllCategories()){
-            int i = c.placeMatchesCategory(place);
-            if(i > maxMatchIndex){
-                maxMatchIndex = i;
+            if(c.placeMatchesCategory(place) && c.getPriority() < lastPriority){
                 matchingCat = c;
+                lastPriority = c.getPriority();
+                if(lastPriority == 0){
+                    return c;
+                }
             }
         }
 

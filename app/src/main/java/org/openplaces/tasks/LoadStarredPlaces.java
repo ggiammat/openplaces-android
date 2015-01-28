@@ -1,6 +1,7 @@
 package org.openplaces.tasks;
 
 import android.content.Context;
+import android.widget.Toast;
 
 import org.openplaces.lists.ListManager;
 import org.openplaces.remote.OpenPlacesRemote;
@@ -24,7 +25,24 @@ public class LoadStarredPlaces extends OpenPlacesAsyncTask {
         OpenPlacesRemote opr = OpenPlacesRemote.getInstance(this.appContext);
         ResultSet rs = opr.getPlacesByTypesAndIds(lm.getAllStarredPlaces());
 
-        this.setResult(rs, 0);
+        this.setResult(rs, rs.getStat("errorCode").equals("0") ? 0 : 1);
         return null;
+    }
+
+    @Override
+    public void taskOnPreExecute() {
+        super.taskOnPreExecute();
+    }
+
+    @Override
+    public void taskOnPostExecute() {
+        if(this.getTaskStatus() == 0){
+            Toast toast = Toast.makeText(this.appContext, "Lists succesfully loaded", Toast.LENGTH_SHORT);
+            toast.show();
+        }
+        else {
+            Toast toast = Toast.makeText(this.appContext, "ERROR loading lists: " + ((ResultSet) this.getResult()).getStat("errorMessage"), Toast.LENGTH_SHORT);
+            toast.show();
+        }
     }
 }

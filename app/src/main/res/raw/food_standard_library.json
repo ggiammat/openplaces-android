@@ -1,0 +1,157 @@
+{
+    "library-name": "food_standard",
+    "library-version": "1.0.0",
+    "released-on": "2015-01-28",
+    "categories": [
+        {
+            "id": "chinese_restaurant",
+            "description": "place with sit-down facilities selling full meals",
+            "osm-tag-filter-groups": [
+                {
+                    "amenity": {
+                        "IS_EQUALS_TO": "restaurant"
+                    },
+                    "cuisine": {
+                        "IS_EQUALS_TO": "chinese"
+                    }
+                }
+            ],
+            "names": {
+                "en": "chinese restaurant, chinese restaurants",
+                "it": "ristorante cinese, ristoranti cinese"
+            }
+        },
+        {
+            "id": "restaurant",
+            "priority": "10",
+            "description": "place with sit-down facilities selling full meals",
+            "osm-tag-filter-groups": [
+                {
+                    "amenity": {
+                        "IS_EQUALS_TO": "restaurant"
+                    }
+                }
+            ],
+            "names": {
+                "en": "restaurant, restaurants",
+                "it": "ristorante, ristoranti"
+            }
+        },
+        {
+            "id": "regional_restaurant",
+            "description": "place with sit-down facilities selling full meals",
+            "osm-tag-filter-groups": [
+                {
+                    "amenity": {
+                        "IS_EQUALS_TO": "restaurant"
+                    },
+                    "cuisine": {
+                        "IS_EQUALS_TO": "regional"
+                    }
+                }
+            ],
+            "names": {
+                "en": "regional restaurant, regional restaurants",
+                "it": "ristorante regionale, ristorante tipico"
+            }
+        },
+
+        {
+            "id": "pizzeria",
+            "description": "place with sit-down facilities selling full meals",
+            "osm-tag-filter-groups": [
+                {
+                    "amenity": {
+                        "IS_EQUALS_TO": "restaurant"
+                    },
+                    "cuisine": {
+                        "IS_EQUALS_TO": "pizza"
+                    }
+                }
+            ],
+            "names": {
+                "en": "pizzeria, pizzerie",
+                "it": "pizzeria, pizzerie"
+            }
+        },
+        {
+            "id": "pizza_take_away",
+            "description": "places that sells pizza take away",
+            "osm-tag-filter-groups": [
+                {
+                    "amenity": {
+                        "IS_EQUALS_TO": "fast_food"
+                    },
+                    "cuisine": {
+                        "IS_EQUALS_TO": "pizza"
+                    }
+                }
+            ],
+            "names": {
+                "en": "pizza take away",
+                "it": "pizza al taglio"
+            }
+        },
+        {
+            "id": "fast_food",
+            "priority": "10",
+            "description": "a place concentrating on very fast counter-only service and take-away food.",
+            "osm-tag-filter-groups": [
+                {
+                    "amenity": {
+                        "IS_EQUALS_TO": "fast_food"
+                    }
+                }
+            ],
+            "names": {
+                "en": "fast food",
+                "it": "fast food"
+            }
+        },
+        {
+            "id": "cafe",
+            "description": "a generally informal place with sit-down facilities selling beverages and light meals and/or snacks",
+            "osm-tag-filter-groups": [
+                {
+                    "amenity": {
+                        "IS_EQUALS_TO": "cafe"
+                    }
+                }
+            ],
+            "names": {
+                "en": "cafè, cafe",
+                "it": "caffè, bar"
+            }
+        },
+        {
+            "id": "pub",
+            "description": "an establishment that sells alcoholic drinks that can be consumed on the premises.",
+            "osm-tag-filter-groups": [
+                {
+                    "amenity": {
+                        "IS_EQUALS_TO": "pub"
+                    }
+                }
+            ],
+            "names": {
+                "en": "pub",
+                "it": "pub"
+            }
+        },
+        {
+            "id": "cocktail_bar",
+            "description": " purpose-built commercial establishment that sells alcoholic drinks to be consumed on the premises",
+            "osm-tag-filter-groups": [
+                {
+                    "amenity": {
+                        "IS_EQUALS_TO": "bar"
+                    }
+                }
+            ],
+            "names": {
+                "en": "cocktail bar",
+                "it": "cocktail bar"
+            }
+        }
+    ]
+}

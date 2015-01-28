@@ -1,5 +1,8 @@
 package org.openplaces.search.suggestions;
 
+import android.util.Log;
+
+import org.openplaces.MapActivity;
 import org.openplaces.search.SearchController;
 
 /**

@@ -1,6 +1,7 @@
 package org.openplaces.tasks;
 
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 
 import org.openplaces.search.ResultSet;
 
@@ -15,6 +16,15 @@ public abstract class OpenPlacesAsyncTask extends AsyncTask<Void, Void, Void> {
     }
 
     private OpenPlacesAsyncTaskListener listener;
+
+    public Object getResult() {
+        return result;
+    }
+
+    public int getTaskStatus() {
+        return status;
+    }
+
     private Object result;
     private int status = -100;
 
@@ -29,11 +39,21 @@ public abstract class OpenPlacesAsyncTask extends AsyncTask<Void, Void, Void> {
 
     @Override
     protected void onPreExecute() {
+        this.taskOnPreExecute();
         this.listener.taskStarted();
     }
 
     @Override
     protected void onPostExecute(Void aVoid) {
+        this.taskOnPostExecute();
         this.listener.taskFinished(this.result, this.status);
     }
+
+    public void taskOnPreExecute(){
+
+    }
+    public void taskOnPostExecute(){
+
+    }
+
 }

@@ -5,6 +5,7 @@ import android.location.Location;
 import android.util.Log;
 
 import org.openplaces.MapActivity;
+import org.openplaces.OPProviderResultObject;
 import org.openplaces.OpenPlacesProvider;
 import org.openplaces.locations.LocationsCacheManager;
 import org.openplaces.model.OPGeoPoint;
@@ -92,7 +93,7 @@ public class OpenPlacesRemote {
         }
 
         //get remaining places from net
-        OpenPlacesProvider.ResultObject res = this.opp.getPlacesByTypesAndIds(getFromNetwork);
+        OPProviderResultObject res = this.opp.getPlacesByTypesAndIds(getFromNetwork);
         List<OPPlaceInterface> newPlacesFromNet = res.places;
         ResultSet rs = ResultSet.buildFromOPPlaces(newPlacesFromNet, PlaceCategoriesManager.getInstance(appContext));
         rs.setStat("errorCode", Integer.toString(res.errorCode));
@@ -126,7 +127,7 @@ public class OpenPlacesRemote {
     }
 
     private ResultSet doSearch(SearchQuery query){
-        OpenPlacesProvider.ResultObject res = null;
+        OPProviderResultObject res = null;
         ResultSet rs;
 
         //no categories and locations set. Pure free text search via Nominatim
@@ -153,7 +154,7 @@ public class OpenPlacesRemote {
             for(OPLocationInterface l: query.getSearchLocations()){
                 ps.add(l.getAsPlace());
             }
-            res =  this.opp.new ResultObject();
+            res =  new OPProviderResultObject();
             res.places = ps;
         }
         else {
@@ -189,7 +190,7 @@ public class OpenPlacesRemote {
 
     public List<OPLocationInterface> getLocationsByName(String name){
         //always trigger a newtork call
-        OpenPlacesProvider.ResultObject res = this.opp.getLocationsByName(name);
+        OPProviderResultObject res = this.opp.getLocationsByName(name);
 
         //updates the cache
         this.lcm.updateLocationsCache(null, res.locations);
@@ -210,7 +211,7 @@ public class OpenPlacesRemote {
             return;
         }
 
-        OpenPlacesProvider.ResultObject res = opp.getLocationsAround(new OPGeoPoint(point.getLatitude(), point.getLongitude()), AROUND_LOCATIONS_RADIUS);
+        OPProviderResultObject res = opp.getLocationsAround(new OPGeoPoint(point.getLatitude(), point.getLongitude()), AROUND_LOCATIONS_RADIUS);
         Log.d(MapActivity.LOGTAG, res.locations.size() + " locations fetched from network");
 
         //updates the cache

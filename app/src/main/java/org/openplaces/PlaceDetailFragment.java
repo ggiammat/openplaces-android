@@ -28,6 +28,7 @@ public class PlaceDetailFragment extends Fragment {
 
     private ResultSet resultSet;
     TextView placeNameTV;
+    TextView text2;
     private GestureDetector gestureDetector;
 
     private ResultSet.ResultSetEventsListener rsListener = new ResultSet.ResultSetEventsListener() {
@@ -50,9 +51,11 @@ public class PlaceDetailFragment extends Fragment {
         Place p = this.resultSet.getSelected();
         if(p != null){
             this.placeNameTV.setText(p.getName());
+            this.text2.setText(p.getCategory() != null ? p.getCategory().getId() : "Unknown");
         }
         else {
             this.placeNameTV.setText("??");
+            this.text2.setText("??");
         }
     }
 
@@ -72,7 +75,7 @@ public class PlaceDetailFragment extends Fragment {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_place_detail, container, false);
         this.placeNameTV = (TextView) v.findViewById(R.id.placeDetailName);
-
+        this.text2 = (TextView) v.findViewById(R.id.textView2);
 
         ImageButton starButton = (ImageButton) v.findViewById(R.id.starButtonMapView);
         starButton.setOnClickListener(new View.OnClickListener() {
@@ -176,7 +179,7 @@ public class PlaceDetailFragment extends Fragment {
     }
 
     private void shareAction(Place place){
-        String shareBody = place.getName() + ", " + place.getCategory().getName() + "\n";
+        String shareBody = place.getName() + ", " + place.getCategory().getId() + "\n";
         shareBody += place.getAddressString() != null ? place.getAddressString() + "\n" : "";
         shareBody += place.getOsmTags().get("phone") != null ? place.getOsmTags().get("phone") + "\n" : "";
         shareBody += "http://www.openstreetmap.org/#map=19/" + place.getPosition().getLat() + "/" + place.getPosition().getLon();

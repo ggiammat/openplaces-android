@@ -1,0 +1,213 @@
+{
+    "library-name": "general_standard",
+    "library-version": "1.0.0",
+    "released-on": "2015-01-28",
+    "categories": [
+        {
+            "id": "cinema",
+            "description": "A place where films are shown",
+            "osm-tag-filter-groups": [
+                {
+                    "amenity": {
+                        "IS_EQUALS_TO": "cinema"
+                    }
+                }
+            ],
+            "names": {
+                "en": "cinema",
+                "it": "cinemas"
+            }
+        },
+        {
+            "id": "atm",
+            "description": "An automated teller machine",
+            "osm-tag-filter-groups": [
+                {
+                    "amenity": {
+                        "IS_EQUALS_TO": "atm"
+                    }
+                }
+            ],
+            "names": {
+                "en": "cash machine",
+                "it": "bancomat"
+            }
+        },
+        {
+            "id": "fuel",
+            "description": "petrol station; gas station",
+            "osm-tag-filter-groups": [
+                {
+                    "amenity": {
+                        "IS_EQUALS_TO": "fuel"
+                    }
+                }
+            ],
+            "names": {
+                "en": "petrol station, gas station",
+                "it": "benzinaio, benzinai, pompa di benzina"
+            }
+        },
+        {
+            "id": "parking",
+            "osm-tag-filter-groups": [
+                {
+                    "amenity": {
+                        "IS_EQUALS_TO": "parking"
+                    }
+                }
+            ],
+            "names": {
+                "en": "parking",
+                "it": "parcheggio, parcheggi"
+            }
+        },
+        {
+            "id": "hotel",
+            "description": "an establishment that provides paid lodging, usually on a short-term basis",
+            "osm-tag-filter-groups": [
+                {
+                    "tourism": {
+                        "IS_EQUALS_TO": "hotel"
+                    }
+                },
+                {
+                    "building": {
+                        "IS_EQUALS_TO": "hotel"
+                    }
+                }
+            ],
+            "names": {
+                "en": "hotel",
+                "it": "hotel, albergo"
+            }
+        },
+        {
+            "id": "apartment",
+            "description": "an establishment that provides paid lodging, usually on a short-term basis",
+            "osm-tag-filter-groups": [
+                {
+                    "tourism": {
+                        "IS_EQUALS_TO": "apartment"
+                    }
+                }
+            ],
+            "names": {
+                "en": "apartment",
+                "it": "appartamento, appartamenti, case vacanza"
+            }
+        },
+        {
+            "id": "bed_and_breakfast",
+            "description": "an establishment that provides paid lodging, usually on a short-term basis",
+            "osm-tag-filter-groups": [
+                {
+                    "tourism": {
+                        "IS_EQUALS_TO": "guest_house"
+                    }
+                }
+            ],
+            "names": {
+                "en": "bed & breakfast, guest house",
+                "it": "bed & breakfast"
+            }
+        },
+        {
+            "id": "office",
+            "priority": "10",
+            "description": "generic office",
+            "osm-tag-filter-groups": [
+                {
+                    "office": {
+                        "HAS_TAG": "true"
+                    }
+                }
+            ],
+            "names": {
+                "en": "office",
+                "it": "ufficio"
+            }
+        },
+        {
+            "id": "beach",
+            "description": "a large store for groceries and other goods",
+            "osm-tag-filter-groups": [
+                {
+                    "natural": {
+                        "IS_EQUALS_TO": "beach"
+                    }
+                }
+            ],
+            "names": {
+                "en": "beach",
+                "it": "spiaggia"
+            }
+        },
+        {
+            "id": "place_of_worship",
+            "description": "a large store for groceries and other goods",
+            "osm-tag-filter-groups": [
+                {
+                    "amenity": {
+                        "IS_EQUALS_TO": "place_of_worship"
+                    }
+                }
+            ],
+            "names": {
+                "en": "place of worship",
+                "it": "luogo di culto, chiesa"
+            }
+        },
+        {
+            "id": "viewpoint",
+            "description": "an establishment that provides paid lodging, usually on a short-term basis",
+            "osm-tag-filter-groups": [
+                {
+                    "tourism": {
+                        "IS_EQUALS_TO": "viewpoint"
+                    }
+                }
+            ],
+            "names": {
+                "en": "viewpoint",
+                "it": "punto panoramico"
+            }
+        },
+        {
+            "id": "museum",
+            "description": "an establishment that provides paid lodging, usually on a short-term basis",
+            "osm-tag-filter-groups": [
+                {
+                    "tourism": {
+                        "IS_EQUALS_TO": "museum"
+                    }
+                },
+                {
+                    "tourism": {
+                        "IS_EQUALS_TO": "gallery"
+                    }
+                }
+            ],
+            "names": {
+                "en": "museum",
+                "it": "museo"
+            }
+        },
+        {
+            "id": "building",
+            "priority": "100",
+            "description": "an establishment that provides paid lodging, usually on a short-term basis",
+            "osm-tag-filter-groups": [
+                {
+                    "building": {
+                        "IS_EQUALS_TO": "yes"
+                    }
+                }
+            ],
+            "names": {
+                "en": "building",
+                "it": "edificio"
+            }
+        }
+    ]
+}

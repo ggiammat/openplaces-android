@@ -24,7 +24,7 @@ public class PlaceCategorySuggestionItem extends SuggestionItem {
 
     @Override
     public String getTitle() {
-        return this.category.getName();
+        return this.category.getId();
     }
 
     @Override

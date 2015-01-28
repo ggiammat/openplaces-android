@@ -96,6 +96,14 @@ public class ResultSet implements Parcelable, Iterable<Place> {
         return null;
     }
 
+
+    public boolean contains(Place place){
+        return this.places.contains(place);
+    }
+
+    public Place getPlaceAt(int index){
+        return this.places.get(index);
+    }
     public int size(){
         return this.places.size();
     }

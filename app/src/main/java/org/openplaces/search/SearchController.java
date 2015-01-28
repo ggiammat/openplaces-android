@@ -237,8 +237,6 @@ public class SearchController {
         notifySearchFinshed(null, null);
 
         mapActivity.setNewResultSet(rs);
-        mapActivity.expandSlidingPanel();
-
     }
 
 

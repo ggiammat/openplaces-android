@@ -27,6 +27,8 @@ import java.util.Map;
 public class PlaceDetailFragment extends Fragment {
 
     private ResultSet resultSet;
+    private TextView placeNameTV;
+    private ImageButton starButton;
     TextView placeNameTV;
     TextView text2;
     private GestureDetector gestureDetector;
@@ -51,6 +53,12 @@ public class PlaceDetailFragment extends Fragment {
         Place p = this.resultSet.getSelected();
         if(p != null){
             this.placeNameTV.setText(p.getName());
+            if(resultSet != null && lm.isStarred(resultSet.getSelected())){
+                starButton.setImageResource(R.drawable.ic_action_star_on);
+            }
+            else {
+                starButton.setImageResource(R.drawable.ic_action_star_off);
+            }
             this.text2.setText(p.getCategory() != null ? p.getCategory().getId() : "Unknown");
         }
         else {
@@ -77,6 +85,8 @@ public class PlaceDetailFragment extends Fragment {
         this.placeNameTV = (TextView) v.findViewById(R.id.placeDetailName);
         this.text2 = (TextView) v.findViewById(R.id.textView2);
 
+        this.starButton = (ImageButton) v.findViewById(R.id.starButtonMapView);
+
         ImageButton starButton = (ImageButton) v.findViewById(R.id.starButtonMapView);
         starButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -92,6 +102,40 @@ public class PlaceDetailFragment extends Fragment {
                 listsManagerFragment.show(getFragmentManager(), "listsManagerFragmentInMapActivity");
             }
         });
+
+        this.lm.addListsEventListener(new ListManagerEventListener() {
+            @Override
+            public void placeAddedToStarredList(Place place, PlaceList list) {
+                if(place.equals(resultSet.getSelected())){
+                    starButton.setImageResource(R.drawable.ic_action_star_on);
+                }
+            }
+
+            @Override
+            public void placeAddedToAutoList(Place place, PlaceList list) {
+
+            }
+
+            @Override
+            public void placeRemovedFromStarredList(Place place, PlaceList list) {
+                if(place.equals(resultSet.getSelected()) && !lm.isStarred(resultSet.getSelected())){
+                    starButton.setImageResource(R.drawable.ic_action_star_off);
+                }
+            }
+
+            @Override
+            public void placeRemovedFromAutoList(Place place, PlaceList list) {
+
+            }
+
+            @Override
+            public void starredListAdded(PlaceList list) {
+
+            }
+        });
+
+
+
 
         ImageButton shareButton = (ImageButton) v.findViewById(R.id.placeDetailShare);
         shareButton.setOnClickListener(new View.OnClickListener() {
@@ -160,6 +204,7 @@ public class PlaceDetailFragment extends Fragment {
 
         this.gestureDetector = new GestureDetector(getActivity(), new MyGestureDetector());
 
+        this.lm = ListManager.getInstance(getActivity().getApplicationContext());
     }
 
     @Override

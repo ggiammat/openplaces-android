@@ -27,14 +27,18 @@ public class SearchTask extends OpenPlacesAsyncTask {
         OpenPlacesRemote opr = OpenPlacesRemote.getInstance(this.appContext);
         ResultSet resultSet = opr.search(this.sq);
 
-        this.setResult(resultSet, 0);
+        this.setResult(resultSet,  resultSet.getStat("errorCode").equals("0") ? 0 : 1);
         return null;
     }
 
     @Override
     public void taskOnPostExecute() {
-        if(this.getTaskStatus() != 0){
-            Toast toast = Toast.makeText(this.appContext, "ERROR performing search: " + ((ResultSet) this.getResult()).getStat("errorMessage"), Toast.LENGTH_SHORT);
+        if(this.getTaskStatus() == 0){
+//            Toast toast = Toast.makeText(this.appContext, "Starred places successfully loaded", Toast.LENGTH_SHORT);
+//            toast.show();
+        }
+        else {
+            Toast toast = Toast.makeText(this.appContext, "ERROR loading starred places: " + ((ResultSet) this.getResult()).getStat("errorMessage"), Toast.LENGTH_SHORT);
             toast.show();
         }
     }

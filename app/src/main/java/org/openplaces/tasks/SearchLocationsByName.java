@@ -6,6 +6,7 @@ import android.widget.Toast;
 
 import org.openplaces.model.OPLocationInterface;
 import org.openplaces.remote.OpenPlacesRemote;
+import org.openplaces.search.LocationResultSet;
 import org.openplaces.search.ResultSet;
 
 import java.util.List;
@@ -28,8 +29,20 @@ public class SearchLocationsByName extends OpenPlacesAsyncTask {
     protected Void doInBackground(Void... voids) {
         OpenPlacesRemote opr = OpenPlacesRemote.getInstance(this.appContext);
 
-        List<OPLocationInterface> res = opr.getLocationsByName(this.name);
-        this.setResult(res, 0);
+        LocationResultSet res = opr.getLocationsByName(this.name);
+        this.setResult(res, res.getStats().get("errorCode").equals("0") ? 0 : 1);
         return null;
+    }
+
+    @Override
+    public void taskOnPostExecute() {
+        if(this.getTaskStatus() == 0){
+//            Toast toast = Toast.makeText(this.appContext, "Locations successfully loaded", Toast.LENGTH_SHORT);
+//            toast.show();
+        }
+        else {
+            Toast toast = Toast.makeText(this.appContext, "ERROR searching location by name: " + ((LocationResultSet) this.getResult()).getStats().get("errorMessage"), Toast.LENGTH_SHORT);
+            toast.show();
+        }
     }
 }

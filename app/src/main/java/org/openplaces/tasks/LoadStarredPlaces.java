@@ -37,8 +37,8 @@ public class LoadStarredPlaces extends OpenPlacesAsyncTask {
     @Override
     public void taskOnPostExecute() {
         if(this.getTaskStatus() == 0){
-            Toast toast = Toast.makeText(this.appContext, "Starred places successfully loaded", Toast.LENGTH_SHORT);
-            toast.show();
+//            Toast toast = Toast.makeText(this.appContext, "Starred places successfully loaded", Toast.LENGTH_SHORT);
+//            toast.show();
         }
         else {
             Toast toast = Toast.makeText(this.appContext, "ERROR loading starred places: " + ((ResultSet) this.getResult()).getStat("errorMessage"), Toast.LENGTH_SHORT);

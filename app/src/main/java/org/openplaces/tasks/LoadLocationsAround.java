@@ -7,6 +7,7 @@ import android.widget.Toast;
 import org.openplaces.lists.ListManager;
 import org.openplaces.model.OPLocationInterface;
 import org.openplaces.remote.OpenPlacesRemote;
+import org.openplaces.search.LocationResultSet;
 import org.openplaces.search.ResultSet;
 
 import java.util.List;
@@ -28,12 +29,22 @@ public class LoadLocationsAround extends OpenPlacesAsyncTask {
     @Override
     protected Void doInBackground(Void... voids) {
         OpenPlacesRemote opr = OpenPlacesRemote.getInstance(this.appContext);
-        opr.updateKnownLocationsAround(this.point);
+        LocationResultSet rs = opr.getLocationsAround(this.point);
 
-        //TODO: this returns all locations not only the ones around.
-        List<OPLocationInterface> res = opr.getKnownLocations();
-        this.setResult(res, 0);
+        this.setResult(rs, rs.getStats().get("errorCode").equals("0") ? 0 : 1);
         return null;
+    }
+
+    @Override
+    public void taskOnPostExecute() {
+        if(this.getTaskStatus() == 0){
+//            Toast toast = Toast.makeText(this.appContext, "Around locations successfully loaded", Toast.LENGTH_SHORT);
+//            toast.show();
+        }
+        else {
+            Toast toast = Toast.makeText(this.appContext, "ERROR loading around locations: " + ((LocationResultSet) this.getResult()).getStats().get("errorMessage"), Toast.LENGTH_SHORT);
+            toast.show();
+        }
     }
 
 }

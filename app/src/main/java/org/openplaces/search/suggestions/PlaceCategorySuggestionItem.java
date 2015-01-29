@@ -50,6 +50,6 @@ public class PlaceCategorySuggestionItem extends SuggestionItem {
 
     @Override
     public int getImageResource() {
-        return IconsManager.getInstance(this.searchController.getAppContext()).getCategoryIconId(this.category, 3224);
+        return IconsManager.getInstance(this.searchController.getAppContext()).getCategoryIconId(this.category, false);
     }
 }

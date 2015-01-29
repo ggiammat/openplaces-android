@@ -269,7 +269,7 @@ public class SearchSuggestionsAdapter extends BaseAdapter implements Filterable 
             public void taskFinished(Object result, int status) {
                 hostingActivity.setProgressBarIndeterminateVisibility(Boolean.FALSE);
 
-                for(OPLocationInterface l: (List<OPLocationInterface>) result){
+                for(OPLocationInterface l: ((LocationResultSet) result).getLocations()){
                     allItems.add(new LocationSuggestionItem(l, searchController));
                 }
                 getFilter().filter(searchController.getSearchQueryCurrentTokenFreeText());
@@ -311,7 +311,7 @@ public class SearchSuggestionsAdapter extends BaseAdapter implements Filterable 
             public void taskFinished(Object result, int status) {
                 hostingActivity.setProgressBarIndeterminateVisibility(Boolean.FALSE);
 
-                for(OPLocationInterface l: (List<OPLocationInterface>) result){
+                for(OPLocationInterface l: ((LocationResultSet) result).getLocations()){
                     allItems.add(new LocationSuggestionItem(l, searchController));
                 }
                 getFilter().filter(searchController.getSearchQueryCurrentTokenFreeText());

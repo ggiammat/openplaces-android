@@ -40,21 +40,21 @@ public class IconsManager {
     private Map<String, Drawable> iconsCache;
 
 
-    public Drawable getPlaceIcon(Place place, int size){
-        return this.getCategoryIcon(place.getCategory(), size);
+    public Drawable getPlaceIcon(Place place, boolean bigSize){
+        return this.getCategoryIcon(place.getCategory(), bigSize);
     }
 
 
-    public int getCategoryIconId(PlaceCategory cat, int size){
+    public int getCategoryIconId(PlaceCategory cat, boolean bigSize){
         String symbol = cat != null ? cat.getId() : null;
         if(symbol == null){
             symbol = UNKNOWN_CATEGORY_MARKER_SYMBOL;
         }
-        String resourceName = "pic_" + symbol + "_"  + size;
+        String resourceName = bigSize ? "picbig" : "pic_" + symbol;
         return this.context.getResources().getIdentifier(resourceName, "drawable", this.context.getApplicationContext().getPackageName());
     }
 
-    public Drawable getCategoryIcon(PlaceCategory cat, int size){
+    public Drawable getCategoryIcon(PlaceCategory cat, boolean bigSize){
         String symbol = cat.getId();
         if(symbol == null){
             symbol = UNKNOWN_CATEGORY_MARKER_SYMBOL;
@@ -64,10 +64,7 @@ public class IconsManager {
             return this.iconsCache.get(symbol);
         }
 
-        String resourceName = "pic_" + symbol + "_"  + size;
-        Log.d(MapActivity.LOGTAG, "Getting drawable resource by name " + resourceName);
-
-        Drawable icon = this.context.getResources().getDrawable(this.context.getResources().getIdentifier(resourceName, "drawable", this.context.getApplicationContext().getPackageName()));
+        Drawable icon = this.context.getResources().getDrawable(this.getCategoryIconId(cat, bigSize));
 
         this.iconsCache.put(symbol, icon);
 

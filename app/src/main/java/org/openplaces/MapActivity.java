@@ -168,12 +168,7 @@ public class MapActivity extends Activity {
         if("0".equals(rs.getStat("errorCode"))) {
             this.rsStatsTV.setText("T/N/C: " + rs.size() + "/" + rs.getStat("net") + "/" + rs.getStat("cache"));
         }
-//        else if("1".equals(rs.getStat("errorCode"))) {
-//            Toast.makeText(getApplicationContext(), "Search area is too big. Try to zoom in!", Toast.LENGTH_LONG).show();
-//        }
-        else {
-            this.rsStatsTV.setText("ERROR: " + rs.getStat("errorMessage"));
-        }
+        //errors are showed in a Toast
 
 
 

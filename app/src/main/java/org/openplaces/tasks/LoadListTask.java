@@ -52,8 +52,8 @@ public class LoadListTask extends OpenPlacesAsyncTask {
     @Override
     public void taskOnPostExecute() {
         if(this.getTaskStatus() == 0){
-            Toast toast = Toast.makeText(this.appContext, "Places successfully loaded", Toast.LENGTH_SHORT);
-            toast.show();
+//            Toast toast = Toast.makeText(this.appContext, "Places successfully loaded", Toast.LENGTH_SHORT);
+//            toast.show();
         }
         else {
             Toast toast = Toast.makeText(this.appContext, "ERROR loading places: " + ((ResultSet) this.getResult()).getStat("errorMessage"), Toast.LENGTH_SHORT);

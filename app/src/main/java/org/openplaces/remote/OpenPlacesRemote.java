@@ -14,6 +14,7 @@ import org.openplaces.model.OPPlaceInterface;
 import org.openplaces.places.Place;
 import org.openplaces.categories.PlaceCategoriesManager;
 import org.openplaces.places.PlacesCacheManager;
+import org.openplaces.search.LocationResultSet;
 import org.openplaces.search.ResultSet;
 import org.openplaces.model.impl.OPLocationImpl;
 import org.openplaces.search.SearchQuery;
@@ -188,13 +189,20 @@ public class OpenPlacesRemote {
         return rs;
     }
 
-    public List<OPLocationInterface> getLocationsByName(String name){
+    public LocationResultSet getLocationsByName(String name){
         //always trigger a newtork call
         OPProviderResultObject res = this.opp.getLocationsByName(name);
 
         //updates the cache
         this.lcm.updateLocationsCache(null, res.locations);
-        return res.locations;
+
+        LocationResultSet lrs = new LocationResultSet();
+        if(res.errorCode != 0){
+            lrs.addStat("errorCode", Integer.toString(res.errorCode));
+            lrs.addStat("errorMessage", res.errorMessage);
+        }
+
+        return lrs;
     }
 
     public ResultSet getKnownPlaces(){
@@ -205,10 +213,23 @@ public class OpenPlacesRemote {
         return this.lcm.getCachedLocations();
     }
 
-    public void updateKnownLocationsAround(Location point){
+
+    public LocationResultSet getLocationsAround(Location point){
+
+        LocationResultSet lr = this.updateKnownLocationsAround(point);
+
+        //TODO: this returns all locations not only the ones around 'point'
+        lr.setLocations(this.lcm.getCachedLocations());
+
+        return lr;
+    }
+
+    public LocationResultSet updateKnownLocationsAround(Location point){
+
+        LocationResultSet lrs = new LocationResultSet();
 
         if(this.lcm.containsLocationAround(point)){
-            return;
+            return lrs;
         }
 
         OPProviderResultObject res = opp.getLocationsAround(new OPGeoPoint(point.getLatitude(), point.getLongitude()), AROUND_LOCATIONS_RADIUS);
@@ -216,6 +237,13 @@ public class OpenPlacesRemote {
 
         //updates the cache
         this.lcm.updateLocationsCache(point, res.locations);
+
+        if(res.errorCode != 0){
+            lrs.addStat("errorCode", Integer.toString(res.errorCode));
+            lrs.addStat("errorMessage", res.errorMessage);
+        }
+
+        return lrs;
     }
 
 }

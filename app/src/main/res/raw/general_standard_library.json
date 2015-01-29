@@ -4,6 +4,34 @@
     "released-on": "2015-01-28",
     "categories": [
         {
+            "id": "building",
+            "priority": "100",
+            "description": "a building",
+            "osm-tag-filter-groups": [
+                {"building": {"IS_EQUALS_TO": "yes"}}
+            ],
+            "names": {
+                "en": "building",
+                "it": "edificio"
+            }
+        },
+        {
+            "id": "office",
+            "priority": "10",
+            "description": "generic office",
+            "osm-tag-filter-groups": [
+                {
+                    "office": {
+                        "HAS_TAG": "true"
+                    }
+                }
+            ],
+            "names": {
+                "en": "office",
+                "it": "ufficio"
+            }
+        },
+        {
             "id": "cinema",
             "description": "A place where films are shown",
             "osm-tag-filter-groups": [
@@ -63,72 +91,6 @@
             }
         },
         {
-            "id": "hotel",
-            "description": "an establishment that provides paid lodging, usually on a short-term basis",
-            "osm-tag-filter-groups": [
-                {
-                    "tourism": {
-                        "IS_EQUALS_TO": "hotel"
-                    }
-                },
-                {
-                    "building": {
-                        "IS_EQUALS_TO": "hotel"
-                    }
-                }
-            ],
-            "names": {
-                "en": "hotel",
-                "it": "hotel, albergo"
-            }
-        },
-        {
-            "id": "apartment",
-            "description": "an establishment that provides paid lodging, usually on a short-term basis",
-            "osm-tag-filter-groups": [
-                {
-                    "tourism": {
-                        "IS_EQUALS_TO": "apartment"
-                    }
-                }
-            ],
-            "names": {
-                "en": "apartment",
-                "it": "appartamento, appartamenti, case vacanza"
-            }
-        },
-        {
-            "id": "bed_and_breakfast",
-            "description": "an establishment that provides paid lodging, usually on a short-term basis",
-            "osm-tag-filter-groups": [
-                {
-                    "tourism": {
-                        "IS_EQUALS_TO": "guest_house"
-                    }
-                }
-            ],
-            "names": {
-                "en": "bed & breakfast, guest house",
-                "it": "bed & breakfast"
-            }
-        },
-        {
-            "id": "office",
-            "priority": "10",
-            "description": "generic office",
-            "osm-tag-filter-groups": [
-                {
-                    "office": {
-                        "HAS_TAG": "true"
-                    }
-                }
-            ],
-            "names": {
-                "en": "office",
-                "it": "ufficio"
-            }
-        },
-        {
             "id": "beach",
             "description": "a large store for groceries and other goods",
             "osm-tag-filter-groups": [
@@ -159,54 +121,33 @@
             }
         },
         {
-            "id": "viewpoint",
-            "description": "an establishment that provides paid lodging, usually on a short-term basis",
+            "id": "cafe",
+            "description": "a generally informal place with sit-down facilities selling beverages and light meals and/or snacks",
             "osm-tag-filter-groups": [
                 {
-                    "tourism": {
-                        "IS_EQUALS_TO": "viewpoint"
+                    "amenity": {
+                        "IS_EQUALS_TO": "cafe"
                     }
                 }
             ],
             "names": {
-                "en": "viewpoint",
-                "it": "punto panoramico"
+                "en": "cafè, cafe",
+                "it": "caffè, bar"
             }
         },
         {
-            "id": "museum",
-            "description": "an establishment that provides paid lodging, usually on a short-term basis",
+            "id": "cocktail_bar",
+            "description": " purpose-built commercial establishment that sells alcoholic drinks to be consumed on the premises",
             "osm-tag-filter-groups": [
                 {
-                    "tourism": {
-                        "IS_EQUALS_TO": "museum"
-                    }
-                },
-                {
-                    "tourism": {
-                        "IS_EQUALS_TO": "gallery"
+                    "amenity": {
+                        "IS_EQUALS_TO": "bar"
                     }
                 }
             ],
             "names": {
-                "en": "museum",
-                "it": "museo"
-            }
-        },
-        {
-            "id": "building",
-            "priority": "100",
-            "description": "an establishment that provides paid lodging, usually on a short-term basis",
-            "osm-tag-filter-groups": [
-                {
-                    "building": {
-                        "IS_EQUALS_TO": "yes"
-                    }
-                }
-            ],
-            "names": {
-                "en": "building",
-                "it": "edificio"
+                "en": "cocktail bar",
+                "it": "cocktail bar"
             }
         }
     ]

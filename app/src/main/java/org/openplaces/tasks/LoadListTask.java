@@ -2,6 +2,7 @@ package org.openplaces.tasks;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.openplaces.MapActivity;
 import org.openplaces.lists.ListManager;
@@ -46,5 +47,17 @@ public class LoadListTask extends OpenPlacesAsyncTask {
 
         this.setResult(rs, 0);
         return null;
+    }
+
+    @Override
+    public void taskOnPostExecute() {
+        if(this.getTaskStatus() == 0){
+            Toast toast = Toast.makeText(this.appContext, "Places successfully loaded", Toast.LENGTH_SHORT);
+            toast.show();
+        }
+        else {
+            Toast toast = Toast.makeText(this.appContext, "ERROR loading places: " + ((ResultSet) this.getResult()).getStat("errorMessage"), Toast.LENGTH_SHORT);
+            toast.show();
+        }
     }
 }

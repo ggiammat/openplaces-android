@@ -1,0 +1,64 @@
+{
+    "library-name": "tourism_standard",
+    "library-version": "1.0.0",
+    "released-on": "2015-01-29",
+    "categories": [
+        {
+            "id": "hotel",
+            "description": "an establishment that provides paid lodging, usually on a short-term basis",
+            "osm-tag-filter-groups": [
+                {"tourism": {"IS_EQUALS_TO": "hotel"}},
+                {"building": {"IS_EQUALS_TO": "hotel"}}
+            ],
+            "names": {
+                "en": "hotel",
+                "it": "hotel, albergo"
+            }
+        },
+        {
+            "id": "apartment",
+            "description": "an establishment that provides paid lodging, usually on a short-term basis",
+            "osm-tag-filter-groups": [
+                {"tourism": {"IS_EQUALS_TO": "apartment"}}
+            ],
+            "names": {
+                "en": "apartment",
+                "it": "appartamento, appartamenti, case vacanza"
+            }
+        },
+        {
+            "id": "bed_and_breakfast",
+            "description": "an establishment that provides paid lodging, usually on a short-term basis",
+            "osm-tag-filter-groups": [
+                {"tourism": {"IS_EQUALS_TO": "guest_house"}}
+            ],
+            "names": {
+                "en": "bed & breakfast, guest house",
+                "it": "bed & breakfast"
+            }
+        },
+        {
+            "id": "viewpoint",
+            "description": "an establishment that provides paid lodging, usually on a short-term basis",
+            "osm-tag-filter-groups": [
+                {"tourism": {"IS_EQUALS_TO": "viewpoint"}}
+            ],
+            "names": {
+                "en": "viewpoint",
+                "it": "punto panoramico"
+            }
+        },
+        {
+            "id": "museum",
+            "description": "an establishment that provides paid lodging, usually on a short-term basis",
+            "osm-tag-filter-groups": [
+                {"tourism": {"IS_EQUALS_TO": "museum"}},
+                {"tourism": {"IS_EQUALS_TO": "gallery"}}
+            ],
+            "names": {
+                "en": "museum",
+                "it": "museo"
+            }
+        }
+    ]
+}

@@ -19,7 +19,10 @@ import java.util.Map;
 
 public class PlaceCategoriesManager {
 
-    public static final int[] STANDARD_LIBS = new int[]{R.raw.food_standard_library, R.raw.general_standard_library};
+    public static final int[] STANDARD_LIBS = new int[]{
+            R.raw.tourism_standard_library,
+            R.raw.food_standard_library,
+            R.raw.general_standard_library};
 
     private static PlaceCategoriesManager instance = null;
     private Context ctx;

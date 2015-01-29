@@ -4,6 +4,48 @@
     "released-on": "2015-01-28",
     "categories": [
         {
+            "id": "food",
+            "description": "places where eat",
+            "priority": "100",
+            "osm-tag-filter-groups": [
+                {"amenity": {"IS_EQUALS_TO": "restaurant"}},
+                {"amenity": {"IS_EQUALS_TO": "fast_food"}},
+                {"amenity": {"IS_EQUALS_TO": "pub"}}
+            ],
+            "names": {
+                "en": "eat, food",
+                "it": "mangiare, cibo"
+            }
+        },
+        {
+            "id": "restaurant",
+            "priority": "10",
+            "description": "place with sit-down facilities selling full meals",
+            "osm-tag-filter-groups": [
+                {
+                    "amenity": {"IS_EQUALS_TO": "restaurant"}
+                }
+            ],
+            "names": {
+                "en": "restaurant, restaurants",
+                "it": "ristorante, ristoranti"
+            }
+        },
+        {
+            "id": "fast_food",
+            "priority": "10",
+            "description": "a place concentrating on very fast counter-only service and take-away food.",
+            "osm-tag-filter-groups": [
+                {
+                    "amenity": {"IS_EQUALS_TO": "fast_food"}
+                }
+            ],
+            "names": {
+                "en": "fast food",
+                "it": "fast food"
+            }
+        },
+        {
             "id": "chinese_restaurant",
             "description": "place with sit-down facilities selling full meals",
             "osm-tag-filter-groups": [
@@ -19,22 +61,6 @@
             "names": {
                 "en": "chinese restaurant, chinese restaurants",
                 "it": "ristorante cinese, ristoranti cinese"
-            }
-        },
-        {
-            "id": "restaurant",
-            "priority": "10",
-            "description": "place with sit-down facilities selling full meals",
-            "osm-tag-filter-groups": [
-                {
-                    "amenity": {
-                        "IS_EQUALS_TO": "restaurant"
-                    }
-                }
-            ],
-            "names": {
-                "en": "restaurant, restaurants",
-                "it": "ristorante, ristoranti"
             }
         },
         {
@@ -93,37 +119,6 @@
             }
         },
         {
-            "id": "fast_food",
-            "priority": "10",
-            "description": "a place concentrating on very fast counter-only service and take-away food.",
-            "osm-tag-filter-groups": [
-                {
-                    "amenity": {
-                        "IS_EQUALS_TO": "fast_food"
-                    }
-                }
-            ],
-            "names": {
-                "en": "fast food",
-                "it": "fast food"
-            }
-        },
-        {
-            "id": "cafe",
-            "description": "a generally informal place with sit-down facilities selling beverages and light meals and/or snacks",
-            "osm-tag-filter-groups": [
-                {
-                    "amenity": {
-                        "IS_EQUALS_TO": "cafe"
-                    }
-                }
-            ],
-            "names": {
-                "en": "cafè, cafe",
-                "it": "caffè, bar"
-            }
-        },
-        {
             "id": "pub",
             "description": "an establishment that sells alcoholic drinks that can be consumed on the premises.",
             "osm-tag-filter-groups": [
@@ -136,21 +131,6 @@
             "names": {
                 "en": "pub",
                 "it": "pub"
-            }
-        },
-        {
-            "id": "cocktail_bar",
-            "description": " purpose-built commercial establishment that sells alcoholic drinks to be consumed on the premises",
-            "osm-tag-filter-groups": [
-                {
-                    "amenity": {
-                        "IS_EQUALS_TO": "bar"
-                    }
-                }
-            ],
-            "names": {
-                "en": "cocktail bar",
-                "it": "cocktail bar"
             }
         }
     ]

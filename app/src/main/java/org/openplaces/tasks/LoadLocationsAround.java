@@ -2,6 +2,7 @@ package org.openplaces.tasks;
 
 import android.content.Context;
 import android.location.Location;
+import android.widget.Toast;
 
 import org.openplaces.lists.ListManager;
 import org.openplaces.model.OPLocationInterface;
@@ -34,4 +35,5 @@ public class LoadLocationsAround extends OpenPlacesAsyncTask {
         this.setResult(res, 0);
         return null;
     }
+
 }

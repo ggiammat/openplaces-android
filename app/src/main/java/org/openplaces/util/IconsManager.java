@@ -107,7 +107,7 @@ public class IconsManager {
             return this.markersCache.get(cacheKey);
         }
 
-        String resourceName = "pic_" + symbol + "_3224";
+        String resourceName = "pic_" + symbol;
 
         int bgId = -1;
         if(selected && starred){

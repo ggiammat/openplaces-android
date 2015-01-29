@@ -17,7 +17,10 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.openplaces.lists.ListManager;
+import org.openplaces.lists.ListManagerEventListener;
 import org.openplaces.lists.ListManagerFragment;
+import org.openplaces.lists.PlaceList;
 import org.openplaces.places.Place;
 import org.openplaces.search.ResultSet;
 
@@ -28,8 +31,8 @@ public class PlaceDetailFragment extends Fragment {
 
     private ResultSet resultSet;
     private TextView placeNameTV;
+    private ListManager lm;
     private ImageButton starButton;
-    TextView placeNameTV;
     TextView text2;
     private GestureDetector gestureDetector;
 
@@ -87,7 +90,7 @@ public class PlaceDetailFragment extends Fragment {
 
         this.starButton = (ImageButton) v.findViewById(R.id.starButtonMapView);
 
-        ImageButton starButton = (ImageButton) v.findViewById(R.id.starButtonMapView);
+        starButton = (ImageButton) v.findViewById(R.id.starButtonMapView);
         starButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

@@ -2,9 +2,11 @@ package org.openplaces.tasks;
 
 import android.content.Context;
 import android.location.Location;
+import android.widget.Toast;
 
 import org.openplaces.model.OPLocationInterface;
 import org.openplaces.remote.OpenPlacesRemote;
+import org.openplaces.search.ResultSet;
 
 import java.util.List;
 

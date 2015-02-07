@@ -18,6 +18,7 @@ public class CachedLocation extends OPLocationImpl {
         this.setId(loc.getId());
         this.setDisplayName(loc.getDisplayName());
         this.setOsmTags(loc.getOsmTags());
+        this.setOsmType(loc.getOsmType());
     }
 
     @Override

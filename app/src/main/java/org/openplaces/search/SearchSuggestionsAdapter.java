@@ -270,6 +270,7 @@ public class SearchSuggestionsAdapter extends BaseAdapter implements Filterable 
                 hostingActivity.setProgressBarIndeterminateVisibility(Boolean.FALSE);
 
                 for(OPLocationInterface l: ((LocationResultSet) result).getLocations()){
+                    Log.d(MapActivity.LOGTAG, "Adding location suggestion " + l);
                     allItems.add(new LocationSuggestionItem(l, searchController));
                 }
                 getFilter().filter(searchController.getSearchQueryCurrentTokenFreeText());

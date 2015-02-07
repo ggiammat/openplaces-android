@@ -202,6 +202,8 @@ public class OpenPlacesRemote {
             lrs.addStat("errorMessage", res.errorMessage);
         }
 
+        lrs.setLocations(res.locations);
+
         return lrs;
     }
 

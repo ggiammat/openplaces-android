@@ -31,12 +31,20 @@ public class PlaceCategory implements OPPlaceCategoryInterface, Parcelable {
             dest.writeString(this.getId());
         }
 
+        if(this.getIcon() == null){
+            dest.writeByte((byte) (0x00));
+        } else {
+            dest.writeByte((byte) (0x01));
+            dest.writeString(this.getIcon());
+        }
+
         dest.writeInt(this.getPriority());
     }
 
     public PlaceCategory(Parcel in){
         this.mDelegate = new OPPlaceCategoryImpl();
         this.setId(in.readByte() == 0x00 ? null : in.readString());
+        this.setIcon(in.readByte() == 0x00 ? null : in.readString());
         this.setPriority(in.readInt());
     }
 
@@ -88,7 +96,6 @@ public class PlaceCategory implements OPPlaceCategoryInterface, Parcelable {
 
     }
 
-
     @Override
     public String getFirstNameMatch(String text) {
         return this.mDelegate.getFirstNameMatch(text);
@@ -102,6 +109,16 @@ public class PlaceCategory implements OPPlaceCategoryInterface, Parcelable {
     @Override
     public void setPriority(int i) {
         this.mDelegate.setPriority(i);
+    }
+
+    @Override
+    public String getIcon() {
+        return this.mDelegate.getIcon();
+    }
+
+    @Override
+    public void setIcon(String s) {
+     this.mDelegate.setIcon(s);
     }
 
     @Override

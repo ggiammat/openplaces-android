@@ -5,6 +5,7 @@
     "categories": [
         {
             "id": "food",
+            "icon": "restaurant",
             "description": "places where eat",
             "priority": "100",
             "osm-tag-filter-groups": [
@@ -19,6 +20,7 @@
         },
         {
             "id": "restaurant",
+            "icon": "restaurant",
             "priority": "10",
             "description": "place with sit-down facilities selling full meals",
             "osm-tag-filter-groups": [
@@ -33,6 +35,7 @@
         },
         {
             "id": "fast_food",
+            "icon": "fast_food",
             "priority": "10",
             "description": "a place concentrating on very fast counter-only service and take-away food.",
             "osm-tag-filter-groups": [
@@ -47,6 +50,7 @@
         },
         {
             "id": "chinese_restaurant",
+            "icon": "chinese_restaurant",
             "description": "place with sit-down facilities selling full meals",
             "osm-tag-filter-groups": [
                 {
@@ -65,6 +69,7 @@
         },
         {
             "id": "regional_restaurant",
+            "icon": "restaurant",
             "description": "place with sit-down facilities selling full meals",
             "osm-tag-filter-groups": [
                 {
@@ -84,6 +89,7 @@
 
         {
             "id": "pizzeria",
+            "icon": "pizzeria",
             "description": "place with sit-down facilities selling full meals",
             "osm-tag-filter-groups": [
                 {
@@ -102,6 +108,7 @@
         },
         {
             "id": "pizza_take_away",
+            "icon": "pizza_take_away",
             "description": "places that sells pizza take away",
             "osm-tag-filter-groups": [
                 {
@@ -120,6 +127,7 @@
         },
         {
             "id": "pub",
+            "icon": "pub",
             "description": "an establishment that sells alcoholic drinks that can be consumed on the premises.",
             "osm-tag-filter-groups": [
                 {

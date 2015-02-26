@@ -5,6 +5,7 @@
     "categories": [
         {
             "id": "hotel",
+            "icon": "hotel",
             "description": "an establishment that provides paid lodging, usually on a short-term basis",
             "osm-tag-filter-groups": [
                 {"tourism": {"IS_EQUALS_TO": "hotel"}},
@@ -17,6 +18,7 @@
         },
         {
             "id": "apartment",
+            "icon": "hotel",
             "description": "an establishment that provides paid lodging, usually on a short-term basis",
             "osm-tag-filter-groups": [
                 {"tourism": {"IS_EQUALS_TO": "apartment"}}
@@ -28,6 +30,7 @@
         },
         {
             "id": "bed_and_breakfast",
+            "icon": "hotel",
             "description": "an establishment that provides paid lodging, usually on a short-term basis",
             "osm-tag-filter-groups": [
                 {"tourism": {"IS_EQUALS_TO": "guest_house"}}
@@ -39,6 +42,7 @@
         },
         {
             "id": "viewpoint",
+            "icon": "viewpoint",
             "description": "an establishment that provides paid lodging, usually on a short-term basis",
             "osm-tag-filter-groups": [
                 {"tourism": {"IS_EQUALS_TO": "viewpoint"}}
@@ -50,6 +54,7 @@
         },
         {
             "id": "museum",
+            "icon": "museum",
             "description": "an establishment that provides paid lodging, usually on a short-term basis",
             "osm-tag-filter-groups": [
                 {"tourism": {"IS_EQUALS_TO": "museum"}},

@@ -46,7 +46,7 @@ public class IconsManager {
 
 
     public int getCategoryIconId(PlaceCategory cat, boolean bigSize){
-        String symbol = cat != null ? cat.getId() : null;
+        String symbol = cat != null ? cat.getIcon() : null;
         if(symbol == null){
             symbol = UNKNOWN_CATEGORY_MARKER_SYMBOL;
         }
@@ -55,7 +55,7 @@ public class IconsManager {
     }
 
     public Drawable getCategoryIcon(PlaceCategory cat, boolean bigSize){
-        String symbol = cat.getId();
+        String symbol = cat.getIcon();
         if(symbol == null){
             symbol = UNKNOWN_CATEGORY_MARKER_SYMBOL;
         }

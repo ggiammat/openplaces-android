@@ -5,6 +5,7 @@
     "categories": [
         {
             "id": "building",
+            "icon": "building",
             "priority": "100",
             "description": "a building",
             "osm-tag-filter-groups": [
@@ -17,6 +18,7 @@
         },
         {
             "id": "office",
+            "icon": "building",
             "priority": "10",
             "description": "generic office",
             "osm-tag-filter-groups": [
@@ -33,6 +35,7 @@
         },
         {
             "id": "cinema",
+            "icon": "cinema",
             "description": "A place where films are shown",
             "osm-tag-filter-groups": [
                 {
@@ -48,6 +51,7 @@
         },
         {
             "id": "atm",
+            "icon": "atm",
             "description": "An automated teller machine",
             "osm-tag-filter-groups": [
                 {
@@ -63,6 +67,7 @@
         },
         {
             "id": "fuel",
+            "icon": "fuel",
             "description": "petrol station; gas station",
             "osm-tag-filter-groups": [
                 {
@@ -78,6 +83,7 @@
         },
         {
             "id": "parking",
+            "icon": "parking",
             "osm-tag-filter-groups": [
                 {
                     "amenity": {
@@ -92,6 +98,7 @@
         },
         {
             "id": "beach",
+            "icon": "beach",
             "description": "a large store for groceries and other goods",
             "osm-tag-filter-groups": [
                 {
@@ -107,6 +114,7 @@
         },
         {
             "id": "place_of_worship",
+            "icon": "religion",
             "description": "a large store for groceries and other goods",
             "osm-tag-filter-groups": [
                 {
@@ -122,6 +130,7 @@
         },
         {
             "id": "cafe",
+            "icon": "cafe",
             "description": "a generally informal place with sit-down facilities selling beverages and light meals and/or snacks",
             "osm-tag-filter-groups": [
                 {
@@ -137,6 +146,7 @@
         },
         {
             "id": "cocktail_bar",
+            "icon": "bar",
             "description": " purpose-built commercial establishment that sells alcoholic drinks to be consumed on the premises",
             "osm-tag-filter-groups": [
                 {
